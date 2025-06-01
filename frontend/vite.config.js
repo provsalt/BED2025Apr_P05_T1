@@ -8,5 +8,10 @@ export default defineConfig({
   build: {
     outDir: '../backend/dist',
     emptyOutDir: true,
-  }
+  },
+  resolve: {
+    alias: {
+      "@": "./src",
+    },
+  },
 })
