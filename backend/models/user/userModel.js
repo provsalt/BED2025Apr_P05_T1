@@ -39,7 +39,7 @@ export const createUser = async (userData) => {
     request.input("name", userData.name);
     request.input("email", userData.email);
     request.input("hashedPassword", hashedPassword);
-    request.input("dob", userData.dob);
+    request.input("dob", new Date(userData.dob * 1000)); // Convert from seconds to milliseconds
     request.input("gender", userData.gender);
     const res = await request.query(query)
 
