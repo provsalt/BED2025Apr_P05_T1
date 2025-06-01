@@ -1,0 +1,12 @@
+CREATE TABLE [Users] (
+    id INT IDENTITY(1, 1) PRIMARY KEY,
+    name NVARCHAR(255) NOT NULL,
+    email NVARCHAR(255) NOT NULL UNIQUE,
+    hashedPassword NVARCHAR(255) NOT NULL,
+    dob DATE NOT NULL,
+    gender TINYINT,
+    createdAt DATETIME2 DEFAULT GETDATE(),
+    updatedAt DATETIME2 DEFAULT GETDATE(),
+);
+
+
