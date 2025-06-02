@@ -35,7 +35,7 @@ export const createUser = async (userData) => {
     `;
     const request = db.request();
 
-    const hashedPassword = bcrypt.hashSync(userData.password, 10);
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
     request.input("name", userData.name);
     request.input("email", userData.email);
     request.input("hashedPassword", hashedPassword);
@@ -78,7 +78,7 @@ export const updateUser = async (id, userData) => {
     `;
     const request = db.request();
     request.input("id", id);
-    request.input("username", userData.name ?? currentUser.name);
+    request.input("name", userData.name ?? currentUser.name);
     request.input("email", userData.email ?? currentUser.email);
     request.input("hashedPassword", userData.hashedPassword ?? currentUser.hashedPassword);
     request.input("dob", userData.dob ?? currentUser.dob);

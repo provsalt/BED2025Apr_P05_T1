@@ -9,6 +9,6 @@ export const dbConfig = {
     database: process.env.DB_DATABASE,
     trustServerCertificate: true,
     options: {
-        port: parseInt(process.env.DB_PORT),
+        port: Number(process.env.DB_PORT),
     },
 }
