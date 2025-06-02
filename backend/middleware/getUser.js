@@ -7,7 +7,7 @@ export const getUserMiddleware = async (req, res, next) => {
     return res.status(401).json({"message": "Unauthorized"});
   }
   const data = auth.split(" ")
-  if (data[0] !== "Bearer:") {
+  if (data[0] !== "Bearer" || data.length !== 2) {
     return res.status(422).json({"message": "Invalid Token"});
   }
 
