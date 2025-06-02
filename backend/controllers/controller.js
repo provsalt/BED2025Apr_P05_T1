@@ -1,4 +1,5 @@
-import {createUserController, getUserController} from "./user/userController.js";
+import {createUserController, getCurrentUserController } from "./user/userController.js";
+import {getUserMiddleware} from "../middleware/getUser.js";
 
 /**
  * Controller function to set up routes for the application.
@@ -6,6 +7,7 @@ import {createUserController, getUserController} from "./user/userController.js"
  * @constructor
  */
 export const Controller = (app) => {
-    app.get("/api/users/:id", getUserController)
-    app.post("/api/users", createUserController)
+  // app.get("/api/users/:id", getUserController)
+  app.post("/api/user", createUserController)
+  app.get("/api/user", getUserMiddleware, getCurrentUserController)
 }

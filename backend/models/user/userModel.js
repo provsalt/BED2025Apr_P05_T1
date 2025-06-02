@@ -24,7 +24,7 @@ export const getUser = async (id) => {
 /**
  * Creates a new user in the database.
  * @param userData {object}
- * @returns {Promise<number>}
+ * @returns {Promise<>}
  */
 export const createUser = async (userData) => {
     const db = await sql.connect(dbConfig);
