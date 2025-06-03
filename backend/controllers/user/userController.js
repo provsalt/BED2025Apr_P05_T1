@@ -2,9 +2,9 @@ import {createUser, getUser} from "../../models/user/userModel.js";
 import {User} from "../../utils/validation/user.js";
 import {SignJWT} from "jose";
 
-// Import bcrypt for password hashing
-import bcrypt from "bcryptjs"; 
-import { getUser, updateUser } from "../../models/user/userModel.js";
+// // Import bcrypt for password hashing
+// import bcrypt from "bcryptjs"; 
+// import { getUser, updateUser } from "../../models/user/userModel.js";
 
 export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
@@ -75,18 +75,25 @@ export const createUserController = async (req, res) => {
     }
 }
 
-// This controller handles changing the user's password
-export const changePasswordController = async (req, res) => {
-  const userId = parseInt(req.params.id);
-  const { oldPassword, newPassword } = req.body;
-  const user = await getUser(userId);
-  const valid = await bcrypt.compare(oldPassword, user.hashedPassword);
-  if (!valid) return res.status(403).json({ error: "Old password is incorrect" });
+// // This controller handles changing the user's password
+// import bcrypt from "bcryptjs";
+// import { getUser, updateUser } from "../../models/user/userModel.js";
 
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-  const updated = await updateUser(userId, { hashedPassword });
-  if (!updated) return res.status(500).json({ error: "Failed to update password" });
+// export const changePasswordController = async (req, res) => {
+//   const userId = parseInt(req.params.id);
+//   const { oldPassword, newPassword } = req.body;
 
-  res.json({ message: "Password updated successfully" });
-  
-};
+//   try {
+//     const user = await getUser(userId);
+//     const valid = await bcrypt.compare(oldPassword, user.hashedPassword);
+//     if (!valid) return res.status(403).json({ error: "Old password is incorrect" });
+
+//     const hashedPassword = await bcrypt.hash(newPassword, 10);
+//     const updated = await updateUser(userId, { hashedPassword });
+//     if (!updated) return res.status(500).json({ error: "Failed to update password" });
+
+//     res.json({ message: "Password updated successfully" });
+//   } catch (e) {
+//     res.status(500).json({ error: "Error updating password" });
+//   }
+// };
