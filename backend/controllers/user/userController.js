@@ -2,6 +2,10 @@ import {createUser, getUser} from "../../models/user/userModel.js";
 import {User} from "../../utils/validation/user.js";
 import {SignJWT} from "jose";
 
+// Import bcrypt for password hashing
+import bcrypt from "bcryptjs"; 
+import { getUser, updateUser } from "../../models/user/userModel.js";
+
 export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
     return res.status(401).json({"message": "Unauthorized"});
@@ -70,3 +74,19 @@ export const createUserController = async (req, res) => {
         res.status(500).json({ error: "Error creating user" });
     }
 }
+
+// This controller handles changing the user's password
+export const changePasswordController = async (req, res) => {
+  const userId = parseInt(req.params.id);
+  const { oldPassword, newPassword } = req.body;
+  const user = await getUser(userId);
+  const valid = await bcrypt.compare(oldPassword, user.hashedPassword);
+  if (!valid) return res.status(403).json({ error: "Old password is incorrect" });
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  const updated = await updateUser(userId, { hashedPassword });
+  if (!updated) return res.status(500).json({ error: "Failed to update password" });
+
+  res.json({ message: "Password updated successfully" });
+  
+};
