@@ -40,5 +40,4 @@ const UserSettings = ({ userId }) => {
     </form>
   );
 };
-
-
+export default UserSettings;
