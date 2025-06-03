@@ -1,4 +1,4 @@
-import {createUserController, getCurrentUserController } from "./user/userController.js";
+import {createUserController, getCurrentUserController } from "./user/userController.js";  // Import user controller functions   "getUserController, updateUserController"
 import {getUserMiddleware} from "../middleware/getUser.js";
 
 /**
@@ -8,6 +8,7 @@ import {getUserMiddleware} from "../middleware/getUser.js";
  */
 export const Controller = (app) => {
   // app.get("/api/users/:id", getUserController)
+  // app.put("/api/users/:id", updateUserController);
   app.post("/api/user", createUserController)
   app.get("/api/user", getUserMiddleware, getCurrentUserController)
 }
