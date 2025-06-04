@@ -6,37 +6,18 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card.jsx";
-import { zodResolver } from "@hookform/resolvers/zod"
-import {Button} from "@/components/ui/button.jsx";
 import {Link} from "react-router";
-import {z} from "zod";
-import {Form, useForm} from "react-hook-form";
-import {FormField, FormItem} from "@/components/ui/form.jsx";
+import {useForm} from "react-hook-form";
+import {Input} from "@/components/ui/input.jsx";
+import {Label} from "@radix-ui/react-label";
+import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group.jsx";
 
-const signupForm = z.object({
-  name: z.string().min(2).max(255),
-  email: z.string().email(),
-  password: z.string().min(8).max(255),
-  confirmPassword: z.string().min(8).max(255),
-  dateOfBirth: z.string(),
-  gender: z.number().min(0).max(1),
-  terms: z.boolean().refine((val) => val, {
-    message: "You must accept the terms and conditions",
-  }),
-})
 
 export const Signup = () => {
-  const form = useForm({
-    resolver: zodResolver(signupForm),
-    defaultValues: {
-      name: "",
-    },
-  })
-
-  const onSubmit = (data) => {
-    console.log("Form submitted with data:", data);
+  const { register, handleSubmit, formState: { errors } } = useForm();
+  const onSubmit = data => {
+    console.log(data);
   }
-
     return (
         <div className="flex flex-col flex-1 items-center justify-center">
 
@@ -47,26 +28,49 @@ export const Signup = () => {
                 Quickly create an account to start using our services.
               </CardDescription>
             </CardHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <label className="text-sm font-medium">Name</label>
-                        <input
-                          {...field}
-                          className="w-full p-2 border rounded"
-                          placeholder="Enter your name"
-                        />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit">Sign up</Button>
-                </form>
-              </Form>
+
             <CardContent>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Name</Label>
+                  <Input type="text" placeholder="Enter Your Name" {...register("name", {required: true, min: 3, maxLength: 255})} />
+                  {errors.name && <span className="text-red-500">Please enter a valid name.</span>}
+                </div>
+                <div>
+                  <Label htmlFor="name">Email</Label>
+                  <Input type="text" placeholder="Enter Your Email" {...register("email", {required: true, maxLength: 255})} />
+                  {errors.email && <span className="text-red-500">Please enter a valid email.</span>}
+                </div>
+                <div className="space-y-2">
+                  <div>
+                    <Label htmlFor="password">Password</Label>
+                    <Input type="password" placeholder="Enter Your Password" {...register("password", {required: true, min: 8, maxLength: 255})} />
+                    {errors.password && <span className="text-red-500">Please enter a valid password.</span>}
+                  </div>
+                  <div>
+                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Input type="password" placeholder="Confirm Your Password" {...register("confirm-password", {required: true, min: 8, maxLength: 255})} />
+                    {errors["confirm-password"] && <span className="text-red-500">Please confirm your password.</span>}
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="dob">Date of Birth</Label>
+                  <Input type="date" placeholder="Enter Your Date of Birth" {...register("dob", {required: true})} />
+                  {errors.dob && <span className="text-red-500">Please enter a valid date of birth.</span>}
+                </div>
+                <div>
+                  <RadioGroup defaultValue="female" className="flex items-center">
+                    <RadioGroupItem {...register("gender", {required: true})} value="female" id="gender-female"/>
+                    <Label htmlFor="gender-female">Female</Label>
+                    <RadioGroupItem {...register("gender", {required: true})} value="male" id="gender-male" />
+                    <Label htmlFor="gender-male">Male</Label>
+                  </RadioGroup>
+                  {errors.gender && <span className="text-red-500">Please enter a valid gender.</span>}
+                </div>
+
+                <Input type="submit" />
+              </form>
 
             </CardContent>
 
