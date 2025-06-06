@@ -11,13 +11,22 @@ import {useForm} from "react-hook-form";
 import {Input} from "@/components/ui/input.jsx";
 import {Label} from "@radix-ui/react-label";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group.jsx";
+import {Button} from "@/components/ui/button.jsx";
 
 
 export const Signup = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
+  /**
+   * onSubmit runs when the form is submitted
+   * @param data
+   */
   const onSubmit = data => {
-    console.log(data);
+    console.log(data)
+    if (data["confirm-password"] !== data["password"]) {
+
+    }
   }
+
     return (
         <div className="flex flex-col flex-1 items-center justify-center">
 
@@ -60,7 +69,8 @@ export const Signup = () => {
                   {errors.dob && <span className="text-red-500">Please enter a valid date of birth.</span>}
                 </div>
                 <div>
-                  <RadioGroup defaultValue="female" className="flex items-center">
+                  <Label for="gender" >Gender</Label>
+                  <RadioGroup name="gender" id="gender" defaultValue="female" className="flex items-center">
                     <RadioGroupItem {...register("gender", {required: true})} value="female" id="gender-female"/>
                     <Label htmlFor="gender-female">Female</Label>
                     <RadioGroupItem {...register("gender", {required: true})} value="male" id="gender-male" />
@@ -69,7 +79,8 @@ export const Signup = () => {
                   {errors.gender && <span className="text-red-500">Please enter a valid gender.</span>}
                 </div>
 
-                <Input type="submit" />
+                <Button type="submit" className="w-full cursor-pointer">Sign up</Button>
+
               </form>
 
             </CardContent>
