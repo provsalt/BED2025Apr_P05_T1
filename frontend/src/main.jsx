@@ -5,9 +5,11 @@ import {BrowserRouter, Route, Routes} from "react-router";
 import {Signup} from "@/routes/auth/signUp.jsx";
 import {Home} from "@/routes/Home.jsx";
 import {Navbar} from "@/components/navbar/navbar.jsx";
+import {AlertProvider} from "@/provider/AlertProvider.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    <AlertProvider position="bottom-center">
       <BrowserRouter>
         <div className="flex flex-col min-h-svh">
           <Navbar />
@@ -19,5 +21,6 @@ createRoot(document.getElementById('root')).render(
           </div>
         </div>
       </BrowserRouter>
+    </AlertProvider>
   </StrictMode>,
 )

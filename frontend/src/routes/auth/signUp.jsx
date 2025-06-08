@@ -12,10 +12,12 @@ import {Input} from "@/components/ui/input.jsx";
 import {Label} from "@radix-ui/react-label";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group.jsx";
 import {Button} from "@/components/ui/button.jsx";
+import {useAlert} from "@/provider/AlertProvider.jsx";
 
 
 export const Signup = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const alert = useAlert();
   /**
    * onSubmit runs when the form is submitted
    * @param data
@@ -23,8 +25,25 @@ export const Signup = () => {
   const onSubmit = data => {
     console.log(data)
     if (data["confirm-password"] !== data["password"]) {
-
+      alert.error({
+        title: "Error",
+        description: "Passwords do not match.",
+        variant: "destructive"
+      })
+      return;
     }
+    const dob = new Date(data.dob);
+    const today = new Date();
+    if (dob >= today) {
+      alert.error({
+        title: "Error",
+        description: "Date of birth must be in the past.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+
   }
 
     return (
