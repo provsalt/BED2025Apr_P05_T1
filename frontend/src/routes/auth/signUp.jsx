@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card.jsx";
-import {Link} from "react-router";
+import {Link, useNavigate} from "react-router";
 import {useForm} from "react-hook-form";
 import {Input} from "@/components/ui/input.jsx";
 import {Label} from "@radix-ui/react-label";
@@ -18,11 +18,13 @@ import {useAlert} from "@/provider/AlertProvider.jsx";
 export const Signup = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const alert = useAlert();
+  let navigate = useNavigate();
+
   /**
    * onSubmit runs when the form is submitted
    * @param data
    */
-  const onSubmit = data => {
+  const onSubmit = async data => {
     console.log(data)
     if (data["confirm-password"] !== data["password"]) {
       alert.error({
@@ -43,7 +45,36 @@ export const Signup = () => {
       return;
     }
 
-
+    const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        dob: new Date(data.dob).getTime() / 1000,
+        gender: data.gender === "female" ? 0 : 1,
+      })
+    });
+    if (res.ok) {
+      alert.success({
+        title: "Success",
+        description: "Account created successfully. Redirecting...",
+      });
+      const resp = await res.json();
+      localStorage.setItem("token", resp.token);
+      localStorage.setItem("id", resp.id)
+      setTimeout(() => navigate("/medicine"), 3000);
+    } else {
+      const errorData = await res.json();
+      alert.error({
+        title: "Error",
+        description: errorData.error || "An error occurred while creating the account.",
+        variant: "destructive"
+      });
+    }
   }
 
     return (
