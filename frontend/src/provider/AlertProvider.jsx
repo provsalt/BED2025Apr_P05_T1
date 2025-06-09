@@ -88,9 +88,6 @@ export function AlertProvider({ children, position = "top-right" }) {
   );
 }
 
-// Rest of the file remains the same
-
-// Custom hook to use the alert context
 export function useAlert() {
   const context = useContext(AlertContext);
 

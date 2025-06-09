@@ -13,12 +13,15 @@ import {Label} from "@radix-ui/react-label";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group.jsx";
 import {Button} from "@/components/ui/button.jsx";
 import {useAlert} from "@/provider/AlertProvider.jsx";
+import {useContext} from "react";
+import {UserContext} from "@/provider/UserContext.js";
 
 
 export const Signup = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const alert = useAlert();
-  let navigate = useNavigate();
+  const navigate = useNavigate();
+  const auth = useContext(UserContext);
 
   /**
    * onSubmit runs when the form is submitted
@@ -65,7 +68,10 @@ export const Signup = () => {
       });
       const resp = await res.json();
       localStorage.setItem("token", resp.token);
-      localStorage.setItem("id", resp.id)
+      localStorage.setItem("id", resp.id);
+      auth.id = resp.id;
+      auth.token = resp.token;
+      auth.isAuthenticated = true;
       setTimeout(() => navigate("/medicine"), 3000);
     } else {
       const errorData = await res.json();
