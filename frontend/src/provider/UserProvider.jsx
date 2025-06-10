@@ -17,7 +17,7 @@ export const UserProvider = ({ children }) => {
     }
 
     const token = localStorage.getItem("token");
-    const parse = decodeJwt(token);
+    const parse = token ? decodeJwt(token) : null;
     const isAuthenticated = !!token && parse && parse.exp > Date.now() / 1000;
     setUser({
       id: parse.sub,

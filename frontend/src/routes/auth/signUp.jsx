@@ -125,7 +125,7 @@ export const Signup = () => {
                   {errors.dob && <span className="text-red-500">Please enter a valid date of birth.</span>}
                 </div>
                 <div>
-                  <Label for="gender" >Gender</Label>
+                  <Label htmlFor="gender" >Gender</Label>
                   <RadioGroup name="gender" id="gender" defaultValue="female" className="flex items-center">
                     <RadioGroupItem {...register("gender", {required: true})} value="female" id="gender-female"/>
                     <Label htmlFor="gender-female">Female</Label>
