@@ -12,14 +12,15 @@ export const getUser = async (id) => {
     const query = "SELECT * FROM Users WHERE id = @id";
     const request = db.request();
     request.input("id", id);
-    const result = await request.query(query)
+    const result = await request.query(query);
 
     if (result.recordset.length === 0) {
-        return null;
+    return null;
     }
 
     return result.recordset[0];
-}
+};
+
 
 /**
  * Creates a new user in the database.

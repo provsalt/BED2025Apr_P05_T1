@@ -1,10 +1,9 @@
-import {createUser, getUser} from "../../models/user/userModel.js";
+import {createUser, getUser, updateUser} from "../../models/user/userModel.js";
 import {User} from "../../utils/validation/user.js";
 import {SignJWT} from "jose";
 
-// // Import bcrypt for password hashing
-// import bcrypt from "bcryptjs"; 
-// import { getUser, updateUser } from "../../models/user/userModel.js";
+// Import bcrypt for password hashing
+import bcrypt from "bcryptjs"; 
 
 export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
@@ -13,40 +12,42 @@ export const getCurrentUserController = async (req, res) => {
   res.status(200).json(req.user)
 }
 
-// export const getUserController = async (req, res) => {
-//     const userId = parseInt(req.params.id);
-//     if (isNaN(userId)) {
-//         return res.status(400).json({ error: "Invalid user ID" });
-//     }
-//
-//     try {
-//         const user = await getUser(userId);
-//         if (!user) {
-//             return res.status(404).json({ error: "User not found" });
-//         }
-//         res.json(user);
-//     } catch (error) {
-//         res.status(500).json({ error: "Error fetching user" });
-//     }
-// }
+export const getUserController = async (req, res) => {
+  const userId = parseInt(req.params.id);
+  if (isNaN(userId)) {
+    return res.status(400).json({ error: "Invalid user ID" });
+  }
+
+  try {
+    const user = await getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error); 
+    res.status(500).json({ error: "Error fetching user" });
+  }
+};
 
 
-// // PUT: This to update user id
-// export const updateUserController = async (req, res) => {
-//   const userId = parseInt(req.params.id);
-//   const updates = req.body;
 
-//   try {
-//     const success = await updateUser(userId, updates);
-//     if (!success) {
-//       return res.status(404).json({ error: "User not found or not updated" });
-//     }
-//     res.json({ message: "User updated successfully" });
-//   } catch (error) {
-//     console.error("Update error:", error);
-//     res.status(500).json({ error: "Failed to update user" });
-//   }
-// };
+// PUT: This to update user id
+export const updateUserController = async (req, res) => {
+  const userId = parseInt(req.params.id);
+  const updates = req.body;
+
+  try {
+    const success = await updateUser(userId, updates);
+    if (!success) {
+      return res.status(404).json({ error: "User not found or not updated" });
+    }
+    res.json({ message: "User updated successfully" });
+  } catch (error) {
+    console.error("Update error:", error);
+    res.status(500).json({ error: "Failed to update user" });
+  }
+};
 
 
 export const createUserController = async (req, res) => {
@@ -75,25 +76,22 @@ export const createUserController = async (req, res) => {
     }
 }
 
-// // This controller handles changing the user's password
-// import bcrypt from "bcryptjs";
-// import { getUser, updateUser } from "../../models/user/userModel.js";
+// This controller handles changing the user's password
+export const changePasswordController = async (req, res) => {
+  const userId = parseInt(req.params.id);
+  const { oldPassword, newPassword } = req.body;
 
-// export const changePasswordController = async (req, res) => {
-//   const userId = parseInt(req.params.id);
-//   const { oldPassword, newPassword } = req.body;
+  try {
+    const user = await getUser(userId);
+    const valid = await bcrypt.compare(oldPassword, user.hashedPassword);
+    if (!valid) return res.status(403).json({ error: "Old password is incorrect" });
 
-//   try {
-//     const user = await getUser(userId);
-//     const valid = await bcrypt.compare(oldPassword, user.hashedPassword);
-//     if (!valid) return res.status(403).json({ error: "Old password is incorrect" });
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const updated = await updateUser(userId, { hashedPassword });
+    if (!updated) return res.status(500).json({ error: "Failed to update password" });
 
-//     const hashedPassword = await bcrypt.hash(newPassword, 10);
-//     const updated = await updateUser(userId, { hashedPassword });
-//     if (!updated) return res.status(500).json({ error: "Failed to update password" });
-
-//     res.json({ message: "Password updated successfully" });
-//   } catch (e) {
-//     res.status(500).json({ error: "Error updating password" });
-//   }
-// };
+    res.json({ message: "Password updated successfully" });
+  } catch (e) {
+    res.status(500).json({ error: "Error updating password" });
+  }
+};
