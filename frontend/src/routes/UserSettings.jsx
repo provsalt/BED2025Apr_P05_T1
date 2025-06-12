@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const UserSettings = ({ userId }) => {
+export const UserSettings = () => {
+  const userId = 1;
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -59,34 +61,32 @@ const UserSettings = ({ userId }) => {
   };
 
   return (
-    <div>
-      <h2>User Settings</h2>
-      {/* Profile information input */}
-      <form onSubmit={handleSubmit}>
-        <input name="name" value={formData.name} onChange={handleChange} placeholder="Name"/>
-        <input name="email" value={formData.email} disabled placeholder="Email (read-only)"/>
-        <input name="dob" type="date" value={formData.dob?.split("T")[0]}
-          onChange={handleChange}/>
-        <select name="gender" value={formData.gender} onChange={handleChange}>
-          <option value="">-- Select Gender --</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-        </select>
-        <button type="submit">Save Profile</button>
+    <div className="user-settings-container">
+      <h1 className="title">User Settings</h1>
+
+      <form className="settings-form" onSubmit={handleSubmit}>
+        <label>Name:<input name="name" value={formData.name} onChange={handleChange} required /></label>
+        <label>Email:<input name="email" value={formData.email} disabled /></label>
+        <label>Date of Birth:<input name="dob" type="date" value={formData.dob?.split("T")[0]} onChange={handleChange} required /></label>
+        <label>Gender:
+          <select name="gender" value={formData.gender} onChange={handleChange}>
+            <option value="">-- Select Gender --</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </label>
+        <button type="submit" className="save-btn">Save Profile</button>
       </form>
 
       <hr />
 
-      {/*Change Password Form */}
-      <h3>Change Password</h3>
-      <form onSubmit={handleChangePassword}>
-        <input type="password" name="oldPassword" placeholder="Old Password" value={passwordForm.oldPassword} onChange={handlePasswordChange} required/>
-        <input type="password" name="newPassword" placeholder="New Password" value={passwordForm.newPassword} onChange={handlePasswordChange} required/>
-        <input type="password" name="confirmPassword" placeholder="Confirm New Password" value={passwordForm.confirmPassword} onChange={handlePasswordChange} required/>
-        <button type="submit">Update Password</button>
+      <h2 className="subtitle">Change Password</h2>
+      <form className="password-form" onSubmit={handleChangePassword}>
+        <label>Old Password:<input type="password" name="oldPassword" value={passwordForm.oldPassword} onChange={handlePasswordChange} required /></label>
+        <label>New Password:<input type="password" name="newPassword" value={passwordForm.newPassword} onChange={handlePasswordChange} required /></label>
+        <label>Confirm New Password:<input type="password" name="confirmPassword" value={passwordForm.confirmPassword} onChange={handlePasswordChange} required /></label>
+        <button type="submit" className="save-btn">Update Password</button>
       </form>
     </div>
   );
 };
-
-export default UserSettings;
