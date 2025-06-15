@@ -19,7 +19,7 @@ CREATE TABLE Admin (
     FOREIGN KEY (user_id) REFERENCES [Users](id)
 );
 
-CREATE TABLE Community_event (
+CREATE TABLE CommunityEvent (
     id INT PRIMARY KEY IDENTITY(1,1),
     name VARCHAR(100) NOT NULL,
     location VARCHAR(100) NOT NULL,
@@ -31,24 +31,24 @@ CREATE TABLE Community_event (
     approved_by_admin_id INT NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (user_id) REFERENCES [Users](id),
-    FOREIGN KEY (approved_by_admin_id) REFERENCES admin(user_id)
+    FOREIGN KEY (approved_by_admin_id) REFERENCES Admin(user_id)
 );
 
-CREATE TABLE Community_event_signup (
+CREATE TABLE CommunityEventSignup (
     user_id INT,
     community_event_id INT,
     signed_up_at DATETIME DEFAULT GETDATE(),
     PRIMARY KEY (user_id, community_event_id),
     FOREIGN KEY (user_id) REFERENCES [Users](id),
-    FOREIGN KEY (community_event_id) REFERENCES community_event(id)
+    FOREIGN KEY (community_event_id) REFERENCES CommunityEvent(id)
 );
 
-CREATE TABLE Community_event_image (
+CREATE TABLE CommunityEventImage (
     id INT PRIMARY KEY IDENTITY(1,1),
     community_event_id INT NOT NULL,
     image_url VARCHAR(255) NOT NULL,
     uploaded_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (community_event_id) REFERENCES community_event(id)
+    FOREIGN KEY (community_event_id) REFERENCES CommunityEvent(id)
 );
 
 CREATE TABLE Chat (
@@ -60,20 +60,20 @@ CREATE TABLE Chat (
     FOREIGN KEY (message_receiver) REFERENCES [Users](id)
 );
 
-CREATE TABLE Chat_msg (
+CREATE TABLE ChatMsg (
     id INT PRIMARY KEY IDENTITY(1,1),
     chat_id INT NOT NULL,
     msg VARCHAR(1000),
     msg_created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (chat_id) REFERENCES chat(id)
+    FOREIGN KEY (chat_id) REFERENCES Chat(id)
 );
 
-CREATE TABLE Meal_category (
+CREATE TABLE MealCategory (
     id INT PRIMARY KEY IDENTITY(1,1),
     name VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE Scanned_meal (
+CREATE TABLE ScannedMeal (
     id INT PRIMARY KEY IDENTITY(1,1),
     meal_name VARCHAR(100),
     meal_category_id INT NOT NULL,
@@ -89,25 +89,25 @@ CREATE TABLE Scanned_meal (
     FOREIGN KEY (user_id) REFERENCES [Users](id)
 );
 
-CREATE TABLE Meal_ingredient (
+CREATE TABLE MealIngredient (
     scanned_meal_id INT NOT NULL,
     ingredient VARCHAR(100) NOT NULL,
     PRIMARY KEY (scanned_meal_id, ingredient),
-    FOREIGN KEY (scanned_meal_id) REFERENCES scanned_meal(id)
+    FOREIGN KEY (scanned_meal_id) REFERENCES ScannedMeal(id)
 );
 
-CREATE TABLE illness (
+CREATE TABLE Illness (
     id INT PRIMARY KEY IDENTITY(1,1),
     name VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE user_illness (
+CREATE TABLE UserIllness (
     user_id INT NOT NULL,
     illness_id INT NOT NULL,
     added_at DATETIME DEFAULT GETDATE(),
     PRIMARY KEY (user_id, illness_id),
     FOREIGN KEY (user_id) REFERENCES [Users](id),
-    FOREIGN KEY (illness_id) REFERENCES illness(id)
+    FOREIGN KEY (illness_id) REFERENCES Illness(id)
 );
 
 CREATE TABLE Medication (
@@ -121,10 +121,10 @@ CREATE TABLE Medication (
     image_url VARCHAR(255),
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (user_id) REFERENCES [Users](id),
-    FOREIGN KEY (illness_id) REFERENCES illness(id)
+    FOREIGN KEY (illness_id) REFERENCES Illness(id)
 );
 
-CREATE TABLE Medication_question (
+CREATE TABLE MedicationQuestion (
     user_id INT PRIMARY KEY,
     difficulty_walking VARCHAR(255) NOT NULL,
     assistive_device VARCHAR(255) NOT NULL,
@@ -136,7 +136,7 @@ CREATE TABLE Medication_question (
     FOREIGN KEY (user_id) REFERENCES [Users](id)
 );
 
-CREATE TABLE Health_summary (
+CREATE TABLE HealthSummary (
     id INT PRIMARY KEY IDENTITY(1,1),
     user_id INT,
     summary TEXT,
