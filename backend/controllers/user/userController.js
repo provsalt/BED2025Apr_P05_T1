@@ -32,7 +32,7 @@ export const getUserController = async (req, res) => {
 
 
 
-// PUT: This to update user id
+// PUT: Update Profile
 export const updateUserController = async (req, res) => {
   const userId = parseInt(req.params.id);
   const updates = req.body;
@@ -76,7 +76,7 @@ export const createUserController = async (req, res) => {
     }
 }
 
-// This controller handles changing the user's password
+// Change Password
 export const changePasswordController = async (req, res) => {
   const userId = parseInt(req.params.id);
   const { oldPassword, newPassword } = req.body;
@@ -92,6 +92,7 @@ export const changePasswordController = async (req, res) => {
 
     res.json({ message: "Password updated successfully" });
   } catch (e) {
+    console.error("Password update error:", e);
     res.status(500).json({ error: "Error updating password" });
   }
 };

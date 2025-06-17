@@ -64,6 +64,10 @@ export const UserSettings = () => {
     <div className="user-settings-container">
       <h1 className="title">User Settings</h1>
 
+      <label>Upload Profile Picture</label>
+        <input type="file" onChange={(e) => setSelectedFile(e.target.files[0])}/>
+      <button type="button" onClick={handleUploadPicture}>Upload Picture</button>
+
       <form className="settings-form" onSubmit={handleSubmit}>
         <label>Name:<input name="name" value={formData.name} onChange={handleChange} required /></label>
         <label>Email:<input name="email" value={formData.email} disabled /></label>
