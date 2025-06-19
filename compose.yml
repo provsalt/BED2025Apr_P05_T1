@@ -1,0 +1,34 @@
+services:
+  db:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "1433:1433"
+    platform: "linux/amd64"
+  backend:
+    build: ./backend
+
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - SECRET=${SECRET}
+  frontend:
+    build: ./frontend
+    ports:
+      - "4173:4173"
+    depends_on:
+      - backend
+
+networks:
+  bed-assignment:
+    name: "bed-assignment"
+    driver: bridge
