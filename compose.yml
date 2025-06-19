@@ -7,6 +7,8 @@ services:
     ports:
       - "1433:1433"
     platform: "linux/amd64"
+    volumes:
+      - ./db_data:/var/opt/mssql
   backend:
     build: ./backend
 
@@ -27,6 +29,8 @@ services:
       - "4173:4173"
     depends_on:
       - backend
+    environment:
+      - VITE_BACKEND_URL=${VITE_BACKEND_URL}
 
 networks:
   bed-assignment:
