@@ -22,4 +22,4 @@ COPY --from=build /app/dist /app/dist
 
 EXPOSE 4173
 ENV NODE_ENV=production
-CMD ["pnpm", "preview"]
+CMD ["pnpm", "preview", "--host"]
