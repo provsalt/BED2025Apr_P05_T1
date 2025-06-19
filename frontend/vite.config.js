@@ -7,7 +7,7 @@ import {resolve} from 'node:path';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
-    outDir: '../backend/dist',
+    // outDir: '../backend/dist',
     emptyOutDir: true,
   },
   resolve: {
