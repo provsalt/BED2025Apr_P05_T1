@@ -1,0 +1,57 @@
+.user-settings-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fafafa;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+  font-family: "Segoe UI", sans-serif;
+}
+
+h1, h2 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.settings-form label,
+.password-form label {
+  display: block;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+input, select {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+}
+
+.save-btn, .edit-btn {
+  background-color: #2c7be5;
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  margin-top: 1rem;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.edit-btn {
+  float: right;
+  margin-bottom: 1rem;
+}
+
+.save-btn:hover,
+.edit-btn:hover {
+  background-color: #1a5cc6;
+}
+
+.message {
+  color: green;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}

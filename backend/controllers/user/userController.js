@@ -38,13 +38,23 @@ export const updateUserController = async (req, res) => {
   const updates = req.body;
 
   try {
-    const success = await updateUser(userId, updates);
-    if (!success) {
-      return res.status(404).json({ error: "User not found or not updated" });
+    const currentUser = await getUser(userId);
+    if (!currentUser) {
+      return res.status(404).json({ error: "User not found" });
     }
+
+    updates.email = currentUser.email;
+    updates.hashedPassword = currentUser.hashedPassword;
+
+    const success = await updateUser(userId, updates);
+
+    if (!success) {
+      return res.status(400).json({ error: "User not updated" });
+    }
+
     res.json({ message: "User updated successfully" });
   } catch (error) {
-    console.error("Update error:", error);
+    console.error("Update error in controller:", error);
     res.status(500).json({ error: "Failed to update user" });
   }
 };
