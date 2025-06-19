@@ -21,6 +21,20 @@ export const getUser = async (id) => {
     return result.recordset[0];
 }
 
+export const getUserByEmail = async (email) => {
+    const db = await sql.connect(dbConfig);
+    const query = "SELECT * FROM Users WHERE email = @email";
+    const request = db.request();
+    request.input("email", email);
+    const result = await request.query(query)
+
+    if (result.recordset.length === 0) {
+        return null;
+    }
+
+    return result.recordset[0];
+}
+
 /**
  * Creates a new user in the database.
  * @param userData {object}

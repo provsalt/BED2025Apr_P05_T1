@@ -1,6 +1,8 @@
-import {createUser, getUser} from "../../models/user/userModel.js";
+import {createUser, getUser, getUserByEmail} from "../../models/user/userModel.js";
 import {User} from "../../utils/validation/user.js";
 import {SignJWT} from "jose";
+import {z} from "zod/v4";
+import bcrypt from "bcryptjs";
 
 export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
@@ -9,22 +11,37 @@ export const getCurrentUserController = async (req, res) => {
   res.status(200).json(req.user)
 }
 
-// export const getUserController = async (req, res) => {
-//     const userId = parseInt(req.params.id);
-//     if (isNaN(userId)) {
-//         return res.status(400).json({ error: "Invalid user ID" });
-//     }
-//
-//     try {
-//         const user = await getUser(userId);
-//         if (!user) {
-//             return res.status(404).json({ error: "User not found" });
-//         }
-//         res.json(user);
-//     } catch (error) {
-//         res.status(500).json({ error: "Error fetching user" });
-//     }
-// }
+export const loginUserController = async (req, res) => {
+  const body = req.body;
+  const validate = z.object({
+    email: z.email().max(255),
+    password: z.string().min(8).max(255),
+  }).safeParse(body)
+  if (!validate.success) {
+    return res.status(400).json({ error: "Invalid user data", details: validate.error.issues });
+  }
+
+  const user = await getUserByEmail(validate.data.email);
+  if (!user) {
+    return res.status(401).json({ error: "Invalid email or password" });
+  }
+  const isPasswordValid = await bcrypt.compare(validate.data.password, user.hashedPassword);
+
+  if (!isPasswordValid) {
+    return res.status(401).json({ error: "Invalid email or password" });
+  }
+
+  const secret = new TextEncoder().encode(process.env.SECRET || "");
+  const tok = await new SignJWT({
+    sub: user.id
+  }).setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("1d")
+    .sign(secret);
+  res.status(200).json({
+    id: user.id,
+    token: tok
+  });
+}
 
 export const createUserController = async (req, res) => {
     const body = req.body;
