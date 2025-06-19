@@ -9,49 +9,85 @@
 }
 
 h1, h2 {
-  color: #333;
+  color: #2c3e50;
   margin-bottom: 1rem;
 }
 
-.settings-form label,
-.password-form label {
+p {
+  margin: 0 0 0.5rem;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+form {
+  margin-top: 1.5rem;
+}
+
+label {
   display: block;
-  margin-bottom: 1rem;
   font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
 }
 
-input, select {
+input,
+select {
   width: 100%;
-  padding: 0.5rem;
-  margin-top: 0.25rem;
+  padding: 0.6rem;
+  margin-bottom: 1rem;
   border: 1px solid #ccc;
   border-radius: 6px;
+  font-size: 1rem;
   background-color: #fff;
+  transition: border 0.2s ease;
 }
 
-.save-btn, .edit-btn {
+input:focus,
+select:focus {
+  border-color: #2c7be5;
+  outline: none;
+}
+
+button {
   background-color: #2c7be5;
   color: white;
   border: none;
-  padding: 0.6rem 1rem;
-  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
   cursor: pointer;
   border-radius: 6px;
   font-weight: bold;
+  font-size: 1rem;
+  transition: background 0.2s ease;
 }
 
-.edit-btn {
-  float: right;
-  margin-bottom: 1rem;
-}
-
-.save-btn:hover,
-.edit-btn:hover {
+button:hover {
   background-color: #1a5cc6;
 }
 
-.message {
+.success {
   color: green;
-  font-weight: bold;
-  margin-bottom: 1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.error {
+  color: red;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+input[disabled] {
+  background-color: #eee;
+  color: #888;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .user-settings-container {
+    padding: 1.5rem 1rem;
+  }
+
+  button {
+    width: 100%;
+  }
 }

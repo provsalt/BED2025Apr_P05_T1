@@ -43,21 +43,28 @@ export const updateUserController = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
+    // 🔒 Protect non-editable fields
     updates.email = currentUser.email;
     updates.hashedPassword = currentUser.hashedPassword;
+
+    // 🛡️ Validate/fix dob
+    if (!updates.dob || isNaN(Date.parse(updates.dob))) {
+      updates.dob = currentUser.dob;
+    }
 
     const success = await updateUser(userId, updates);
 
     if (!success) {
-      return res.status(400).json({ error: "User not updated" });
+      return res.status(400).json({ error: "Failed to update user" });
     }
 
     res.json({ message: "User updated successfully" });
   } catch (error) {
-    console.error("Update error in controller:", error);
+    console.error("Update error:", error);
     res.status(500).json({ error: "Failed to update user" });
   }
 };
+
 
 
 export const createUserController = async (req, res) => {
