@@ -1,4 +1,4 @@
-import {createUser, getUser, updateUser} from "../../models/user/userModel.js";
+import {createUser, getUser, updateUser, updateUserProfilePicture} from "../../models/user/userModel.js";
 import {User} from "../../utils/validation/user.js";
 import {SignJWT} from "jose";
 
@@ -100,16 +100,47 @@ export const changePasswordController = async (req, res) => {
 
   try {
     const user = await getUser(userId);
+    console.log("Submitted old password:", oldPassword);
+    console.log("Stored hash from DB:", user.hashedPassword);
+    console.log("Length of entered password:", oldPassword.length);
+    console.log("Length of stored hash:", user.hashedPassword.length);
+
     const valid = await bcrypt.compare(oldPassword, user.hashedPassword);
-    if (!valid) return res.status(403).json({ error: "Old password is incorrect" });
+    console.log("bcrypt.compare result:", valid); // true or false
+
+    if (!valid) {
+      return res.status(403).json({ error: "Old password is incorrect" });
+    }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     const updated = await updateUser(userId, { hashedPassword });
-    if (!updated) return res.status(500).json({ error: "Failed to update password" });
+
+    if (!updated) {
+      return res.status(500).json({ error: "Failed to update password" });
+    }
 
     res.json({ message: "Password updated successfully" });
-  } catch (e) {
-    console.error("Password update error:", e);
-    res.status(500).json({ error: "Error updating password" });
+  } catch (err) {
+    console.error("Password update error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const uploadProfilePictureController = async (req, res) => {
+  const userId = parseInt(req.params.id);
+  const filePath = req.file?.path;
+
+  if (!filePath) {
+    return res.status(400).json({ error: "No image uploaded" });
+  }
+
+  try {
+    const updated = await updateUserProfilePicture(userId, filePath);
+    if (!updated) return res.status(500).json({ error: "Failed to update profile picture" });
+
+    res.json({ message: "Profile picture uploaded", path: filePath });
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ error: "Failed to upload image" });
   }
 };

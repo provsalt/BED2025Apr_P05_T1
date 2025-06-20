@@ -9,7 +9,7 @@ import bcrypt from "bcryptjs";
  */
 export const getUser = async (id) => {
     const db = await sql.connect(dbConfig);
-    const query = "SELECT * FROM Users WHERE id = @id";
+    const query = "SELECT * FROM [user] WHERE id = @id";
     const request = db.request();
     request.input("id", id);
     const result = await request.query(query);
@@ -30,7 +30,7 @@ export const getUser = async (id) => {
 export const createUser = async (userData) => {
     const db = await sql.connect(dbConfig);
     const query = `
-        INSERT INTO Users (name, email, hashedPassword, dob, gender)
+        INSERT INTO [user] (name, email, hashedPassword, dob, gender)
         VALUES (@name, @email, @hashedPassword, @dob, @gender);
         SELECT SCOPE_IDENTITY() AS id;
     `;
@@ -68,7 +68,7 @@ export const updateUser = async (id, userData) => {
     }
 
     const query = `
-        UPDATE Users
+        UPDATE [user]
         SET 
             name = @name,
             email = @email,
@@ -97,11 +97,23 @@ export const updateUser = async (id, userData) => {
  */
 export const deleteUser = async (id) => {
     const db = await sql.connect(dbConfig);
-    const query = "DELETE FROM Users WHERE id = @id";
+    const query = "DELETE FROM [user] WHERE id = @id";
     const request = db.request();
     request.input("id", id);
 
     const res = await request.query(query);
 
     return res.rowsAffected[0] !== 0;
-}
+} 
+
+
+export const updateUserProfilePicture = async (id, filePath) => {
+  const db = await sql.connect(dbConfig);
+  const request = db.request();
+  request.input("id", id);
+  request.input("profile_picture_url", filePath);
+  const result = await request.query(
+    "UPDATE [user] SET profile_picture_url = @profile_picture_url WHERE id = @id"
+  );
+  return result.rowsAffected[0] > 0;
+};
