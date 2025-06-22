@@ -56,6 +56,7 @@ CREATE TABLE Chat (
     created_at DATETIME DEFAULT GETDATE(),
     message_sender INT NOT NULL,
     message_receiver INT NOT NULL,
+    updated_at DATETIME DeFAULT GETDATE(),
     FOREIGN KEY (message_sender) REFERENCES [Users](id),
     FOREIGN KEY (message_receiver) REFERENCES [Users](id)
 );
