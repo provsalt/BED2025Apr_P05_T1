@@ -11,7 +11,6 @@ export const getUserMiddleware = async (req, res, next) => {
     return res.status(422).json({"message": "Invalid Token"});
   }
 
-
   const secret = new TextEncoder().encode(process.env.SECRET || "");
   try {
     const { payload } = await jwtVerify(data[1], secret, {
@@ -28,6 +27,7 @@ export const getUserMiddleware = async (req, res, next) => {
     next();
   }
   catch (error) {
+    console.log(error)
     return res.status(401).json({"message": "Unauthorized"});
   }
 }
