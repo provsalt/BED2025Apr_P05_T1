@@ -6,6 +6,7 @@ import {Signup} from "@/routes/auth/signUp.jsx";
 import {Home} from "@/routes/Home.jsx";
 import {Navbar} from "@/components/navbar/navbar.jsx";
 import {AlertProvider} from "@/provider/AlertProvider.jsx";
+import {Login} from "@/routes/auth/login.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -17,6 +18,7 @@ createRoot(document.getElementById('root')).render(
             <Routes>
               <Route path="/" element={<Home/>} />
               <Route path="/signup" element={<Signup/>} />
+              <Route path="/login" element={<Login/>} />
             </Routes>
           </div>
         </div>
