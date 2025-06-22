@@ -7,6 +7,9 @@ import {Home} from "@/routes/Home.jsx";
 import {Navbar} from "@/components/navbar/navbar.jsx";
 import {AlertProvider} from "@/provider/AlertProvider.jsx";
 import {Login} from "@/routes/auth/login.jsx";
+import {ChatSideBar} from "@/components/chat/ChatSideBar.jsx";
+import {Chat} from "@/routes/chats/Chat.jsx";
+import {SelectedChat} from "@/routes/chats/SelectedChat.jsx";
 import {UserProvider} from "@/provider/UserProvider.jsx";
 
 createRoot(document.getElementById('root')).render(
@@ -22,6 +25,10 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/signup" element={<Signup/>} />
                 <Route path="/login" element={<Login/>} />
               </Routes>
+              <Route path="/chats" element={<ChatSideBar />}>
+                <Route index element={<Chat />} />
+                <Route path=":chatId" element={<SelectedChat />}  />
+              </Route>
             </div>
           </div>
         </BrowserRouter>
