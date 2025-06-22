@@ -10,3 +10,17 @@ export const getChats = async (userId) => {
 
   return result.recordset.length === 0 ? null : result.recordset
 }
+
+export const getChat = async (chatId) => {
+  const db = await sql.connect(dbConfig);
+  const query = "SELECT * FROM Chat WHERE id=@id";
+  const request = db.request();
+  request.input("id", chatId);
+  const result = await request.query(query)
+
+  return result.recordset.length === 0 ? null : result.recordset[0]
+}
+
+export const createChat = async (chatId) => {
+  const db = await sql.connect(dbConfig);
+}
