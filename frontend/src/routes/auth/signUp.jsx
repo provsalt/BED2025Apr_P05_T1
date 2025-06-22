@@ -57,7 +57,7 @@ export const Signup = () => {
         name: data.name,
         email: data.email,
         password: data.password,
-        dob: new Date(data.dob).getTime() / 1000,
+        date_of_birth: new Date(data.dob).getTime() / 1000,
         gender: data.gender === "female" ? 0 : 1,
       })
     });

@@ -25,7 +25,7 @@ export const loginUserController = async (req, res) => {
   if (!user) {
     return res.status(401).json({ error: "Invalid email or password" });
   }
-  const isPasswordValid = await bcrypt.compare(validate.data.password, user.hashedPassword);
+  const isPasswordValid = await bcrypt.compare(validate.data.password, user.password);
 
   if (!isPasswordValid) {
     return res.status(401).json({ error: "Invalid email or password" });

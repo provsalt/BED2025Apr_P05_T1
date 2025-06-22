@@ -85,7 +85,7 @@ CREATE TABLE ScannedMeal (
     scanned_at DATETIME DEFAULT GETDATE(),
     image_url VARCHAR(255),
     user_id INT NOT NULL,
-    FOREIGN KEY (meal_category_id) REFERENCES meal_category(id),
+    FOREIGN KEY (meal_category_id) REFERENCES MealCategory(id),
     FOREIGN KEY (user_id) REFERENCES [Users](id)
 );
 
