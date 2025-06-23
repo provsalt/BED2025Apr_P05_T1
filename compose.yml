@@ -4,8 +4,9 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=${DB_PASSWORD}
+      - MSSQL_TCP_PORT=${DB_PORT:-1433}
     ports:
-      - "1433:1433"
+      - "${DB_PORT:-1433}:${DB_PORT:-1433}"
     platform: "linux/amd64"
     volumes:
       - ./db_data:/var/opt/mssql
@@ -13,7 +14,7 @@ services:
     build: ./backend
 
     ports:
-      - "3001:3001"
+      - "${BACKEND_PORT:-3001}:3001"
     depends_on:
       - db
     environment:
@@ -26,7 +27,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "4173:4173"
+      - "${FRONTEND_PORT:-4173}:4173"
     depends_on:
       - backend
     environment:
