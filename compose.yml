@@ -34,7 +34,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "${FRONTEND_PORT:-4173}:4173"
+      - "${FRONTEND_PORT:-4173}:${FRONTEND_PORT:-4173}"
     entrypoint: "pnpm preview --host --port ${FRONTEND_PORT:-4173}"
     depends_on:
       - backend
