@@ -24,4 +24,4 @@ jobs:
         env:
           HOST: ${{ secrets.SSH_HOST }}
         run: |
-            ssh -i ~/.ssh/id_rsa $HOST "cd ~/bed/${{github.ref_name}} && git pull && git checkout ${{github.ref_name}} && docker compose -f compose.yml down && docker compose -f compose.yml up -d --build && docker compose -f compose.yml exec backend pnpm run migrate"
+            ssh -i ~/.ssh/id_rsa $HOST "cd ~/bed/${{github.ref_name}} && git pull && git checkout ${{github.ref_name}} && docker compose -f compose.yml down && docker compose -f compose.yml up -d --build"
