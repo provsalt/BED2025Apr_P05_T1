@@ -13,6 +13,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
+      start_interval: 20s
       start_period: 20s
     volumes:
       - ./db_data:/var/opt/mssql
