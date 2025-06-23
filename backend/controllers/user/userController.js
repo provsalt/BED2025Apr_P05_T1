@@ -96,6 +96,9 @@ export const createUserController = async (req, res) => {
 // Change Password
 export const changePasswordController = async (req, res) => {
   const userId = parseInt(req.params.id);
+  if (isNaN(userId)) {
+    return res.status(400).json({ error: "Invalid user ID" });
+  }
   const { oldPassword, newPassword } = req.body;
 
   try {
