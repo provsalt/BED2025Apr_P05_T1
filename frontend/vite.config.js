@@ -15,4 +15,7 @@ export default defineConfig({
       "@": resolve(__dirname, 'src'),
     },
   },
+  preview: {
+    allowedHosts: ["uat.ngeeann.zip", "bed.ngeeann.zip"]
+  }
 })
