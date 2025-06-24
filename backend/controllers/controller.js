@@ -1,6 +1,7 @@
 import {createUserController, getCurrentUserController, loginUserController} from "./user/userController.js";
 import {getUserMiddleware} from "../middleware/getUser.js";
 import {getChatsController} from "./chat/chatController.js";
+import {getChatMessagesController} from "./chat/messageController.js";
 
 /**
  * Controller function to set up routes for the application.
@@ -14,4 +15,5 @@ export const Controller = (app) => {
   app.get("/api/user", getUserMiddleware, getCurrentUserController)
 
   app.get("/api/chats", getUserMiddleware, getChatsController)
+  app.get("/api/chats/:chatId", getUserMiddleware, getChatMessagesController)
 }

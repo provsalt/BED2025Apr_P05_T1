@@ -21,8 +21,12 @@ export const getMessages = async (userId, chatId) => {
   return result.recordset.length === 0 ? null : result.recordset
 }
 
-export const createMessage = async (userId, message, chatId) => {
+export const createMessage = async (fromUserId, toUserId, message, chatId) => {
   const chat = await getChat(chatId)
 
+  if (!chat) {
+    return false
+  }
 
+  console.log(chat)
 }
