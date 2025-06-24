@@ -35,11 +35,11 @@ export const Login = () => {
         description: "Account created successfully. Redirecting...",
       });
       const resp = await res.json();
-      localStorage.setItem("token", resp.token);
-      localStorage.setItem("id", resp.id);
-      auth.id = resp.id;
-      auth.token = resp.token;
-      auth.isAuthenticated = true;
+      auth.setUser({
+        id: resp.id,
+        token: resp.token,
+        isAuthenticated: true
+      });
       setTimeout(() => navigate("/medicine"), 3000);
     } else {
       const errorData = await res.json();

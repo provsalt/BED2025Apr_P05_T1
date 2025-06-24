@@ -7,22 +7,25 @@ import {Home} from "@/routes/Home.jsx";
 import {Navbar} from "@/components/navbar/navbar.jsx";
 import {AlertProvider} from "@/provider/AlertProvider.jsx";
 import {Login} from "@/routes/auth/login.jsx";
+import {UserProvider} from "@/provider/UserProvider.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AlertProvider position="bottom-center">
-      <BrowserRouter>
-        <div className="flex flex-col min-h-svh">
-          <Navbar />
-          <div className="flex flex-col flex-1">
-            <Routes>
-              <Route path="/" element={<Home/>} />
-              <Route path="/signup" element={<Signup/>} />
-              <Route path="/login" element={<Login/>} />
-            </Routes>
+      <UserProvider>
+        <BrowserRouter>
+          <div className="flex flex-col min-h-svh">
+            <Navbar />
+            <div className="flex flex-col flex-1">
+              <Routes>
+                <Route path="/" element={<Home/>} />
+                <Route path="/signup" element={<Signup/>} />
+                <Route path="/login" element={<Login/>} />
+              </Routes>
+            </div>
           </div>
-        </div>
-      </BrowserRouter>
+        </BrowserRouter>
+      </UserProvider>
     </AlertProvider>
   </StrictMode>,
 )

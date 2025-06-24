@@ -27,8 +27,20 @@ export const UserProvider = ({ children }) => {
   }, [])
 
 
+  const updateUser = (newUserData) => {
+    setUser(prev => ({ ...prev, ...newUserData }));
+    
+    if (newUserData.token) {
+      localStorage.setItem("token", newUserData.token);
+    }
+    
+    if (newUserData.isAuthenticated === false) {
+      localStorage.removeItem("token");
+    }
+  };
+
   return (
-    <UserContext.Provider value={{ ...user }}>
+    <UserContext.Provider value={{ ...user, setUser: updateUser }}>
       {children}
     </UserContext.Provider>
   );
