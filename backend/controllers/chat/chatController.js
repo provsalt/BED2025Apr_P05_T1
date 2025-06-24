@@ -3,8 +3,6 @@ import express from "express";
 
 /**
  * getChats fetches the list of users a user has had chatted with
- * @param req {express.Request}
- * @param res {express.Response}
  */
 export const getChatsController = async (req, res) => {
   if (!req.user) {
@@ -16,5 +14,5 @@ export const getChatsController = async (req, res) => {
   if (!chats) {
     return res.status(404).json({"message": "No chats yet"})
   }
-  return res.status(200).json(chats)
+  res.status(200).json(chats)
 }
