@@ -24,11 +24,11 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/" element={<Home/>} />
                 <Route path="/signup" element={<Signup/>} />
                 <Route path="/login" element={<Login/>} />
+                <Route path="/chats" element={<ChatSideBar />}>
+                  <Route index element={<Chat />} />
+                  <Route path=":chatId" element={<SelectedChat />}  />
+                </Route>
               </Routes>
-              <Route path="/chats" element={<ChatSideBar />}>
-                <Route index element={<Chat />} />
-                <Route path=":chatId" element={<SelectedChat />}  />
-              </Route>
             </div>
           </div>
         </BrowserRouter>

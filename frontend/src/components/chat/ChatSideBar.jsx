@@ -35,9 +35,11 @@ export const ChatSideBar = () => {
   };
 
   return (
-    <div className="chat-sidebar">
+    <div className="chat-sidebar w-full max-w-sm bg-gray-50 border-r p-4 space-y-2">
       {error ? (
-        <div className="error-message">{error}</div>
+        <div className="w-full max-w-sm bg-gray-50 p-4 space-y-2">
+          No chats yet
+        </div>
       ) : (
         <ChatList
           conversations={conversations}
