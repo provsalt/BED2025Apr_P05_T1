@@ -13,11 +13,14 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
 
     if (typeof localStorage === "undefined") {
-      return null;
+      return;
     }
 
     const token = localStorage.getItem("token");
     const parse = token ? decodeJwt(token) : null;
+    if (!parse) {
+      return;
+    }
     const isAuthenticated = !!token && parse && parse.exp > Date.now() / 1000;
     setUser({
       id: parse.sub,
