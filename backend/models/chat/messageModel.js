@@ -14,7 +14,6 @@ export const getMessages = async (userId, chatId) => {
     const request = db.request();
     request.input("chat_id", chatId);
     const result = await request.query(query)
-    console.log(result)
 
     return result.recordset.length === 0 ? null : result.recordset
   }

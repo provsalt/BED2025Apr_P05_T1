@@ -1,11 +1,10 @@
 import {useParams} from "react-router";
+import {ChatContent} from "@/components/chat/ChatContent.jsx";
 
 export const SelectedChat = () => {
   const { chatId} = useParams()
 
   return (
-    <div>
-      <h1>{chatId}</h1>
-    </div>
+    <ChatContent chatId={chatId} />
   )
 }
