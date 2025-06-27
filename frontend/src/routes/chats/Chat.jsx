@@ -1,7 +1,9 @@
-export const Chat = () => {
-  return (
-    <div>
+import {ChatWelcome} from "@/components/chat/ChatWelcome.jsx";
+import useScreen from "@/hooks/useScreen.js";
 
-    </div>
-  )
+export const Chat = () => {
+  const { isMobile} = useScreen();
+  if (!isMobile) {
+    return <ChatWelcome />;
+  }
 }
