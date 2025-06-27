@@ -37,7 +37,7 @@ export const ChatContent = ({ chatId }) => {
 
   useEffect(() => {
     fetchMessages();
-  }, [chatId, fetchMessages]);
+  }, [chatId, isAuthenticated]);
 
   const handleSendMessage = async (messageContent) => {
     const optimisticMessage = {
