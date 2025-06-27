@@ -12,10 +12,6 @@ export const ChatContent = ({ chatId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    console.log(messages)
-  })
-
   const fetchMessages = async () => {
     if (!chatId) {
       setMessages([]);
@@ -41,7 +37,7 @@ export const ChatContent = ({ chatId }) => {
 
   useEffect(() => {
     fetchMessages();
-  }, [chatId]);
+  }, [chatId, fetchMessages]);
 
   const handleSendMessage = async (messageContent) => {
     const optimisticMessage = {
@@ -75,7 +71,7 @@ export const ChatContent = ({ chatId }) => {
   if (isLoading && !messages.length) return <p>Loading...</p>;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-1 flex-col h-full">
       <div className="flex-1 min-h-0">
         <ChatMessages currentUserId={id} messages={messages} />
       </div>

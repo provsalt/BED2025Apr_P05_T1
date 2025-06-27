@@ -7,8 +7,11 @@ export const ChatLayout = () => {
   const {chatId } = useParams();
   return (
     <div className="flex flex-1 pt-2">
-      {!isMobile && chatId && <ChatSideBar />}
-      <Outlet />
+      {!isMobile && <ChatSideBar />}
+      {isMobile && !chatId && <ChatSideBar />}
+      <div className="flex flex-1">
+        <Outlet />
+      </div>
     </div>
   )
 }
