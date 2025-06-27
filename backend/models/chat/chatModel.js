@@ -3,7 +3,21 @@ import {dbConfig} from "../../config/db.js";
 
 export const getChats = async (userId) => {
   const db = await sql.connect(dbConfig);
-  const query = "SELECT * FROM Chat WHERE chat_initiator = @id OR chat_recipient = @id ORDER BY updated_at DESC;";
+  // this query left joins a different select from ChatMessage and splices the current Chat table
+  const query = `
+    SELECT c.*, lm.last_message, lm.last_message_time
+    FROM Chat c
+           LEFT JOIN (
+      SELECT
+        chat_id,
+        MAX(msg) as last_message,
+        MAX(msg_created_at) as last_message_time
+      FROM ChatMsg
+      GROUP BY chat_id
+    ) lm ON c.id = lm.chat_id
+    WHERE c.chat_initiator = @id OR c.chat_recipient = @id
+    ORDER BY c.updated_at DESC;
+  `
   const request = db.request();
   request.input("id", userId);
   const result = await request.query(query)

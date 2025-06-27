@@ -2,11 +2,13 @@ import {useContext, useEffect, useState} from "react";
 import {UserContext} from "@/provider/UserContext.js";
 import {fetcher} from "@/lib/fetcher.js";
 import {ChatList} from "./ChatList.jsx";
+import {useParams} from "react-router";
 
 export const ChatSideBar = () => {
   const user = useContext(UserContext);
   const [conversations, setConversations] = useState([]);
-  const [selectedChatId, setSelectedChatId] = useState(null);
+  const { chatId } = useParams();
+  const [selectedChatId, setSelectedChatId] = useState(Number(chatId));
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -17,7 +19,8 @@ export const ChatSideBar = () => {
           chats.map((chat) => ({
             id: chat.id,
             username: chat.chat_initiator === user.id ? chat.chat_recipient : chat.chat_initiator,
-            lastMessage: "No messages yet", // Placeholder for lastMessage
+            lastMessage: chat.last_message,
+            lastMessageTime: chat.last_message_time
           }))
         );
       } catch (err) {
@@ -25,7 +28,7 @@ export const ChatSideBar = () => {
       }
     };
 
-    if (user) {
+    if (user.isAuthenticated) {
       fetchChats();
     }
   }, [user]);
