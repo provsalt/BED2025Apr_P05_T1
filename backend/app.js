@@ -1,10 +1,9 @@
 import express from "express"
 import {Controller} from "./controllers/controller.js";
-
+const adminController = require("./controllers/adminController.js");
+const authorize =  require("./middlewares/authorize.js");
 
 const app = express();
-const adminController = require('../controllers/adminController');
-const authorize = require('../middlewares/authorize');
 app.use(express.json())
 app.use(express.static("dist"))
 

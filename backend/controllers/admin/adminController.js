@@ -46,10 +46,3 @@ export const loginAdminController = async (req, res) => {
     res.status(500).json({"message": "Internal Server Error"});
   }
 }
-
-export const adminRouter = require("express").Router();
-adminRouter.get("/current", getCurrentAdminController);
-adminRouter.post("/", createAdminController);
-adminRouter.post("/login", loginAdminController);
-import bcrypt from "bcryptjs";
-import {TextEncoder} from "util";
