@@ -1,22 +1,25 @@
-import { decodeJwt } from 'jose';
+import { jwtVerify } from 'jose';
 
-export const socketAuthMiddleware = (socket, next) => {
+export const socketAuthMiddleware = async (socket, next) => {
   try {
     const token = socket.handshake.auth.token || socket.handshake.query.token;
-    
+
     if (!token) {
       return next(new Error('Authentication token required'));
     }
 
-    const decoded = decodeJwt(token);
-    
-    if (decoded.exp && decoded.exp < Date.now() / 1000) {
+    const secret = new TextEncoder().encode(process.env.SECRET || "");
+    const {payload} = await jwtVerify(token, secret, {
+      algorithms: ["HS256"],
+    });
+
+    if (payload.exp && payload.exp < Date.now() / 1000) {
       return next(new Error('Token expired'));
     }
 
-    socket.userId = decoded.sub;
+    socket.userId = payload.sub;
     socket.token = token;
-    
+
     next();
   } catch (error) {
     console.error('Socket authentication error:', error);
