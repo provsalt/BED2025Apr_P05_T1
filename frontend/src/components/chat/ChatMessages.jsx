@@ -1,11 +1,37 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Message } from "@/components/chat/Message";
+import { useSocket } from "@/provider/SocketProvider";
 
-export const ChatMessages = ({
-                               messages,
-                               currentUserId,
-                             }) => {
+export const ChatMessages = ({ messages: initialMessages, currentUserId, chatId }) => {
+  const [messages, setMessages] = useState(initialMessages);
   const containerRef = useRef(null);
+  const socket = useSocket();
+
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("chat_update", (event) => {
+        if (event.chatId === Number(chatId)) {
+          if (event.type === "message_created") {
+            setMessages((prevMessages) => [...prevMessages, {
+              id: event.messageId,
+              msg: event.message,
+              sender: event.sender,
+            }]);
+          }
+        }
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.off("chat_update");
+      }
+    };
+  }, [socket, chatId]);
 
   useEffect(() => {
     if (containerRef.current) {

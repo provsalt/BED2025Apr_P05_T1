@@ -1,5 +1,6 @@
 import {getChats, createChat, getChatBetweenUsers} from "../../models/chat/chatModel.js";
 import {createMessage} from "../../models/chat/messageModel.js";
+import {broadcastMessageCreated} from "../../utils/websocket.js";
 import express from "express";
 
 /**
@@ -41,7 +42,9 @@ export const createChatController = async (req, res) => {
     }
 
     const chatId = await createChat(req.user.id, recipientId);
-    await createMessage(req.user.id, message, chatId);
+    const messageId = await createMessage(req.user.id, message, chatId);
+    
+    await broadcastMessageCreated(chatId, messageId, message, req.user.id);
     
     res.status(201).json({
       "message": "Chat created successfully",

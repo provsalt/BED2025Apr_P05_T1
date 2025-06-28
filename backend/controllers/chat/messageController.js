@@ -1,5 +1,6 @@
 import {getMessages, createMessage, getMessage, updateMessage, deleteMessage} from "../../models/chat/messageModel.js";
 import {getChat, updateChatTimestamp} from "../../models/chat/chatModel.js";
+import {broadcastMessageCreated, broadcastMessageUpdated, broadcastMessageDeleted} from "../../utils/websocket.js";
 
 export const getChatMessagesController = async (req, res) => {
   if (!req.user) {
@@ -47,6 +48,8 @@ export const createMessageController = async (req, res) => {
 
     const messageId = await createMessage(req.user.id, message, chatId);
     await updateChatTimestamp(chatId);
+
+    await broadcastMessageCreated(chatId, messageId, message, req.user.id);
 
     res.status(201).json({
       "message": "Message sent successfully",
@@ -96,6 +99,8 @@ export const updateMessageController = async (req, res) => {
 
     await updateChatTimestamp(chatId);
 
+    await broadcastMessageUpdated(chatId, messageId, message, req.user.id);
+
     res.status(200).json({"message": "Message updated successfully"});
   } catch (error) {
     console.error("Error updating message:", error);
@@ -139,6 +144,8 @@ export const deleteMessageController = async (req, res) => {
     }
 
     await updateChatTimestamp(chatId);
+
+    await broadcastMessageDeleted(chatId, messageId, req.user.id);
 
     res.status(200).json({"message": "Message deleted successfully"});
   } catch (error) {
