@@ -12,6 +12,7 @@ import {SelectedChat} from "@/routes/chats/SelectedChat.jsx";
 import {UserProvider} from "@/provider/UserProvider.jsx";
 import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
+import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -30,6 +31,7 @@ createRoot(document.getElementById('root')).render(
                     <Route index element={<Chat />} />
                     <Route path=":chatId" element={<SelectedChat />}  />
                   </Route>
+                  <Route path="/medical" element={<MedicalDashboard />} />
                 </Routes>
               </div>
             </div>
