@@ -42,10 +42,9 @@ export const Login = () => {
       });
       setTimeout(() => navigate("/medicine"), 3000);
     } else {
-      const errorData = await res.json();
       alert.error({
         title: "Error",
-        description: errorData.error || "An error occurred while creating the account.",
+        description: "Invalid username or password",
         variant: "destructive"
       });
     }
