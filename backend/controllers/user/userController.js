@@ -5,9 +5,6 @@ import {SignJWT} from "jose";
 import {z} from "zod/v4";
 import bcrypt from "bcryptjs";
 
-// Import bcrypt for password hashing
-import bcrypt from "bcryptjs"; 
-
 export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
     return res.status(401).json({"message": "Unauthorized"});
@@ -46,11 +43,11 @@ export const updateUserController = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // 🔒 Protect non-editable fields
+    // Protect non-editable fields
     updates.email = currentUser.email;
     updates.hashedPassword = currentUser.hashedPassword;
 
-    // 🛡️ Validate/fix dob
+    // Validate/fix dob
     if (!updates.dob || isNaN(Date.parse(updates.dob))) {
       updates.dob = currentUser.dob;
     }
