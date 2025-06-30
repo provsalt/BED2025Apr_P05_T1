@@ -1,0 +1,48 @@
+services:
+  db:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${DB_PASSWORD}
+      - MSSQL_TCP_PORT=${DB_PORT:-1433}
+    ports:
+      - "${DB_PORT:-1433}:${DB_PORT:-1433}"
+    platform: "linux/amd64"
+#    healthcheck:
+#      test: /opt/mssql-tools18/bin/sqlcmd -S localhost,$${MSSQL_TCP_PORT} -U sa -P $${SA_PASSWORD} -C -Q "SELECT 1" -b -o /dev/null
+#      interval: 10s
+#      timeout: 3s
+#      retries: 10
+#      start_interval: 20s
+#      start_period: 20s
+    volumes:
+      - ./db_data:/var/opt/mssql
+  backend:
+    build: ./backend
+
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    depends_on:
+      - db
+#        condition: service_healthy
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - SECRET=${SECRET}
+  frontend:
+    build: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-4173}:${FRONTEND_PORT:-4173}"
+    entrypoint: "pnpm preview --host --port ${FRONTEND_PORT:-4173}"
+    depends_on:
+      - backend
+    environment:
+      - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+
+networks:
+  bed-assignment:
+    name: "bed-assignment"
+    driver: bridge

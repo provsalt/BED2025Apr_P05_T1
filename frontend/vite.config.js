@@ -7,7 +7,7 @@ import {resolve} from 'node:path';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
-    outDir: '../backend/dist',
+    // outDir: '../backend/dist',
     emptyOutDir: true,
   },
   resolve: {
@@ -15,9 +15,7 @@ export default defineConfig({
       "@": resolve(__dirname, 'src'),
     },
   },
-  server: {
-    proxy: {
-      '/api': 'http://localhost:3001'
-    }
+  preview: {
+    allowedHosts: ["uat.ngeeann.zip", "bed.ngeeann.zip"]
   }
-});
+})

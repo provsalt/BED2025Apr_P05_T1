@@ -1,4 +1,6 @@
-import {createUserController, getCurrentUserController, changePasswordController, getUserController, updateUserController, uploadProfilePictureController} from "./user/userController.js";  // Import user controller functions   "getUserController, updateUserController"
+
+import {createUserController, getCurrentUserController, loginUserController, changePasswordController, getUserController, updateUserController, uploadProfilePictureController} from "./user/userController.js";  // Import user controller functions   "getUserController, updateUserController"
+
 import {getUserMiddleware} from "../middleware/getUser.js";
 import { uploadProfilePic } from "../middleware/userSettingsUpload.js";
 import sql from "mssql";
@@ -15,8 +17,7 @@ export const Controller = (app) => {
   app.get("/api/user/:id", getUserController)
   app.put("/api/user/:id", updateUserController);
   app.post("/api/user", createUserController)
-
-  // Authenticated user
+  app.post("/api/user/login", loginUserController)
   app.get("/api/user", getUserMiddleware, getCurrentUserController)
 
   // Password update
