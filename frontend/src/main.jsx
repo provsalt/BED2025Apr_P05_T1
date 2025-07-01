@@ -8,32 +8,42 @@ import { UserSettings } from "@/routes/UserSettings.jsx";
 import {Navbar} from "@/components/navbar/navbar.jsx";
 import {AlertProvider} from "@/provider/AlertProvider.jsx";
 import {Login} from "@/routes/auth/login.jsx";
+import {Chat} from "@/routes/chats/Chat.jsx";
+import {SelectedChat} from "@/routes/chats/SelectedChat.jsx";
 import {UserProvider} from "@/provider/UserProvider.jsx";
 import { UserContext } from "@/provider/UserContext";
-// import { UserProvider } from "@/provider/UserProvider";
+import {SocketProvider} from "@/provider/SocketProvider.jsx";
+import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
 
 const SettingsRoute = () => {
   const auth = useContext(UserContext);
   return <UserSettings userId={auth?.id || 1} />;
 };
 
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AlertProvider position="bottom-center">
       <UserProvider>
-        <BrowserRouter>
-          <div className="flex flex-col min-h-svh">
-            <Navbar />
-            <div className="flex flex-col flex-1">
-              <Routes>
-                <Route path="/" element={<Home/>} />
-                <Route path="/signup" element={<Signup/>} />
-                <Route path="/login" element={<Login/>} />
-                <Route path="/settings" element={<SettingsRoute/>} />
-              </Routes>
+        <SocketProvider>
+          <BrowserRouter>
+            <div className="flex flex-col min-h-svh">
+              <Navbar />
+              <div className="flex flex-col flex-1">
+                <Routes>
+                  <Route path="/" element={<Home/>} />
+                  <Route path="/signup" element={<Signup/>} />
+                  <Route path="/login" element={<Login/>} />
+                  <Route path="/settings" element={<SettingsRoute/>} />
+                  <Route path="/chats" element={<ChatLayout />}>
+                    <Route index element={<Chat />} />
+                    <Route path=":chatId" element={<SelectedChat />}  />
+                  </Route>
+                </Routes>
+              </div>
             </div>
-          </div>
-        </BrowserRouter>
+          </BrowserRouter>
+        </SocketProvider>
       </UserProvider>
     </AlertProvider>
   </StrictMode>,

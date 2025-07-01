@@ -54,18 +54,21 @@ CREATE TABLE CommunityEventImage (
 CREATE TABLE Chat (
     id INT PRIMARY KEY IDENTITY(1,1),
     created_at DATETIME DEFAULT GETDATE(),
-    message_sender INT NOT NULL,
-    message_receiver INT NOT NULL,
-    FOREIGN KEY (message_sender) REFERENCES [Users](id),
-    FOREIGN KEY (message_receiver) REFERENCES [Users](id)
+    chat_initiator INT NOT NULL,
+    chat_recipient INT NOT NULL,
+    updated_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (chat_initiator) REFERENCES [Users](id),
+    FOREIGN KEY (chat_recipient) REFERENCES [Users](id)
 );
 
 CREATE TABLE ChatMsg (
     id INT PRIMARY KEY IDENTITY(1,1),
     chat_id INT NOT NULL,
     msg VARCHAR(1000),
+    sender INT NOT NULL,
     msg_created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (chat_id) REFERENCES Chat(id)
+    FOREIGN KEY (chat_id) REFERENCES Chat(id),
+    FOREIGN KEY (sender) REFERENCES Users(id)
 );
 
 CREATE TABLE MealCategory (
