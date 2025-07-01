@@ -14,6 +14,7 @@ import {UserProvider} from "@/provider/UserProvider.jsx";
 import { UserContext } from "@/provider/UserContext";
 import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
+import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 
 const SettingsRoute = () => {
   const auth = useContext(UserContext);
@@ -39,6 +40,7 @@ createRoot(document.getElementById('root')).render(
                     <Route index element={<Chat />} />
                     <Route path=":chatId" element={<SelectedChat />}  />
                   </Route>
+                  <Route path="/medical" element={<MedicalDashboard />} />
                 </Routes>
               </div>
             </div>
