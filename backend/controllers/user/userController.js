@@ -33,7 +33,8 @@ export const loginUserController = async (req, res) => {
 
   const secret = new TextEncoder().encode(process.env.SECRET || "");
   const tok = await new SignJWT({
-    sub: user.id
+    sub: user.id,
+    admin: user.role
   }).setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("1d")
     .sign(secret);
