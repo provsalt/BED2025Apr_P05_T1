@@ -9,9 +9,24 @@ import bcrypt from "bcryptjs";
  */
 export const getUser = async (id) => {
     const db = await sql.connect(dbConfig);
-    const query = "SELECT * FROM Users WHERE id = @id";
+    const query = "SELECT * FROM [user] WHERE id = @id";
     const request = db.request();
     request.input("id", id);
+    const result = await request.query(query);
+
+    if (result.recordset.length === 0) {
+    return null;
+    }
+
+    return result.recordset[0];
+};
+
+
+export const getUserByEmail = async (email) => {
+    const db = await sql.connect(dbConfig);
+    const query = "SELECT * FROM Users WHERE email = @email";
+    const request = db.request();
+    request.input("email", email);
     const result = await request.query(query)
 
     if (result.recordset.length === 0) {
@@ -29,7 +44,7 @@ export const getUser = async (id) => {
 export const createUser = async (userData) => {
     const db = await sql.connect(dbConfig);
     const query = `
-        INSERT INTO Users (name, email, hashedPassword, dob, gender)
+        INSERT INTO Users (name, email, password, date_of_birth, gender)
         VALUES (@name, @email, @hashedPassword, @dob, @gender);
         SELECT SCOPE_IDENTITY() AS id;
     `;
@@ -39,7 +54,7 @@ export const createUser = async (userData) => {
     request.input("name", userData.name);
     request.input("email", userData.email);
     request.input("hashedPassword", hashedPassword);
-    request.input("dob", new Date(userData.dob * 1000)); // Convert from seconds to milliseconds
+    request.input("dob", new Date(userData.date_of_birth * 1000)); // Convert from seconds to milliseconds
     request.input("gender", userData.gender);
     const res = await request.query(query)
 
@@ -52,9 +67,11 @@ export const createUser = async (userData) => {
  * @param userData {{
  *     name?: string,
  *     email?: string,
- *     hashedPassword?: string,
- *     dob?: Date
+ *     password?: string,
+ *     date_of_birth?: Date
  *     gender?: string
+ *     language?: string
+ *     profile_picture_url?: string
  *     }}
  * @returns {Promise<boolean>}
  */
@@ -67,12 +84,12 @@ export const updateUser = async (id, userData) => {
     }
 
     const query = `
-        UPDATE Users
+        UPDATE [user]
         SET 
             name = @name,
             email = @email,
             hashedPassword = @hashedPassword,
-            dob = @dob,
+            date_of_birth = @dob,
             gender = @gender
         WHERE id = @id;
     `;
@@ -80,9 +97,11 @@ export const updateUser = async (id, userData) => {
     request.input("id", id);
     request.input("name", userData.name ?? currentUser.name);
     request.input("email", userData.email ?? currentUser.email);
-    request.input("hashedPassword", userData.hashedPassword ?? currentUser.hashedPassword);
-    request.input("dob", userData.dob ?? currentUser.dob);
+    request.input("hashedPassword", userData.password ?? currentUser.password);
+    request.input("dob", userData.date_of_birth ?? currentUser.dob);
     request.input("gender", userData.gender ?? currentUser.gender);
+    request.input("language", userData.language ?? currentUser.language);
+    request.input("profile_picture_url", userData.profile_picture_url ?? currentUser.profile_picture_url);
 
     const res = await request.query(query);
 
@@ -96,11 +115,23 @@ export const updateUser = async (id, userData) => {
  */
 export const deleteUser = async (id) => {
     const db = await sql.connect(dbConfig);
-    const query = "DELETE FROM Users WHERE id = @id";
+    const query = "DELETE FROM [user] WHERE id = @id";
     const request = db.request();
     request.input("id", id);
 
     const res = await request.query(query);
 
     return res.rowsAffected[0] !== 0;
-}
+} 
+
+
+export const updateUserProfilePicture = async (id, filePath) => {
+  const db = await sql.connect(dbConfig);
+  const request = db.request();
+  request.input("id", id);
+  request.input("profile_picture_url", filePath);
+  const result = await request.query(
+    "UPDATE [user] SET profile_picture_url = @profile_picture_url WHERE id = @id"
+  );
+  return result.rowsAffected[0] > 0;
+};

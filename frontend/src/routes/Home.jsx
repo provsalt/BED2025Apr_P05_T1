@@ -1,16 +1,24 @@
+import { useContext } from "react";
 import { Link } from "react-router-dom";
+import { UserContext } from "@/provider/UserContext.js";
 
 export const Home = () => {
+  const auth = useContext(UserContext);
+
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
-
-      {/* Main Dashboard Sections for dynamic pulling of information */}
       <div className="max-w-6xl mx-auto px-4 py-10 space-y-10">
+
+        {/* Greeting & Logged-In Info */}
+        <SectionCard title="Welcome!" description="Overview of your account and dashboard.">
+          <p className="text-sm">Logged in as: <strong>{auth?.id ? auth.id : "Not logged in"}</strong></p>
+        </SectionCard>
+
         <SectionCard title="Recently Scanned Meals" description="View and track your recent meals for nutritional monitoring.">
           <ul className="list-disc ml-6 text-sm">
             <li>Cai Fan – 9:00 AM</li>
             <li>Salad – 12:30 PM</li>
-            <li>Stuffds Bowl – 6:45 PM</li>
+            <li>Stuffed Bowl – 6:45 PM</li>
           </ul>
         </SectionCard>
 
@@ -40,7 +48,11 @@ export const Home = () => {
         </SectionCard>
 
         <SectionCard title="User Profile Info" description="Your current profile details.">
-          <p className="text-sm">Name: Quing Qurey<br />Email: quing@example.com<br />Language: English</p>
+          <p className="text-sm">
+            Name: Quing Qurey<br />
+            Email: quing@example.com<br />
+            Language: English
+          </p>
         </SectionCard>
 
         <SectionCard title="User Settings Quick Links" description="Quick access to update your profile and password.">
