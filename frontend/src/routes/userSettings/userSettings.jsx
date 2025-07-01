@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UserContext } from "@/provider/UserContext";
 import { useAlert } from "@/provider/AlertProvider.jsx";
+import { useNavigate } from "react-router-dom";
 
 export function UserSettings() {
   const auth = useContext(UserContext);
@@ -147,8 +148,15 @@ useEffect(() => {
     }
   }
 
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!auth.token) {
+      navigate("/"); 
+    }
+  }, [auth.token]);
+
   if (!auth.token) {
-    return <p className="text-center mt-8">Loading user settings...</p>;
+    return null; 
   }
 
   return (
