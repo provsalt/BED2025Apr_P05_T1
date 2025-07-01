@@ -23,7 +23,7 @@ CREATE TABLE CommunityEvent (
     approved_by_admin_id INT NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (user_id) REFERENCES [Users](id),
-    FOREIGN KEY (approved_by_admin_id) REFERENCES Admin(user_id)
+    FOREIGN KEY (approved_by_admin_id) REFERENCES Users(id)
 );
 
 CREATE TABLE CommunityEventSignup (

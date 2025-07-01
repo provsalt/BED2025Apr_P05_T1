@@ -2,6 +2,7 @@ import {createUserController, getCurrentUserController, loginUserController} fro
 import {getUserMiddleware} from "../middleware/getUser.js";
 import {getChatsController, createChatController} from "./chat/chatController.js";
 import {getChatMessagesController, createMessageController, updateMessageController, deleteMessageController} from "./chat/messageController.js";
+import {authorizeRole} from "../middleware/authorizeRole.js"
 
 /**
  * Controller function to set up routes for the application.

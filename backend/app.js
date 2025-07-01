@@ -4,6 +4,7 @@ import { Server } from "socket.io"
 import {Controller} from "./controllers/controller.js";
 import {socketAuthMiddleware} from "./middleware/socketAuth.js";
 import {setIO} from "./config/socket.js";
+import {changeUserRole} from "./models/user/userModel.js"
 
 const app = express();
 const server = createServer(app);
@@ -17,7 +18,7 @@ const io = new Server(server, {
 app.use(express.json())
 app.use(express.static("dist"))
 
-Controller(app)
+Controller(app);
 
 setIO(io);
 

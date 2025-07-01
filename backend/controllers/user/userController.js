@@ -8,7 +8,7 @@ export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
     return res.status(401).json({"message": "Unauthorized"});
   }
-  res.status(200).json(req.user)
+  return res.status(200).json(req.user)
 }
 
 export const loginUserController = async (req, res) => {
