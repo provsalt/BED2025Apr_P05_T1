@@ -16,10 +16,10 @@ import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 
-const SettingsRoute = () => {
-  const auth = useContext(UserContext);
-  return <UserSettings userId={auth?.id || 1} />;
-};
+// const SettingsRoute = () => {
+//   const auth = useContext(UserContext);
+//   return <UserSettings userId={auth?.id || 1} />;
+// };
 
 
 createRoot(document.getElementById('root')).render(
@@ -35,7 +35,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/" element={<Home/>} />
                   <Route path="/signup" element={<Signup/>} />
                   <Route path="/login" element={<Login/>} />
-                  <Route path="/settings" element={<SettingsRoute/>} />
+                  <Route path="/settings" element={<UserSettings />} />
                   <Route path="/chats" element={<ChatLayout />}>
                     <Route index element={<Chat />} />
                     <Route path=":chatId" element={<SelectedChat />}  />
