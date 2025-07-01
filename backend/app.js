@@ -1,9 +1,11 @@
-import express from "express"
-import { createServer } from "http"
-import { Server } from "socket.io"
-import {Controller} from "./controllers/controller.js";
-import {socketAuthMiddleware} from "./middleware/socketAuth.js";
-import {setIO} from "./config/socket.js";
+import express from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import cors from "cors";
+
+import { Controller } from "./controllers/controller.js";
+import { socketAuthMiddleware } from "./middleware/socketAuth.js";
+import { setIO } from "./config/socket.js";
 
 const app = express();
 const server = createServer(app);
@@ -14,7 +16,6 @@ const io = new Server(server, {
     }
 });
 
-import cors from "cors";
 
 app.use(cors({
   origin: "http://localhost:5173",

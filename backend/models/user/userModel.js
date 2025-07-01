@@ -9,7 +9,7 @@ import bcrypt from "bcryptjs";
  */
 export const getUser = async (id) => {
     const db = await sql.connect(dbConfig);
-    const query = "SELECT * FROM [user] WHERE id = @id";
+    const query = "SELECT * FROM Users WHERE id = @id";
     const request = db.request();
     request.input("id", id);
     const result = await request.query(query);
