@@ -42,19 +42,20 @@ export const updateUserController = async (req, res) => {
     if (!currentUser) {
       return res.status(404).json({ error: "User not found" });
     }
+    console.log("Incoming update data:", updates);
 
     // Protect non-editable fields
     updates.email = currentUser.email;
-    updates.hashedPassword = currentUser.hashedPassword;
+    updates.hashedPassword = currentUser.password;
 
-    // Validate/fix dob
-    if (!updates.dob || isNaN(Date.parse(updates.dob))) {
-      updates.dob = currentUser.dob;
+    if (!updates.date_of_birth || isNaN(Date.parse(updates.date_of_birth))) {
+      updates.date_of_birth = currentUser.date_of_birth;
     }
 
     const success = await updateUser(userId, updates);
 
     if (!success) {
+      console.log("Backend update failed (model returned false)");
       return res.status(400).json({ error: "Failed to update user" });
     }
 
@@ -64,6 +65,7 @@ export const updateUserController = async (req, res) => {
     res.status(500).json({ error: "Failed to update user" });
   }
 };
+
 
 
 

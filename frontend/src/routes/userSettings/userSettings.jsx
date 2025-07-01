@@ -28,44 +28,55 @@ export function UserSettings() {
   const [userId, setUserId] = useState(null);
   const [editMode, setEditMode] = useState(false);
 
-  useEffect(() => {
-    axios
-      .get("/api/user", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      })
-      .then((res) => {
-        const user = res.data;
-        setFormData({
-          name: user.name || "",
-          email: user.email || "",
-          date_of_birth: user.date_of_birth?.split("T")[0] || "",
-          gender: user.gender || "",
-          language: user.language || "",
-          profile_picture_url: user.profile_picture_url || ""
-        });
-        setUserId(user.id);
-      })
-      .catch((err) => {
-        console.error("User fetch failed:", err);
-        alert.error({ title: "Error", description: "Failed to load user details." });
-      });
-  }, []);
+
+useEffect(() => {
+  if (!auth.token) {
+    console.log("⏳ Waiting for token...");
+    return;
+  }
+
+  console.log("🔑 Token available, fetching user...");
+
+  axios.get("/api/user", {
+    headers: {
+      Authorization: `Bearer ${auth.token}`
+    }
+  }).then((res) => {
+    console.log("✅ Got user data:", res.data);
+    const user = res.data;
+    setFormData({
+      name: user.name || "",
+      email: user.email || "",
+      date_of_birth: user.date_of_birth?.split("T")[0] || "",
+      gender: user.gender === 0 ? "female" : user.gender === 1 ? "male" : "",
+      language: user.language || "",
+      profile_picture_url: user.profile_picture_url || ""
+    });
+    setUserId(user.id);
+  }).catch((err) => {
+    console.error("❌ Failed to fetch user:", err.response || err);
+    alert.error({ title: "Error", description: "Failed to load user info." });
+  });
+}, [auth.token]);
+
+
 
   function handleChange(e) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
+
   function handlePasswordChange(e) {
     const { name, value } = e.target;
     setPasswordForm((prev) => ({ ...prev, [name]: value }));
   }
 
+
   function handleProfilePictureChange(e) {
     setSelectedFile(e.target.files[0]);
   }
+
 
   async function handleProfilePictureUpload() {
     if (!selectedFile || !userId) return;
@@ -75,7 +86,7 @@ export function UserSettings() {
     try {
       await axios.post(`/api/user/${userId}/picture`, data, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+          Authorization: `Bearer ${auth.token}`
         }
       });
       alert.success({ title: "Profile Picture Updated", description: "Image uploaded successfully." });
@@ -85,25 +96,21 @@ export function UserSettings() {
     }
   }
 
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!userId) return;
-
     try {
-      await axios.put(
-        `/api/user/${userId}`,
-        {
-          name: formData.name,
-          gender: formData.gender,
-          date_of_birth: formData.date_of_birth,
-          language: formData.language
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
+      await axios.put(`http://localhost:3001/api/user/${userId}`,{
+        name: formData.name,
+        gender: formData.gender === "female" ? 0 : formData.gender === "male" ? 1 : null,
+        date_of_birth: formData.date_of_birth,
+        language: formData.language
+      }, {
+        headers: {
+          Authorization: `Bearer ${auth.token}`
         }
-      );
+      });
       alert.success({ title: "Profile Updated", description: "Your profile was saved successfully." });
       setEditMode(false);
     } catch (err) {
@@ -111,6 +118,7 @@ export function UserSettings() {
       alert.error({ title: "Update Failed", description: "Could not update your profile." });
     }
   }
+
 
   async function handleChangePassword(e) {
     e.preventDefault();
@@ -127,7 +135,7 @@ export function UserSettings() {
         { oldPassword, newPassword },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
+            Authorization: `Bearer ${auth.token}`
           }
         }
       );
@@ -139,8 +147,13 @@ export function UserSettings() {
     }
   }
 
+  if (!auth.token) {
+    return <p className="text-center mt-8">Loading user settings...</p>;
+  }
+
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-lg space-y-8">
+      {/* Avatar */}
       <div className="flex flex-col items-center space-y-2">
         {formData.profile_picture_url && (
           <img
@@ -153,6 +166,7 @@ export function UserSettings() {
         <Button onClick={handleProfilePictureUpload}>Upload Picture</Button>
       </div>
 
+      {/* Editable Profile Form */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">User Settings</h2>
         <Button onClick={() => setEditMode((prev) => !prev)}>
@@ -163,12 +177,12 @@ export function UserSettings() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block font-medium">Name:</label>
-          <Input name="name" value={formData.name || ""} onChange={handleChange} disabled={!editMode} />
+          <Input name="name" value={formData.name} onChange={handleChange} disabled={!editMode} />
         </div>
 
         <div>
           <label className="block font-medium">Email (read-only):</label>
-          <Input name="email" value={formData.email || ""} disabled />
+          <Input name="email" value={formData.email} disabled />
         </div>
 
         <div>
@@ -176,7 +190,7 @@ export function UserSettings() {
           <Input
             name="date_of_birth"
             type="date"
-            value={formData.date_of_birth || ""}
+            value={formData.date_of_birth}
             onChange={handleChange}
             disabled={!editMode}
           />
@@ -186,11 +200,10 @@ export function UserSettings() {
           <label className="block font-medium">Gender:</label>
           <select
             name="gender"
-            value={formData.gender || ""}
+            value={formData.gender}
             onChange={handleChange}
             className="w-full p-2 border rounded"
-            disabled={!editMode}
-          >
+            disabled={!editMode}>
             <option value="">-- Select Gender --</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
@@ -201,7 +214,7 @@ export function UserSettings() {
           <label className="block font-medium">Preferred Language:</label>
           <Input
             name="language"
-            value={formData.language || ""}
+            value={formData.language}
             onChange={handleChange}
             disabled={!editMode}
           />
@@ -212,6 +225,7 @@ export function UserSettings() {
 
       <hr />
 
+      {/* Change Password Form */}
       <h3 className="text-xl font-semibold">Change Password</h3>
       <form onSubmit={handleChangePassword} className="space-y-4">
         <div>

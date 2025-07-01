@@ -4,7 +4,7 @@ import './index.css'
 import {BrowserRouter, Route, Routes} from "react-router";
 import {Signup} from "@/routes/auth/signUp.jsx";
 import {Home} from "@/routes/Home.jsx";
-import { UserSettings } from "@/routes/UserSettings.jsx";
+import { UserSettings } from "@/routes/userSettings/userSettings.jsx";
 import {Navbar} from "@/components/navbar/navbar.jsx";
 import {AlertProvider} from "@/provider/AlertProvider.jsx";
 import {Login} from "@/routes/auth/login.jsx";

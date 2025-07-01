@@ -76,37 +76,42 @@ export const createUser = async (userData) => {
  * @returns {Promise<boolean>}
  */
 export const updateUser = async (id, userData) => {
-    const db = await sql.connect(dbConfig);
-    const currentUser = await getUser(id, db);
-
-    if (!currentUser) {
-        throw new Error("User not found");
-    }
-
+  const db = await sql.connect(dbConfig);
+  const currentUser = await getUser(id, db);
+  if (!currentUser) {
+    throw new Error("User not found");
+  }
     const query = `
-        UPDATE [user]
-        SET 
-            name = @name,
-            email = @email,
-            hashedPassword = @hashedPassword,
-            date_of_birth = @dob,
-            gender = @gender
-        WHERE id = @id;
+    UPDATE Users
+    SET 
+        name = @name,
+        email = @email,
+        password = @password,
+        date_of_birth = @dob,
+        gender = @gender
+    WHERE id = @id;
     `;
-    const request = db.request();
-    request.input("id", id);
-    request.input("name", userData.name ?? currentUser.name);
-    request.input("email", userData.email ?? currentUser.email);
-    request.input("hashedPassword", userData.password ?? currentUser.password);
-    request.input("dob", userData.date_of_birth ?? currentUser.dob);
-    request.input("gender", userData.gender ?? currentUser.gender);
-    request.input("language", userData.language ?? currentUser.language);
-    request.input("profile_picture_url", userData.profile_picture_url ?? currentUser.profile_picture_url);
 
-    const res = await request.query(query);
 
-    return res.rowsAffected[0] !== 0;
-}
+  const request = db.request();
+  request.input("id", id);
+  request.input("name", userData.name ?? currentUser.name);
+  request.input("email", userData.email ?? currentUser.email);
+
+  // Avoid undefined hashedPassword
+  const hashedPassword = userData.hashedPassword ?? currentUser.hashedPassword;
+  request.input("password", hashedPassword);
+
+  // Ensure DOB and gender are safe
+  request.input("dob", userData.date_of_birth ?? currentUser.date_of_birth);
+  request.input("gender", userData.gender ?? currentUser.gender);
+
+  const result = await request.query(query);
+  console.log("SQL resul:", result);
+
+  return result.rowsAffected[0] > 0;
+};
+
 
 /**
  * Deletes a user from the database.
