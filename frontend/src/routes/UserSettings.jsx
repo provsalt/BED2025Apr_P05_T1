@@ -3,13 +3,13 @@ import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export const UserSettings = ({ userId }) => {
-
+export function UserSettings({ userId }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    dob: "",
+    date_of_birth: "",
     gender: "",
+    language: "",
     profile_picture_url: ""
   });
 
@@ -28,54 +28,54 @@ export const UserSettings = ({ userId }) => {
       .catch(err => console.error("Fetch error", err));
   }, [userId]);
 
-  const handleChange = (e) => {
+  function handleChange(e) {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }
 
-  const handlePasswordChange = (e) => {
+  function handlePasswordChange(e) {
     const { name, value } = e.target;
     setPasswordForm(prev => ({ ...prev, [name]: value }));
-  };
+  }
 
-  const handleProfilePictureChange = (e) => {
+  function handleProfilePictureChange(e) {
     setSelectedFile(e.target.files[0]);
-  };
+  }
 
-  const handleProfilePictureUpload = async () => {
+  async function handleProfilePictureUpload() {
     if (!selectedFile) return;
-    const formData = new FormData();
-    formData.append("avatar", selectedFile);
+    const data = new FormData();
+    data.append("avatar", selectedFile);
     try {
-      await axios.post(`/api/user/${userId}/picture`, formData);
-      setMessage("✅ Profile picture updated.");
+      await axios.post(`/api/user/${userId}/picture`, data);
+      setMessage("Profile picture updated.");
     } catch (err) {
       console.error(err);
-      setMessage("❌ Failed to upload profile picture.");
+      setMessage("Failed to upload profile picture.");
     }
-  };
+  }
 
-
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
     try {
       await axios.put(`/api/user/${userId}`, {
         name: formData.name,
         gender: formData.gender,
-        dob: formData.dob
+        date_of_birth: formData.date_of_birth,
+        language: formData.language
       });
-      setMessage("✅ Profile updated successfully.");
+      setMessage("Profile updated successfully.");
     } catch (err) {
       console.error("Update error", err);
-      setMessage("❌ Failed to update profile.");
+      setMessage("Failed to update profile.");
     }
-  };
+  }
 
-  const handleChangePassword = async (e) => {
+  async function handleChangePassword(e) {
     e.preventDefault();
     const { oldPassword, newPassword, confirmPassword } = passwordForm;
     if (newPassword !== confirmPassword) {
-      return setMessage("❌ New passwords do not match.");
+      return setMessage("New passwords do not match.");
     }
     try {
       await axios.put(
@@ -83,17 +83,17 @@ export const UserSettings = ({ userId }) => {
         { oldPassword, newPassword },
         {
           headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+            Authorization: `Bearer ${localStorage.getItem("token")}`
           }
         }
       );
-      setMessage("✅ Password updated successfully.");
+      setMessage("Password updated successfully.");
       setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err) {
       console.error("Password update error", err);
-      setMessage("❌ Failed to update password.");
+      setMessage("Failed to update password.");
     }
-  };
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-lg space-y-8">
@@ -111,7 +111,7 @@ export const UserSettings = ({ userId }) => {
 
       <h2 className="text-2xl font-semibold">User Settings</h2>
       {message && (
-        <p className={`font-medium ${message.includes("❌") ? "text-red-600" : "text-green-600"}`}>{message}</p>
+        <p className={`font-medium ${message.includes("❌incorrext") ? "text-red-600" : "text-green-600"}`}>{message}</p>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -127,7 +127,7 @@ export const UserSettings = ({ userId }) => {
 
         <div>
           <label className="block font-medium">Date of Birth:</label>
-          <Input name="dob" type="date" value={formData.dob ? formData.dob.split("T")[0] : ""} onChange={handleChange}/>
+          <Input name="date_of_birth" type="date" value={formData.date_of_birth?.split("T")[0] || ""} onChange={handleChange} />
         </div>
 
         <div>
@@ -144,6 +144,11 @@ export const UserSettings = ({ userId }) => {
           </select>
         </div>
 
+        <div>
+          <label className="block font-medium">Preferred Language:</label>
+          <Input name="language" value={formData.language || ""} onChange={handleChange} />
+        </div>
+
         <Button type="submit">Save Changes</Button>
       </form>
 
@@ -153,33 +158,21 @@ export const UserSettings = ({ userId }) => {
       <form onSubmit={handleChangePassword} className="space-y-4">
         <div>
           <label className="block font-medium">Old Password:</label>
-          <Input type="password" name="oldPassword" value={passwordForm.oldPassword} onChange={handlePasswordChange} required/>
+          <Input type="password" name="oldPassword" value={passwordForm.oldPassword} onChange={handlePasswordChange} required />
         </div>
 
         <div>
           <label className="block font-medium">New Password:</label>
-          <Input
-            type="password"
-            name="newPassword"
-            value={passwordForm.newPassword}
-            onChange={handlePasswordChange}
-            required
-          />
+          <Input type="password" name="newPassword" value={passwordForm.newPassword} onChange={handlePasswordChange} required />
         </div>
 
         <div>
           <label className="block font-medium">Confirm New Password:</label>
-          <Input
-            type="password"
-            name="confirmPassword"
-            value={passwordForm.confirmPassword}
-            onChange={handlePasswordChange}
-            required
-          />
+          <Input type="password" name="confirmPassword" value={passwordForm.confirmPassword} onChange={handlePasswordChange} required />
         </div>
 
         <Button type="submit">Update Password</Button>
       </form>
     </div>
   );
-};
+}
