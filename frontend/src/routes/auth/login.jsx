@@ -40,7 +40,7 @@ export const Login = () => {
         token: resp.token,
         isAuthenticated: true
       });
-      setTimeout(() => navigate("/medicine"), 3000);
+      setTimeout(() => navigate("/medical"), 3000);
     } else {
       alert.error({
         title: "Error",

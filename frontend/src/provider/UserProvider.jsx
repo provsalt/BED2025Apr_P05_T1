@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { decodeJwt } from "jose";
 import { UserContext } from "@/provider/UserContext.js";
+import axios from "axios";
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState({
@@ -21,10 +22,19 @@ export const UserProvider = ({ children }) => {
         return;
       }
 
-      setUser({
-        id: parsed.sub,
-        token,
-        isAuthenticated: true,
+      axios.get("/api/user", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => {
+        setUser({
+          id: parsed.sub,
+          token,
+          isAuthenticated: true,
+          name: res.data.name || ""
+        });
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user name", err);
       });
     } catch (err) {
       console.error("Token decode error:", err);

@@ -271,6 +271,18 @@ useEffect(() => {
 
         <Button type="submit">Update Password</Button>
       </form>
+        <Button
+          variant="destructive"
+          onClick={() => {
+            auth.setUser({ id: null, token: null, isAuthenticated: false });
+            localStorage.removeItem("token");
+            navigate("/");
+          }}
+        >
+          Logout
+        </Button>
     </div>
+
+    
   );
 }
