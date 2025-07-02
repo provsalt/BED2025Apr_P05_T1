@@ -8,6 +8,7 @@ export const UserProvider = ({ children }) => {
     id: null,
     token: null,
     isAuthenticated: false,
+    name: ""
   });
 
   useEffect(() => {
