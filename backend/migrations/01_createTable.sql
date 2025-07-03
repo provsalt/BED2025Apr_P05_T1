@@ -111,3 +111,13 @@ CREATE TABLE HealthSummary (
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (user_id) REFERENCES [Users](id)
 );
+
+CREATE TABLE Announcement (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    user_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES [Users](id)
+);
