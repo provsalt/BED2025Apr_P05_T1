@@ -24,6 +24,7 @@
     "date-fns": "^4.1.0",
     "jose": "^6.0.11",
     "lucide-react": "^0.511.0",
+    "node-fetch": "^3.3.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.58.1",

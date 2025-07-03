@@ -5,7 +5,8 @@ import {
   changePasswordController,
   getUserController,
   updateUserController,
-  uploadProfilePictureController
+  uploadProfilePictureController,
+  deleteProfilePictureController
 } from "./user/userController.js";
 
 import { getUserMiddleware } from "../middleware/getUser.js";
@@ -44,8 +45,9 @@ export const Controller = (app) => {
   // Update password
   app.put("/api/user/:id/password", getUserMiddleware, changePasswordController);
 
-  // Upload profile picture
+  // profile picture
   app.post("/api/user/:id/picture", getUserMiddleware, uploadProfilePic.single("avatar"), uploadProfilePictureController);
+  app.delete("/api/profile-picture/:id", getUserMiddleware, deleteProfilePictureController);
 
 
   // Chat 

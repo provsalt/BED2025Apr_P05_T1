@@ -6,13 +6,31 @@ import {z} from "zod/v4";
 import bcrypt from "bcryptjs";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3 } from "../../config/s3Client.js";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
-    return res.status(401).json({"message": "Unauthorized"});
+    return res.status(401).json({ message: "Unauthorized" });
   }
-  res.status(200).json(req.user)
-}
+
+  try {
+    const fullUser = await getUser(req.user.id);
+    if (!fullUser) return res.status(404).json({ error: "User not found" });
+
+    res.status(200).json({
+      id: fullUser.id,
+      name: fullUser.name,
+      email: fullUser.email,
+      profile_picture_url: fullUser.profile_picture_url,
+      gender: fullUser.gender,
+      date_of_birth: fullUser.date_of_birth,
+      language: fullUser.language
+    });
+  } catch (err) {
+    console.error("Fetch current user failed:", err);
+    res.status(500).json({ error: "Failed to fetch current user" });
+  }
+};
 
 export const getUserController = async (req, res) => {
   const userId = parseInt(req.params.id);
@@ -34,7 +52,6 @@ export const getUserController = async (req, res) => {
 
 
 
-// PUT: Update Profile
 export const updateUserController = async (req, res) => {
   const userId = parseInt(req.params.id);
   const updates = req.body;
@@ -66,9 +83,6 @@ export const updateUserController = async (req, res) => {
     res.status(500).json({ error: "Failed to update user" });
   }
 };
-
-
-
 
 export const loginUserController = async (req, res) => {
   const body = req.body;
@@ -127,7 +141,6 @@ export const createUserController = async (req, res) => {
     }
 }
 
-// Change Password
 export const changePasswordController = async (req, res) => {
   const userId = parseInt(req.params.id);
   if (isNaN(userId)) {
@@ -166,25 +179,64 @@ export const uploadProfilePictureController = async (req, res) => {
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  const filename = `${Date.now()}-${file.originalname}`;
+  const ext = file.originalname.split('.').pop();
+  const filename = `user-${userId}.${ext}`;
+  const key = `profile-pictures/${filename}`;
+
   const uploadParams = {
     Bucket: process.env.S3_BUCKET_NAME,
-    Key: `profile-pictures/${filename}`,
+    Key: key,
     Body: file.buffer,
     ContentType: file.mimetype,
-    ACL: "public-read", // optional: make public
   };
 
   try {
+    const user = await getUser(userId);
+    if (user?.profile_picture_url) {
+      const oldKey = decodeURIComponent(user.profile_picture_url.split("/").pop());
+      await s3.send(new DeleteObjectCommand({
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: `profile-pictures/${oldKey}`
+      }));
+    }
+
     await s3.send(new PutObjectCommand(uploadParams));
-    const fileUrl = `${process.env.S3_PUBLIC_URL}/profile-pictures/${filename}`;
 
-    // OPTIONAL: update DB with new URL
-    await updateUserProfilePicture(userId, fileUrl);
+    const newUrl = `/uploads/${filename}`;
+    await updateUserProfilePicture(userId, newUrl);
 
-    res.status(200).json({ message: "Upload successful", url: fileUrl });
-  } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({ error: "Upload failed" });
+    res.status(200).json({ message: "Upload successful", url: newUrl });
+  } catch (err) {
+    console.error("Upload failed:", err);
+    res.status(500).json({ error: "Failed to upload image" });
+  }
+};
+
+export const deleteProfilePictureController = async (req, res) => {
+  const userId = parseInt(req.params.id);
+  if (isNaN(userId)) {
+    return res.status(400).json({ error: "Invalid user ID" });
+  }
+
+  try {
+    const user = await getUser(userId);
+    if (!user || !user.profile_picture_url) {
+      return res.status(404).json({ error: "No profile picture to delete" });
+    }
+
+    const key = user.profile_picture_url.split("/").pop();
+
+    const deleteParams = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: `profile-pictures/${key}`,
+    };
+
+    await s3.send(new DeleteObjectCommand(deleteParams));
+    await updateUserProfilePicture(userId, null);
+
+    res.status(200).json({ message: "Profile picture deleted successfully" });
+  } catch (err) {
+    console.error("Delete picture error:", err);
+    res.status(500).json({ error: "Failed to delete profile picture" });
   }
 };

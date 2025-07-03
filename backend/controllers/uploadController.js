@@ -25,7 +25,7 @@ export const uploadProfilePictureController = async (req, res) => {
         Key: `profile-pictures/${filename}`,
         Body: file.buffer,
         ContentType: file.mimetype,
-        ACL: "public-read", // Optional: allows direct URL access
+        ACL: "public-read",
     };
 
     try {

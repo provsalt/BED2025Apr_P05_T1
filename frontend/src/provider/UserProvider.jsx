@@ -8,7 +8,8 @@ export const UserProvider = ({ children }) => {
     id: null,
     token: null,
     isAuthenticated: false,
-    name: ""
+    name: "",
+    profile_picture_url: ""
   });
 
   useEffect(() => {
@@ -26,12 +27,20 @@ export const UserProvider = ({ children }) => {
       axios.get("/api/user", {
         headers: { Authorization: `Bearer ${token}` }
       })
+      // fetch("/api/user", {
+      //   headers: { Authorization: `Bearer ${token}` },
+      //   })
+      //   .then(res => res.json())
+      //   .then(data => {
+      //     setUser({ ...parsed, isAuthenticated: true, name: data.name, profile_picture_url: data.profile_picture_url });
+      //   })
       .then((res) => {
         setUser({
           id: parsed.sub,
           token,
           isAuthenticated: true,
-          name: res.data.name || ""
+          name: res.data.name || "",
+          profile_picture_url: null
         });
       })
       .catch((err) => {
