@@ -120,7 +120,7 @@ export const updateUser = async (id, userData) => {
  */
 export const deleteUser = async (id) => {
     const db = await sql.connect(dbConfig);
-    const query = "DELETE FROM [user] WHERE id = @id";
+    const query = "DELETE FROM Users WHERE id = @id";
     const request = db.request();
     request.input("id", id);
 
