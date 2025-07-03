@@ -4,6 +4,8 @@ import {User} from "../../utils/validation/user.js";
 import {SignJWT} from "jose";
 import {z} from "zod/v4";
 import bcrypt from "bcryptjs";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { s3 } from "../../config/s3Client.js";
 
 export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
@@ -42,7 +44,6 @@ export const updateUserController = async (req, res) => {
     if (!currentUser) {
       return res.status(404).json({ error: "User not found" });
     }
-    console.log("Incoming update data:", updates);
 
     // Protect non-editable fields
     updates.email = currentUser.email;
@@ -122,7 +123,6 @@ export const createUserController = async (req, res) => {
           token: tok
         });
     } catch (error) {
-        console.log(error);
         res.status(500).json({ error: "Error creating user" });
     }
 }
@@ -137,13 +137,8 @@ export const changePasswordController = async (req, res) => {
 
   try {
     const user = await getUser(userId);
-    console.log("Submitted old password:", oldPassword);
-    console.log("Stored hash from DB:", user.hashedPassword);
-    console.log("Length of entered password:", oldPassword.length);
-    console.log("Length of stored hash:", user.hashedPassword.length);
 
     const valid = await bcrypt.compare(oldPassword, user.hashedPassword);
-    console.log("bcrypt.compare result:", valid); // true or false
 
     if (!valid) {
       return res.status(403).json({ error: "Old password is incorrect" });
@@ -165,19 +160,31 @@ export const changePasswordController = async (req, res) => {
 
 export const uploadProfilePictureController = async (req, res) => {
   const userId = parseInt(req.params.id);
-  const filePath = req.file?.path;
+  const file = req.file;
 
-  if (!filePath) {
-    return res.status(400).json({ error: "No image uploaded" });
+  if (!file) {
+    return res.status(400).json({ error: "No file uploaded" });
   }
 
-  try {
-    const updated = await updateUserProfilePicture(userId, filePath);
-    if (!updated) return res.status(500).json({ error: "Failed to update profile picture" });
+  const filename = `${Date.now()}-${file.originalname}`;
+  const uploadParams = {
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: `profile-pictures/${filename}`,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+    ACL: "public-read", // optional: make public
+  };
 
-    res.json({ message: "Profile picture uploaded", path: filePath });
+  try {
+    await s3.send(new PutObjectCommand(uploadParams));
+    const fileUrl = `${process.env.S3_PUBLIC_URL}/profile-pictures/${filename}`;
+
+    // OPTIONAL: update DB with new URL
+    await updateUserProfilePicture(userId, fileUrl);
+
+    res.status(200).json({ message: "Upload successful", url: fileUrl });
   } catch (error) {
     console.error("Upload error:", error);
-    res.status(500).json({ error: "Failed to upload image" });
+    res.status(500).json({ error: "Upload failed" });
   }
 };

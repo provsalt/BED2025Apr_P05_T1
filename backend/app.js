@@ -6,6 +6,7 @@ import cors from "cors";
 import { Controller } from "./controllers/controller.js";
 import { socketAuthMiddleware } from "./middleware/socketAuth.js";
 import { setIO } from "./config/socket.js";
+import uploadRoutes from "./routes/uploadRoute.js";
 
 const app = express();
 const server = createServer(app);
@@ -26,7 +27,8 @@ app.use(cors({
 app.use(express.json())
 app.use(express.static("dist"))
 
-Controller(app)
+Controller(app);
+app.use("/api", uploadRoutes);
 
 setIO(io);
 

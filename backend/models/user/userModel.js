@@ -130,13 +130,15 @@ export const deleteUser = async (id) => {
 } 
 
 
-export const updateUserProfilePicture = async (id, filePath) => {
+
+export const updateUserProfilePicture = async (userId, fileUrl) => {
   const db = await sql.connect(dbConfig);
+  const query = ` UPDATE Users
+                  SET profile_picture_url = @url
+                  WHERE id = @id`;
   const request = db.request();
-  request.input("id", id);
-  request.input("profile_picture_url", filePath);
-  const result = await request.query(
-    "UPDATE [user] SET profile_picture_url = @profile_picture_url WHERE id = @id"
-  );
+  request.input("url", fileUrl);
+  request.input("id", userId);
+  const result = await request.query(query);
   return result.rowsAffected[0] > 0;
 };

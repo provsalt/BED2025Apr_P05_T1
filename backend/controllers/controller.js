@@ -11,7 +11,6 @@ import {
 import { getUserMiddleware } from "../middleware/getUser.js";
 import { uploadProfilePic } from "../middleware/userSettingsUpload.js";
 
-// Chat controllers
 import {
   getChatsController,
   createChatController
@@ -25,8 +24,9 @@ import {
 } from "./chat/messageController.js";
 
 /**
- * Sets up all API routes for the application.
- * @param {import("express").Application} app - Express app instance.
+ * Controller function to set up routes for the application.
+ * @param app {import("express").Application} - The Express application instance.
+ * @constructor
  */
 export const Controller = (app) => {
 
