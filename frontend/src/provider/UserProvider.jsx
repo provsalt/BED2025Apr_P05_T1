@@ -8,6 +8,7 @@ export const UserProvider = ({ children }) => {
     id: null,
     token: null,
     isAuthenticated: false,
+    admin: false
   });
 
   useEffect(() => {
@@ -30,6 +31,7 @@ export const UserProvider = ({ children }) => {
       id: parse.sub,
       token: token,
       isAuthenticated: isAuthenticated,
+      admin: parse.admin
     })
   }, [])
 
