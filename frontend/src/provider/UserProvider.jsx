@@ -23,14 +23,13 @@ export const UserProvider = ({ children }) => {
     if (!parse) {
       return;
     }
-    
-    const isExpired = parse.exp * 1000 < Date.now();
-    if (isExpired) {
+    const isAuthenticated = !!token && parse && (Date.now() / 10000 ) < parse.exp;
+    if (!isAuthenticated) {
+      setUser(undefined)
       localStorage.removeItem("token");
-      setUser({ id: null, token: null, isAuthenticated: false });
       return;
     }
-    
+
     fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/${parse.sub}`).then(data => {
       setUser({
         id: parse.sub,
@@ -54,17 +53,16 @@ export const UserProvider = ({ children }) => {
       localStorage.setItem("token", newUserData.token);
     }
     
-  if (newUserData.isAuthenticated === false) {
-    localStorage.removeItem("token");
-    setUser({
-      id: null,
-      token: null,
-      isAuthenticated: false,
-      name: "",
-      profile_picture_url: ""
-    });
-    return;
-  }
+    if (newUserData.isAuthenticated === false) {
+      localStorage.removeItem("token");
+      setUser({
+        id: null,
+        token: null,
+        isAuthenticated: false,
+        name: "",
+        profile_picture_url: ""
+      });
+    }
   };
 
 const refreshUser = async () => {
