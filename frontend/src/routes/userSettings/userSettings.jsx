@@ -1,10 +1,10 @@
 import { useEffect, useState, useContext } from "react";
-import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UserContext } from "@/provider/UserContext";
 import { useAlert } from "@/provider/AlertProvider.jsx";
 import { useNavigate } from "react-router-dom";
+import {fetcher} from "@/lib/fetcher";
 const BACKEND_URL = "http://localhost:3001";
 
 export function UserSettings() {
@@ -34,24 +34,23 @@ export function UserSettings() {
   useEffect(() => {
     if (!auth.token) return;
 
-    axios.get(`${BACKEND_URL}/api/user`, {
+    fetcher(`${BACKEND_URL}/api/user`, {
       headers: { Authorization: `Bearer ${auth.token}` }
     })
-    .then((res) => {
-      const user = res.data;
-      setFormData({
-        name: user.name || "",
-        email: user.email || "",
-        date_of_birth: user.date_of_birth?.split("T")[0] || "",
-        gender: user.gender === 0 ? "female" : user.gender === 1 ? "male" : "",
-        language: user.language || "",
-        profile_picture_url: user.profile_picture_url || ""
+      .then((user) => {
+        setFormData({
+          name: user.name || "",
+          email: user.email || "",
+          date_of_birth: user.date_of_birth?.split("T")[0] || "",
+          gender: user.gender === 0 ? "female" : user.gender === 1 ? "male" : "",
+          language: user.language || "",
+          profile_picture_url: user.profile_picture_url || ""
+        });
+        setUserId(user.id);
+      })
+      .catch(() => {
+        alert.error({ title: "Error", description: "Failed to load user info." });
       });
-      setUserId(user.id);
-    })
-    .catch((err) => {
-      alert.error({ title: "Error", description: "Failed to load user info." });
-    });
   }, [auth.token]);
 
   function handleChange(e) {
@@ -74,13 +73,15 @@ export function UserSettings() {
     data.append("avatar", selectedFile);
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/api/user/${userId}/picture`, data, {
-        headers: { Authorization: `Bearer ${auth.token}` }
+      const response = await fetcher(`${BACKEND_URL}/api/user/${userId}/picture`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${auth.token}` },
+        body: data
       });
 
       setFormData((prev) => ({
         ...prev,
-        profile_picture_url: response.data.url
+        profile_picture_url: response.url
       }));
 
       alert.success({ title: "Profile Picture Updated", description: "Image uploaded successfully." });
@@ -91,7 +92,8 @@ export function UserSettings() {
 
   async function handleDeletePicture() {
     try {
-      await axios.delete(`${BACKEND_URL}/api/profile-picture/${userId}`, {
+      await fetcher(`${BACKEND_URL}/api/profile-picture/${userId}`, {
+        method: "DELETE",
         headers: { Authorization: `Bearer ${auth.token}` }
       });
       setFormData((prev) => ({ ...prev, profile_picture_url: "" }));
@@ -106,13 +108,18 @@ export function UserSettings() {
     if (!userId) return;
 
     try {
-      await axios.put(`${BACKEND_URL}/api/user/${userId}`, {
-        name: formData.name,
-        gender: formData.gender === "female" ? 0 : formData.gender === "male" ? 1 : null,
-        date_of_birth: formData.date_of_birth,
-        language: formData.language
-      }, {
-        headers: { Authorization: `Bearer ${auth.token}` }
+      await fetcher(`${BACKEND_URL}/api/user/${userId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          gender: formData.gender === "female" ? 0 : formData.gender === "male" ? 1 : null,
+          date_of_birth: formData.date_of_birth,
+          language: formData.language
+        })
       });
 
       alert.success({ title: "Profile Updated", description: "Your profile was saved successfully." });
@@ -132,8 +139,13 @@ export function UserSettings() {
     }
 
     try {
-      await axios.put(`${BACKEND_URL}/api/user/${userId}/password`, { oldPassword, newPassword }, {
-        headers: { Authorization: `Bearer ${auth.token}` }
+      await fetcher(`${BACKEND_URL}/api/user/${userId}/password`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ oldPassword, newPassword })
       });
       alert.success({ title: "Password Updated", description: "Your password was changed successfully." });
       setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
@@ -144,7 +156,7 @@ export function UserSettings() {
 
   if (!auth.token) return null;
 
-  return (
+ return (
     <div className="flex flex-col flex-1 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-8">Profile Settings</h2>
@@ -266,3 +278,4 @@ export function UserSettings() {
     </div>
   );
 }
+

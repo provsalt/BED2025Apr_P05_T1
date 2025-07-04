@@ -20,7 +20,6 @@ import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 //   return <UserSettings userId={auth?.id || 1} />;
 // };
 
-
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AlertProvider position="bottom-center">
