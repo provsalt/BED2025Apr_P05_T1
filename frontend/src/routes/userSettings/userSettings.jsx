@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { UserContext } from "@/provider/UserContext";
 import { useAlert } from "@/provider/AlertProvider.jsx";
 import { useNavigate } from "react-router-dom";
+const BACKEND_URL = "http://localhost:3001";
 
 export function UserSettings() {
   const auth = useContext(UserContext);
@@ -33,7 +34,7 @@ export function UserSettings() {
   useEffect(() => {
     if (!auth.token) return;
 
-    axios.get("/api/user", {
+    axios.get(`${BACKEND_URL}/api/user`, {
       headers: { Authorization: `Bearer ${auth.token}` }
     })
     .then((res) => {
@@ -73,7 +74,7 @@ export function UserSettings() {
     data.append("avatar", selectedFile);
 
     try {
-      const response = await axios.post(`/api/user/${userId}/picture`, data, {
+      const response = await axios.post(`${BACKEND_URL}/api/user/${userId}/picture`, data, {
         headers: { Authorization: `Bearer ${auth.token}` }
       });
 
@@ -90,7 +91,7 @@ export function UserSettings() {
 
   async function handleDeletePicture() {
     try {
-      await axios.delete(`/api/profile-picture/${userId}`, {
+      await axios.delete(`${BACKEND_URL}/api/profile-picture/${userId}`, {
         headers: { Authorization: `Bearer ${auth.token}` }
       });
       setFormData((prev) => ({ ...prev, profile_picture_url: "" }));
@@ -105,7 +106,7 @@ export function UserSettings() {
     if (!userId) return;
 
     try {
-      await axios.put(`/api/user/${userId}`, {
+      await axios.put(`${BACKEND_URL}/api/user/${userId}`, {
         name: formData.name,
         gender: formData.gender === "female" ? 0 : formData.gender === "male" ? 1 : null,
         date_of_birth: formData.date_of_birth,
@@ -131,7 +132,7 @@ export function UserSettings() {
     }
 
     try {
-      await axios.put(`/api/user/${userId}/password`, { oldPassword, newPassword }, {
+      await axios.put(`${BACKEND_URL}/api/user/${userId}/password`, { oldPassword, newPassword }, {
         headers: { Authorization: `Bearer ${auth.token}` }
       });
       alert.success({ title: "Password Updated", description: "Your password was changed successfully." });
@@ -143,124 +144,125 @@ export function UserSettings() {
 
   if (!auth.token) return null;
 
-return (
-  <div className="flex flex-col flex-1 bg-gray-50 min-h-screen">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h2 className="text-3xl font-bold text-gray-800 mb-8">Profile Settings</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">Profile Picture</h3>
-          {formData.profile_picture_url ? (
-            <img
-              src={`/api/uploads/${formData.profile_picture_url}`}
-              alt="Profile"
-              className="w-32 h-32 rounded-full object-cover mb-4"/>
-          ) : (
-            <p className="text-gray-500 mb-4">No image</p>
-          )}
-          <input type="file" onChange={handleProfilePictureChange} className="mb-4" />
-
-          <div className="flex gap-2">
-            <Button onClick={handleProfilePictureUpload}>Upload Picture</Button>
-            <Button variant="destructive" onClick={handleDeletePicture}>Delete Picture</Button>
+  return (
+    <div className="flex flex-col flex-1 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h2 className="text-3xl font-bold text-gray-800 mb-8">Profile Settings</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Profile Picture</h3>
+            {formData.profile_picture_url ? (
+              <img
+                src={formData.profile_picture_url}
+                alt="Profile"
+                className="w-32 h-32 rounded-full object-cover mb-4"
+              />
+            ) : (
+              <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center mb-4">
+                <span className="text-gray-600">No Image</span>
+              </div>
+            )}
+            <input type="file" onChange={handleProfilePictureChange} className="mb-4" />
+            <div className="flex gap-2">
+              <Button onClick={handleProfilePictureUpload}>Upload Picture</Button>
+              <Button variant="destructive" onClick={handleDeletePicture}>Delete Picture</Button>
+            </div>
           </div>
-        </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-gray-800">User Details</h3>
-            <Button onClick={() => setEditMode((prev) => !prev)}>
-              {editMode ? "Cancel" : "Edit Settings"}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-800">User Details</h3>
+              <Button onClick={() => setEditMode((prev) => !prev)}>
+                {editMode ? "Cancel" : "Edit Settings"}
+              </Button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block font-medium">Name:</label>
+                <Input name="name" value={formData.name} onChange={handleChange} disabled={!editMode} />
+              </div>
+              <div>
+                <label className="block font-medium">Email (read-only):</label>
+                <Input name="email" value={formData.email} disabled />
+              </div>
+              <div>
+                <label className="block font-medium">Date of Birth:</label>
+                <Input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} disabled={!editMode} />
+              </div>
+              <div>
+                <label className="block font-medium">Gender:</label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded"
+                  disabled={!editMode}>
+                  <option value="">-- Select Gender --</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-medium">Preferred Language:</label>
+                <Input name="language" value={formData.language} onChange={handleChange} disabled={!editMode} />
+              </div>
+
+              {editMode && <Button type="submit">Save Changes</Button>}
+            </form>
+          </div>
+
+          <div className="md:col-span-2 bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Change Password</h3>
+            <form onSubmit={handleChangePassword} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block font-medium">Old Password:</label>
+                <Input
+                  type="password"
+                  name="oldPassword"
+                  value={passwordForm.oldPassword}
+                  onChange={handlePasswordChange}
+                  required/>
+              </div>
+              <div>
+                <label className="block font-medium">New Password:</label>
+                <Input
+                  type="password"
+                  name="newPassword"
+                  value={passwordForm.newPassword}
+                  onChange={handlePasswordChange}
+                  required/>
+              </div>
+              <div>
+                <label className="block font-medium">Confirm Password:</label>
+                <Input
+                  type="password"
+                  name="confirmPassword"
+                  value={passwordForm.confirmPassword}
+                  onChange={handlePasswordChange}
+                  required/>
+              </div>
+
+              <div className="md:col-span-3">
+                <Button type="submit">Update Password</Button>
+              </div>
+            </form>
+          </div>
+
+          <div className="md:col-span-2 flex justify-center">
+            <Button
+              variant="destructive"
+              onClick={() => {
+                auth.setUser({ id: null, token: null, isAuthenticated: false });
+                localStorage.removeItem("token");
+                navigate("/");
+              }}
+            >
+              Logout
             </Button>
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block font-medium">Name:</label>
-              <Input name="name" value={formData.name} onChange={handleChange} disabled={!editMode} />
-            </div>
-            <div>
-              <label className="block font-medium">Email (read-only):</label>
-              <Input name="email" value={formData.email} disabled />
-            </div>
-            <div>
-              <label className="block font-medium">Date of Birth:</label>
-              <Input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} disabled={!editMode} />
-            </div>
-            <div>
-              <label className="block font-medium">Gender:</label>
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-                disabled={!editMode}>
-                <option value="">-- Select Gender --</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
-            </div>
-            <div>
-              <label className="block font-medium">Preferred Language:</label>
-              <Input name="language" value={formData.language} onChange={handleChange} disabled={!editMode} />
-            </div>
-
-            {editMode && <Button type="submit">Save Changes</Button>}
-          </form>
-        </div>
-        <div className="md:col-span-2 bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">Change Password</h3>
-          <form onSubmit={handleChangePassword} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block font-medium">Old Password:</label>
-              <Input
-                type="password"
-                name="oldPassword"
-                value={passwordForm.oldPassword}
-                onChange={handlePasswordChange}
-                required/>
-            </div>
-            <div>
-              <label className="block font-medium">New Password:</label>
-              <Input
-                type="password"
-                name="newPassword"
-                value={passwordForm.newPassword}
-                onChange={handlePasswordChange}
-                required/>
-            </div>
-
-            <div>
-              <label className="block font-medium">Confirm Password:</label>
-              <Input
-                type="password"
-                name="confirmPassword"
-                value={passwordForm.confirmPassword}
-                onChange={handlePasswordChange}
-                required/>
-            </div>
-
-            <div className="md:col-span-3">
-              <Button type="submit">Update Password</Button>
-            </div>
-          </form>
-        </div>
-
-        {/* Logout Button */}
-        <div className="md:col-span-2 flex justify-center">
-          <Button
-            variant="destructive"
-            onClick={() => {
-              auth.setUser({ id: null, token: null, isAuthenticated: false });
-              localStorage.removeItem("token");
-              navigate("/");
-            }}
-          >
-            Logout
-          </Button>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 }

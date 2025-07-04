@@ -46,7 +46,11 @@ export const Navbar = () => {
           <DropdownMenuTrigger asChild>
             <div onClick={handleAvatarClick} className="cursor-pointer w-10 h-10">
               {isAuthenticated && profile_picture_url ? (
-                <img src={`/api/user/${userId}/picture`} alt="Profile" />
+                <img
+                  src={profile_picture_url}
+                  alt="Profile"
+                  className="rounded-full w-10 h-10 object-cover"
+                />
                 ) : (
                 <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
                   <User className="w-5 h-5" />

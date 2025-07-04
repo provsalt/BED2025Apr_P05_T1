@@ -105,9 +105,10 @@ export const updateUser = async (id, userData) => {
   // Ensure DOB and gender are safe
   request.input("dob", userData.date_of_birth ?? currentUser.date_of_birth);
   request.input("gender", userData.gender ?? currentUser.gender);
+  request.input("language", userData.language ?? currentUser.language);
 
   const result = await request.query(query);
-  console.log("SQL resul:", result);
+  console.log("SQL result:", result);
 
   return result.rowsAffected[0] > 0;
 };

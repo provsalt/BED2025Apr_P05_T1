@@ -1,4 +1,4 @@
-import { StrictMode, useContext } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import {BrowserRouter, Route, Routes} from "react-router";
@@ -11,7 +11,6 @@ import {Login} from "@/routes/auth/login.jsx";
 import {Chat} from "@/routes/chats/Chat.jsx";
 import {SelectedChat} from "@/routes/chats/SelectedChat.jsx";
 import {UserProvider} from "@/provider/UserProvider.jsx";
-import { UserContext } from "@/provider/UserContext";
 import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
