@@ -13,6 +13,9 @@ import {UserProvider} from "@/provider/UserProvider.jsx";
 import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
+import AdminLogin from '@/routes/admin/adminLogin.jsx';
+import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
+import AdminProtectedRoute from '@/components/AdminProtectedRoute.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -32,6 +35,14 @@ createRoot(document.getElementById('root')).render(
                     <Route path=":chatId" element={<SelectedChat />}  />
                   </Route>
                   <Route path="/medical" element={<MedicalDashboard />} />
+                  
+                  {/* Admin routes */}
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route path="/admin/dashboard" element={
+                    <AdminProtectedRoute>
+                      <AdminDashboard />
+                    </AdminProtectedRoute>
+                  } />
                 </Routes>
               </div>
             </div>

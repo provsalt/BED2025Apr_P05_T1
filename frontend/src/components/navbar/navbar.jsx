@@ -7,9 +7,12 @@ export const Navbar = () => {
             <Link className="font-bold " to="/">
                 Eldercare
             </Link>
-            <div className="flex">
+            <div className="flex gap-2">
                 <Button asChild={true}>
                     <Link to={"/login"}>Login</Link>
+                </Button>
+                <Button asChild={true} variant="outline">
+                    <Link to={"/admin/login"}>Admin</Link>
                 </Button>
             </div>
         </div>

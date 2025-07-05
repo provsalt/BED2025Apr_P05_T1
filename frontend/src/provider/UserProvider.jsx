@@ -8,7 +8,7 @@ export const UserProvider = ({ children }) => {
     id: null,
     token: null,
     isAuthenticated: false,
-    admin: false
+    role: null
   });
 
   useEffect(() => {
@@ -22,16 +22,21 @@ export const UserProvider = ({ children }) => {
     if (!parse) {
       return;
     }
-    const isAuthenticated = !!token && parse && parse.exp < Date.now() / 1000;
-    if (isAuthenticated) {
-      setUser(undefined)
+    const isAuthenticated = !!token && parse && parse.exp > Date.now() / 1000;
+    if (!isAuthenticated) {
+      setUser({
+        id: null,
+        token: null,
+        isAuthenticated: false,
+        role: null
+      });
       return;
     }
     setUser({
       id: parse.sub,
       token: token,
       isAuthenticated: isAuthenticated,
-      admin: parse.admin
+      role: parse.role
     })
   }, [])
 

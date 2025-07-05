@@ -4,5 +4,5 @@ export const UserContext = createContext({
   id: null,
   token: null,
   isAuthenticated: false,
-  admin: false
+  role: null
 });
