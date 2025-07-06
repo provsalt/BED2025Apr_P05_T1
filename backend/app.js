@@ -2,13 +2,11 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
-// import fetch from "node-fetch";
+
 
 import { Controller } from "./controllers/controller.js";
 import { socketAuthMiddleware } from "./middleware/socketAuth.js";
 import { setIO } from "./config/socket.js";
-import uploadRoutes from "./routes/uploadRoute.js";
-import imageProxyRoute from "./routes/imageProxyRoute.js";
 
 const app = express();
 const server = createServer(app);
@@ -29,8 +27,6 @@ app.use(express.json());
 app.use(express.static("dist"));
 
 Controller(app);
-app.use("/api", uploadRoutes);
-app.use("/", imageProxyRoute);
 
 setIO(io);
 io.use(socketAuthMiddleware);
@@ -50,18 +46,4 @@ server.listen(3001, (err) => {
   console.log("express server listening on http://localhost:3001");
 });
 
-// app.get("/uploads/:filename", async (req, res) => {
-//   const filename = req.params.filename;
-//   const url = `http://localhost:9000/bed-sx-miniobucket/profile-pictures/${filename}`;
 
-//   try {
-//     const response = await fetch(url);
-//     if (!response.ok) return res.status(response.status).send("Image fetch failed");
-
-//     res.set("Content-Type", response.headers.get("content-type"));
-//     response.body.pipe(res);
-//   } catch (err) {
-//     console.error("Proxy error:", err);
-//     res.status(500).send("Proxy failed");
-//   }
-// });

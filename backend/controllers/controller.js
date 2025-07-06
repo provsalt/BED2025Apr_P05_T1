@@ -1,3 +1,5 @@
+import { createUploadMiddleware } from "../middleware/upload.js";
+import { compressImage } from "../middleware/compression.js";
 import {
   createUserController,
   getCurrentUserController,
@@ -10,7 +12,6 @@ import {
 } from "./user/userController.js";
 
 import { getUserMiddleware } from "../middleware/getUser.js";
-import { uploadProfilePic } from "../middleware/userSettingsUpload.js";
 
 import {
   getChatsController,
@@ -23,6 +24,7 @@ import {
   updateMessageController,
   deleteMessageController
 } from "./chat/messageController.js";
+import {getFileByKey} from "./s3/fileController.js";
 
 /**
  * Controller function to set up routes for the application.
@@ -46,7 +48,10 @@ export const Controller = (app) => {
   app.put("/api/user/:id/password", getUserMiddleware, changePasswordController);
 
   // profile picture
-  app.post("/api/user/:id/picture", getUserMiddleware, uploadProfilePic.single("avatar"), uploadProfilePictureController);
+  app.post("/api/user/:id/picture", getUserMiddleware, createUploadMiddleware({
+    allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
+    fileSize: 8 * 1024 * 1024,
+  }).single("avatar"), compressImage, uploadProfilePictureController);
   app.delete("/api/profile-picture/:id", getUserMiddleware, deleteProfilePictureController);
 
 
@@ -58,4 +63,6 @@ export const Controller = (app) => {
   app.post("/api/chats/:chatId", getUserMiddleware, createMessageController);
   app.put("/api/chats/:chatId/:messageId", getUserMiddleware, updateMessageController);
   app.delete("/api/chats/:chatId/:messageId", getUserMiddleware, deleteMessageController);
+
+  app.get("/api/s3", getFileByKey)
 };

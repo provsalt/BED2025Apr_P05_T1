@@ -1,12 +1,17 @@
 
-import {createUser, getUser, getUserByEmail, updateUser, updateUserProfilePicture} from "../../models/user/userModel.js";
-import {User} from "../../utils/validation/user.js";
-import {SignJWT} from "jose";
-import {z} from "zod/v4";
+import {
+  createUser,
+  getUser,
+  getUserByEmail,
+  updateUser,
+  updateUserProfilePicture
+} from "../../models/user/userModel.js";
+import crypto from "crypto";
+import { User } from "../../utils/validation/user.js";
+import { SignJWT } from "jose";
+import { z } from "zod/v4";
 import bcrypt from "bcryptjs";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3 } from "../../config/s3Client.js";
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { uploadFile, deleteFile } from "../../services/s3Service.js";
 
 export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
@@ -180,32 +185,27 @@ export const uploadProfilePictureController = async (req, res) => {
   }
 
   const ext = file.originalname.split('.').pop();
-  const filename = `user-${userId}.${ext}`;
-  const key = `profile-pictures/${filename}`;
-
-  const uploadParams = {
-    Bucket: process.env.S3_BUCKET_NAME,
-    Key: key,
-    Body: file.buffer,
-    ContentType: file.mimetype,
-  };
+  const fileHash = crypto.createHash('md5').update(file.buffer).digest('hex');
+  const filename = `${fileHash}.${ext}`;
+  const key = `uploads/${filename}`;
 
   try {
     const user = await getUser(userId);
     if (user?.profile_picture_url) {
-      const oldKey = decodeURIComponent(user.profile_picture_url.split("/").pop());
-      await s3.send(new DeleteObjectCommand({
-        Bucket: process.env.S3_BUCKET_NAME,
-        Key: `profile-pictures/${oldKey}`
-      }));
+      const oldKey = `/uploads/${decodeURIComponent(user.profile_picture_url.split("/").pop())}`;
+      await deleteFile(oldKey);
     }
 
-    await s3.send(new PutObjectCommand(uploadParams));
+    await uploadFile(file, key);
 
-    const newUrl = `/uploads/${filename}`;
-    await updateUserProfilePicture(userId, newUrl);
+    const newUrl = `uploads/${filename}`;
+    const publicUrl = process.env.BACKEND_URL + "/api/s3?key=" + newUrl
 
-    res.status(200).json({ message: "Upload successful", url: newUrl });
+    await updateUserProfilePicture(userId, publicUrl)
+
+    console.log(await getUser(userId))
+
+    res.status(200).json({ message: "Upload successful", url:  publicUrl });
   } catch (err) {
     console.error("Upload failed:", err);
     res.status(500).json({ error: "Failed to upload image" });
@@ -224,16 +224,11 @@ export const deleteProfilePictureController = async (req, res) => {
       return res.status(404).json({ error: "No profile picture to delete" });
     }
 
-    const key = user.profile_picture_url.split("/").pop();
+    const key = `profile-pictures/${user.profile_picture_url.split("/").pop()}`;
 
-    const deleteParams = {
-      Bucket: process.env.S3_BUCKET_NAME,
-      Key: `profile-pictures/${key}`,
-    };
+    await deleteFile(key);
 
-    await s3.send(new DeleteObjectCommand(deleteParams));
-    await updateUserProfilePicture(userId, null);
-
+    await updateUserProfilePicture(userId, null)
     res.status(200).json({ message: "Profile picture deleted successfully" });
   } catch (err) {
     console.error("Delete picture error:", err);

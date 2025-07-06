@@ -1,61 +1,53 @@
-import { useEffect, useState } from "react";
-import { decodeJwt } from "jose";
-import { UserContext } from "@/provider/UserContext.js";
-import axios from "axios";
+import { useEffect, useState} from "react";
+import {decodeJwt} from "jose";
+import {UserContext} from "@/provider/UserContext.js";
+import {fetcher} from "@/lib/fetcher.js";
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState({
     id: null,
     token: null,
     isAuthenticated: false,
-    name: "",
-    profile_picture_url: ""
+    data: null,
   });
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
 
-    try {
-      const parsed = decodeJwt(token);
-      const isExpired = parsed.exp * 1000 < Date.now();
-      if (isExpired) {
-        localStorage.removeItem("token");
-        return;
-      }
-
-      axios.get("/api/user", {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      // fetch("/api/user", {
-      //   headers: { Authorization: `Bearer ${token}` },
-      //   })
-      //   .then(res => res.json())
-      //   .then(data => {
-      //     setUser({ ...parsed, isAuthenticated: true, name: data.name, profile_picture_url: data.profile_picture_url });
-      //   })
-      .then((res) => {
-        setUser({
-          id: parsed.sub,
-          token,
-          isAuthenticated: true,
-          name: res.data.name || "",
-          profile_picture_url: null
-        });
-      })
-      .catch((err) => {
-        console.error("Failed to fetch user name", err);
-      });
-    } catch (err) {
-      console.error("Token decode error:", err);
+    if (typeof localStorage === "undefined") {
+      return;
     }
-  }, []);
+
+    const token = localStorage.getItem("token");
+    const parse = token ? decodeJwt(token) : null;
+    if (!parse) {
+      return;
+    }
+    const isAuthenticated = !!token && parse && parse.exp < Date.now() / 1000;
+    if (isAuthenticated) {
+      setUser(undefined)
+      return;
+    }
+    
+    fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/${parse.sub}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    }).then(data => {
+        setUser({
+          id: parse.sub,
+          token: token,
+          isAuthenticated: isAuthenticated,
+          data: data,
+        })
+    })
+  }, [])
+
 
   const updateUser = (newUserData) => {
-    setUser((prev) => ({ ...prev, ...newUserData }));
+    setUser(prev => ({ ...prev, ...newUserData }));
+    
     if (newUserData.token) {
       localStorage.setItem("token", newUserData.token);
     }
+    
     if (newUserData.isAuthenticated === false) {
       localStorage.removeItem("token");
     }

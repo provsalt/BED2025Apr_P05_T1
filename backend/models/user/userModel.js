@@ -77,7 +77,7 @@ export const createUser = async (userData) => {
  */
 export const updateUser = async (id, userData) => {
   const db = await sql.connect(dbConfig);
-  const currentUser = await getUser(id, db);
+  const currentUser = await getUser(id);
   if (!currentUser) {
     throw new Error("User not found");
   }
@@ -98,9 +98,7 @@ export const updateUser = async (id, userData) => {
   request.input("name", userData.name ?? currentUser.name);
   request.input("email", userData.email ?? currentUser.email);
 
-  // Avoid undefined hashedPassword
-  const hashedPassword = userData.hashedPassword ?? currentUser.hashedPassword;
-  request.input("password", hashedPassword);
+  request.input("password", userData.password ?? currentUser.password);
 
   // Ensure DOB and gender are safe
   request.input("dob", userData.date_of_birth ?? currentUser.date_of_birth);
@@ -108,7 +106,6 @@ export const updateUser = async (id, userData) => {
   request.input("language", userData.language ?? currentUser.language);
 
   const result = await request.query(query);
-  console.log("SQL result:", result);
 
   return result.rowsAffected[0] > 0;
 };

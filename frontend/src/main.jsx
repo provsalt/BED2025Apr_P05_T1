@@ -4,7 +4,7 @@ import './index.css'
 import {BrowserRouter, Route, Routes} from "react-router";
 import {Signup} from "@/routes/auth/signUp.jsx";
 import {Home} from "@/routes/Home.jsx";
-import { UserSettings } from "@/routes/userSettings/userSettings.jsx";
+import { Settings } from "@/routes/user/Settings.jsx";
 import {Navbar} from "@/components/navbar/navbar.jsx";
 import {AlertProvider} from "@/provider/AlertProvider.jsx";
 import {Login} from "@/routes/auth/login.jsx";
@@ -33,7 +33,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/" element={<Home/>} />
                   <Route path="/signup" element={<Signup/>} />
                   <Route path="/login" element={<Login/>} />
-                  <Route path="/settings" element={<UserSettings />} />
+                  <Route path="/settings" element={<Settings />} />
                   <Route path="/chats" element={<ChatLayout />}>
                     <Route index element={<Chat />} />
                     <Route path=":chatId" element={<SelectedChat />}  />
