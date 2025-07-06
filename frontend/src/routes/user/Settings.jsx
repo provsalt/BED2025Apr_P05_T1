@@ -5,6 +5,7 @@ import { UserContext } from "@/provider/UserContext.js";
 import { useAlert } from "@/provider/AlertProvider.jsx";
 import { useNavigate } from "react-router";
 import {fetcher} from "@/lib/fetcher.js";
+import { useLocation } from "react-router-dom";
 
 export function Settings() {
   const auth = useContext(UserContext);
@@ -78,7 +79,14 @@ export function Settings() {
       setFormData((prev) => ({
         ...prev,
         profile_picture_url: response.url
+      }));  
+
+      auth.setUser((prev) => ({
+        ...prev,
+        profile_picture_url: response.url || "",
+        isAuthenticated: true,
       }));
+
 
       alert.success({ title: "Profile Picture Updated", description: "Image uploaded successfully." });
     } catch (err) {
@@ -92,6 +100,12 @@ export function Settings() {
         method: "DELETE",
       });
       setFormData((prev) => ({ ...prev, profile_picture_url: "" }));
+
+      auth.setUser((prev) => ({
+        ...prev,
+        profile_picture_url: ""
+      }));
+
       alert.success({ title: "Picture Deleted", description: "Profile picture removed." });
     } catch (err) {
       alert.error({ title: "Delete Failed", description: "Could not delete profile picture." });
@@ -146,6 +160,15 @@ export function Settings() {
       alert.error({ title: "Password Update Failed", description: "Incorrect old password or server error." });
     }
   }
+  
+  const location = useLocation();
+
+  // ###idt this will affect the other parts if it refreshes?
+  useEffect(() => {
+    return () => {
+      if (auth.refreshUser) auth.refreshUser();
+    };
+  }, [location.pathname]);
 
   if (!auth.token) return null;
 

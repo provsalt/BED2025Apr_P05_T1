@@ -8,7 +8,8 @@ export const UserProvider = ({ children }) => {
     id: null,
     token: null,
     isAuthenticated: false,
-    data: null,
+    name: "",
+    profile_picture_url: ""
   });
 
   useEffect(() => {
@@ -22,9 +23,11 @@ export const UserProvider = ({ children }) => {
     if (!parse) {
       return;
     }
-    const isAuthenticated = !!token && parse && parse.exp < Date.now() / 1000;
-    if (isAuthenticated) {
-      setUser(undefined)
+    
+    const isExpired = parse.exp * 1000 < Date.now();
+    if (isExpired) {
+      localStorage.removeItem("token");
+      setUser({ id: null, token: null, isAuthenticated: false });
       return;
     }
     
@@ -34,8 +37,9 @@ export const UserProvider = ({ children }) => {
         setUser({
           id: parse.sub,
           token: token,
-          isAuthenticated: isAuthenticated,
-          data: data,
+          isAuthenticated: true,
+          profile_picture_url: data.profile_picture_url || "",
+          name: data.name || "",
         })
     })
   }, [])
@@ -48,13 +52,40 @@ export const UserProvider = ({ children }) => {
       localStorage.setItem("token", newUserData.token);
     }
     
-    if (newUserData.isAuthenticated === false) {
-      localStorage.removeItem("token");
-    }
+  if (newUserData.isAuthenticated === false) {
+    localStorage.removeItem("token");
+    setUser({
+      id: null,
+      token: null,
+      isAuthenticated: false,
+      name: "",
+      profile_picture_url: ""
+    });
+    return;
+  }
   };
 
+const refreshUser = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    setUser((prev) => ({
+      ...prev,
+      profile_picture_url: res.profile_picture_url || "",
+      name: res.name || "",
+    }));
+  } catch (err) {
+    console.error("Failed to refresh user:", err);
+  }
+};
+
   return (
-    <UserContext.Provider value={{ ...user, setUser: updateUser }}>
+    <UserContext.Provider value={{ ...user, setUser: updateUser, refreshUser }}>
       {children}
     </UserContext.Provider>
   );

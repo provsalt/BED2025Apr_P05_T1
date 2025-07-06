@@ -40,6 +40,20 @@ export const Login = () => {
         token: resp.token,
         isAuthenticated: true
       });
+
+      const userInfo = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/user", {
+        headers: {
+          Authorization: `Bearer ${resp.token}`
+        }
+      }).then(r => r.json());
+
+      auth.setUser({
+        id: userInfo.id,
+        token: resp.token,
+        isAuthenticated: true,
+        name: userInfo.name || "",
+        profile_picture_url: userInfo.profile_picture_url || ""
+      });
       setTimeout(() => navigate("/medical"), 3000);
     } else {
       alert.error({
