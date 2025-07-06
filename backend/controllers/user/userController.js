@@ -203,8 +203,6 @@ export const uploadProfilePictureController = async (req, res) => {
 
     await updateUserProfilePicture(userId, publicUrl)
 
-    console.log(await getUser(userId))
-
     res.status(200).json({ message: "Upload successful", url:  publicUrl });
   } catch (err) {
     console.error("Upload failed:", err);
@@ -224,7 +222,7 @@ export const deleteProfilePictureController = async (req, res) => {
       return res.status(404).json({ error: "No profile picture to delete" });
     }
 
-    const key = `profile-pictures/${user.profile_picture_url.split("/").pop()}`;
+    const key = `uploads/${user.profile_picture_url.split("/").pop()}`;
 
     await deleteFile(key);
 
