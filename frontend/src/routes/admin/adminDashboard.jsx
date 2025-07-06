@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { useAlert } from '@/provider/AlertProvider.jsx';
 
+// Admin Dashboard Component
 const AdminDashboard = () => {
   const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
@@ -28,6 +29,8 @@ const AdminDashboard = () => {
   });
   const [editingAnnouncement, setEditingAnnouncement] = useState(null);
   const [newAdminUserId, setNewAdminUserId] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [bulkRoleUpdate, setBulkRoleUpdate] = useState('User');
 
   // Check if user is admin
   useEffect(() => {
@@ -59,6 +62,7 @@ const AdminDashboard = () => {
     // Load initial data
     loadAnnouncements();
     loadAdmins();
+    loadUsers();
   }, [user, navigate]);
 
   const loadAnnouncements = async () => {
@@ -88,6 +92,23 @@ const AdminDashboard = () => {
       alert.error({
         title: 'Error',
         description: 'Failed to load admins',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users`);
+      setUsers(response);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      alert.error({
+        title: 'Error',
+        description: 'Failed to load users',
         variant: 'destructive'
       });
     } finally {
@@ -235,6 +256,106 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const updateUserRole = async (userId, newRole) => {
+    try {
+      setLoading(true);
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}/role`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole })
+      });
+      alert.success({
+        title: 'Success',
+        description: `User role updated to ${newRole} successfully`
+      });
+      loadUsers();
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      alert.error({
+        title: 'Error',
+        description: 'Failed to update user role',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteUser = async (userId) => {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}`, {
+        method: 'DELETE'
+      });
+      alert.success({
+        title: 'Success',
+        description: 'User deleted successfully'
+      });
+      loadUsers();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert.error({
+        title: 'Error',
+        description: 'Failed to delete user',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const bulkUpdateUserRoles = async () => {
+    if (selectedUsers.length === 0) {
+      alert.error({
+        title: 'No Users Selected',
+        description: 'Please select users to update',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const updates = selectedUsers.map(userId => ({
+      userId: userId,
+      role: bulkRoleUpdate
+    }));
+
+    try {
+      setLoading(true);
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/bulk-role-update`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userRoleUpdates: updates })
+      });
+      alert.success({
+        title: 'Success',
+        description: `${selectedUsers.length} user roles updated successfully`
+      });
+      setSelectedUsers([]);
+      loadUsers();
+    } catch (error) {
+      console.error('Error bulk updating user roles:', error);
+      alert.error({
+        title: 'Error',
+        description: 'Failed to update user roles',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleUserSelection = (userId) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
   };
 
   const editAnnouncement = (announcement) => {
@@ -443,6 +564,53 @@ const AdminDashboard = () => {
     </div>
   );
 
+  const renderUsers = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Manage Users</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {users.length === 0 ? (
+              <p className="text-gray-500">No users found.</p>
+            ) : (
+              users.map((user) => (
+                <div key={user.id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-semibold">{user.name}</h3>
+                      <p className="text-gray-600">{user.email}</p>
+                      <p className="text-sm text-gray-500">
+                        ID: {user.id} • Role: {user.role} • Created: {new Date(user.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateUserRole(user.id, user.role === 'Admin' ? 'User' : 'Admin')}
+                      >
+                        {user.role === 'Admin' ? 'Revoke Admin' : 'Make Admin'}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => deleteUser(user.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
   if (!user?.isAuthenticated) {
     return <div>Loading...</div>;
   }
@@ -498,6 +666,16 @@ const AdminDashboard = () => {
               >
                 Manage Admins
               </button>
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'users'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'hover:bg-gray-100'
+                }`}
+              >
+                Manage Users
+              </button>
             </div>
           </nav>
         </div>
@@ -518,6 +696,7 @@ const AdminDashboard = () => {
           {activeTab === 'overview' && renderOverview()}
           {activeTab === 'announcements' && renderAnnouncements()}
           {activeTab === 'admins' && renderAdmins()}
+          {activeTab === 'users' && renderUsers()}
         </div>
       </div>
     </div>
