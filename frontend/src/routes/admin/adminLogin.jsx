@@ -22,7 +22,7 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/login`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,6 +35,16 @@ const AdminLogin = () => {
       if (response.ok) {
         // Decode token to get user info
         const payload = JSON.parse(atob(data.token.split('.')[1]));
+        
+        // Check if user has Admin role
+        if (payload.role !== 'Admin') {
+          alert.error({
+            title: 'Access Denied',
+            description: 'You need admin privileges to access this area.',
+            variant: 'destructive'
+          });
+          return;
+        }
         
         setUser({
           id: payload.sub,
@@ -81,12 +91,18 @@ const AdminLogin = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
+          <CardTitle className="text-2xl text-center">Admin Access</CardTitle>
           <CardDescription className="text-center">
-            Enter your admin credentials to access the dashboard
+            Login with your admin account credentials
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-700">
+              <strong>Note:</strong> Use the same credentials as your regular login. 
+              Admin access is automatically granted based on your account permissions.
+            </p>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>

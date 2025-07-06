@@ -32,15 +32,26 @@ export const Login = () => {
     if (res.ok) {
       alert.success({
         title: "Success",
-        description: "Account created successfully. Redirecting...",
+        description: "Login successful. Redirecting...",
       });
       const resp = await res.json();
+      
+      // Decode token to get user info
+      const payload = JSON.parse(atob(resp.token.split('.')[1]));
+      
       auth.setUser({
         id: resp.id,
         token: resp.token,
-        isAuthenticated: true
+        isAuthenticated: true,
+        role: payload.role
       });
-      setTimeout(() => navigate("/medicine"), 3000);
+      
+      // Redirect based on role
+      if (payload.role === 'Admin') {
+        setTimeout(() => navigate("/admin/dashboard"), 1500);
+      } else {
+        setTimeout(() => navigate("/Home"), 1500);
+      }
     } else {
       alert.error({
         title: "Error",

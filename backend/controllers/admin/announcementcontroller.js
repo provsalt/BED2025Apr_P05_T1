@@ -134,3 +134,11 @@ export const deleteAnnouncementController = async (req, res) => {
  * Admin controller for handling announcement-related operations.
  * @param app {import("express").Application} - The Express application instance.
  */
+export const AdminController = (app) => {
+  // Announcement routes
+  app.post("/api/announcements", getUserMiddleware, createAnnouncementController);
+  app.get("/api/announcements", getAnnouncementsController); // Public route
+  app.get("/api/announcements/:id", getAnnouncementByIdController); // Public route
+  app.put("/api/announcements/:id", getUserMiddleware, updateAnnouncementController);
+  app.delete("/api/announcements/:id", getUserMiddleware, deleteAnnouncementController);
+};
