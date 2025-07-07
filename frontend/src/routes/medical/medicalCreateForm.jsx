@@ -33,6 +33,12 @@ export const MedicationReminderForm = () => {
       return;
     }
 
+    if (isNaN(formData.frequencyPerDay) || parseInt(formData.frequencyPerDay) <= 0) {
+        alert('Frequency per day must be a positive number');
+        return;
+    }
+
+
     setIsSubmitting(true);
 
     try {
@@ -169,14 +175,6 @@ export const MedicationReminderForm = () => {
                 min={1}
               />
             </div>
-
-    placeholder="Enter number of times per day"
-    value={formData.frequencyPerDay}
-    onChange={(e) => handleInputChange('frequencyPerDay', e.target.value)}
-    className="w-full"
-    min={1}
-  />
-</div>
 
 
             <div className="flex gap-4 pt-4">
