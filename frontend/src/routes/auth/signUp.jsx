@@ -67,19 +67,29 @@ export const Signup = () => {
         description: "Account created successfully. Redirecting...",
       });
       const resp = await res.json();
-      localStorage.setItem("token", resp.token);
-      localStorage.setItem("id", resp.id);
-      auth.id = resp.id;
-      auth.token = resp.token;
-      auth.isAuthenticated = true;
+      auth.setUser({
+        id: resp.id,
+        token: resp.token,
+        isAuthenticated: true
+      });
       setTimeout(() => navigate("/medicine"), 3000);
     } else {
       const errorData = await res.json();
-      alert.error({
-        title: "Error",
-        description: errorData.error || "An error occurred while creating the account.",
-        variant: "destructive"
-      });
+      if (errorData.details && Array.isArray(errorData.details)) {
+        errorData.details.forEach(detail => {
+          alert.error({
+            title: `Validation Error on ${detail.path[0]}`,
+            description: detail.message,
+            variant: "destructive"
+          });
+        });
+      } else {
+        alert.error({
+          title: "Error",
+          description: errorData.error || "An error occurred while creating the account.",
+          variant: "destructive"
+        });
+      }
     }
   }
 
@@ -99,30 +109,38 @@ export const Signup = () => {
                 <div>
                   <Label htmlFor="name">Name</Label>
                   <Input type="text" placeholder="Enter Your Name" {...register("name", {required: true, min: 3, maxLength: 255})} />
-                  {errors.name && <span className="text-red-500">Please enter a valid name.</span>}
+                  {errors.name && <span className="text-red-500">{errors.name.message || "Please enter a valid name."}</span>}
                 </div>
                 <div>
                   <Label htmlFor="name">Email</Label>
                   <Input type="text" placeholder="Enter Your Email" {...register("email", {required: true, maxLength: 255})} />
-                  {errors.email && <span className="text-red-500">Please enter a valid email.</span>}
+                  {errors.email && <span className="text-red-500">{errors.email.message || "Please enter a valid email."}</span>}
                 </div>
                 <div className="space-y-2">
                   <div>
                     <Label htmlFor="password">Password</Label>
-                    <Input type="password" placeholder="Enter Your Password" {...register("password", {required: true, min: 8, maxLength: 255})} />
-                    {errors.password && <span className="text-red-500">Please enter a valid password.</span>}
+                    <Input type="password" placeholder="Enter Your Password" {...register("password", {
+                      required: true,
+                      minLength: 12,
+                      maxLength: 255,
+                      pattern: {
+                        value: /^(?=.*[A-Z])(?=.*[!@#$%^&*()]).*$/,
+                        message: "Password must be 12 letters, contain at least one uppercase letter and one special character."
+                      }
+                    })} />
+                    {errors.password && <span className="text-red-500">{errors.password.message || "Password must be 12 letters, contain at least one uppercase letter and one special character."}</span>}
                   </div>
                   <div>
                     <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input type="password" placeholder="Confirm Your Password" {...register("confirm-password", {required: true, min: 8, maxLength: 255})} />
-                    {errors["confirm-password"] && <span className="text-red-500">Please confirm your password.</span>}
+                    <Input type="password" placeholder="Confirm Your Password" {...register("confirm-password", {required: true, minLength: 12, maxLength: 255})} />
+                    {errors["confirm-password"] && <span className="text-red-500">{errors["confirm-password"].message || "Please confirm your password."}</span>}
                   </div>
                 </div>
 
                 <div>
                   <Label htmlFor="dob">Date of Birth</Label>
                   <Input type="date" placeholder="Enter Your Date of Birth" {...register("dob", {required: true})} />
-                  {errors.dob && <span className="text-red-500">Please enter a valid date of birth.</span>}
+                  {errors.dob && <span className="text-red-500">{errors.dob.message || "Please enter a valid date of birth."}</span>}
                 </div>
                 <div>
                   <Label htmlFor="gender" >Gender</Label>
@@ -132,7 +150,7 @@ export const Signup = () => {
                     <RadioGroupItem {...register("gender", {required: true})} value="male" id="gender-male" />
                     <Label htmlFor="gender-male">Male</Label>
                   </RadioGroup>
-                  {errors.gender && <span className="text-red-500">Please enter a valid gender.</span>}
+                  {errors.gender && <span className="text-red-500">{errors.gender.message || "Please enter a valid gender."}</span>}
                 </div>
 
                 <Button type="submit" className="w-full cursor-pointer">Sign up</Button>

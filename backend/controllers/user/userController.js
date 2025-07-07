@@ -1,4 +1,4 @@
-import {createUser, getUser, getUserByEmail} from "../../models/user/userModel.js";
+import {createUser, getUserByEmail} from "../../models/user/userModel.js";
 import {User} from "../../utils/validation/user.js";
 import {SignJWT} from "jose";
 import {z} from "zod/v4";
@@ -15,7 +15,7 @@ export const loginUserController = async (req, res) => {
   const body = req.body;
   const validate = z.object({
     email: z.email().max(255),
-    password: z.string().min(8).max(255),
+    password: z.string().min(12).max(255).regex(/(?=.*[A-Z])/, "Password must contain at least one uppercase letter").regex(/(?=.*[!@#$%^&*()])/, "Password must contain at least one special character"),
   }).safeParse(body)
   if (!validate.success) {
     return res.status(400).json({ error: "Invalid user data", details: validate.error.issues });
