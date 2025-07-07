@@ -7,6 +7,8 @@ import {Input} from "@/components/ui/input.jsx";
 import {Button} from "@/components/ui/button.jsx";
 import {useForm} from "react-hook-form";
 import {UserContext} from "@/provider/UserContext.js";
+import { fetcher } from "@/lib/fetcher.js";
+
 
 export const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -41,11 +43,10 @@ export const Login = () => {
         isAuthenticated: true
       });
 
-      const userInfo = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/user", {
-        headers: {
-          Authorization: `Bearer ${resp.token}`
-        }
-      }).then(r => r.json());
+    const userInfo = await fetcher(import.meta.env.VITE_BACKEND_URL + "/api/user", {
+      headers: { Authorization: `Bearer ${resp.token}` }
+    });
+
 
       auth.setUser({
         id: userInfo.id,

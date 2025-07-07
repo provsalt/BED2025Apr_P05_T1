@@ -6,7 +6,7 @@ import {
   updateUser,
   updateUserProfilePicture
 } from "../../models/user/userModel.js";
-import crypto from "crypto";
+import { randomUUID } from "crypto";
 import { User } from "../../utils/validation/user.js";
 import { SignJWT } from "jose";
 import { z } from "zod/v4";
@@ -185,8 +185,8 @@ export const uploadProfilePictureController = async (req, res) => {
   }
 
   const ext = file.originalname.split('.').pop();
-  const fileHash = crypto.createHash('md5').update(file.buffer).digest('hex');
-  const filename = `${fileHash}.${ext}`;
+  const uniqueId = randomUUID();
+  const filename = `${uniqueId}.${ext}`;
   const key = `uploads/${filename}`;
 
   try {
