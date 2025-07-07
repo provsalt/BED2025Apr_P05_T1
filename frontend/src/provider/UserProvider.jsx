@@ -22,14 +22,9 @@ export const UserProvider = ({ children }) => {
     if (!parse) {
       return;
     }
-    const isAuthenticated = !!token && parse && parse.exp > Date.now() / 1000;
+    const isAuthenticated = !!token && parse && (Date.now() / 10000 ) < parse.exp;
     if (!isAuthenticated) {
-      setUser({
-        id: null,
-        token: null,
-        isAuthenticated: false,
-        role: null
-      });
+      setUser(undefined)
       return;
     }
     setUser({
