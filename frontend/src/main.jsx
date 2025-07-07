@@ -7,6 +7,7 @@ import {Home} from "@/routes/Home.jsx";
 import {Navbar} from "@/components/navbar/navbar.jsx";
 import {AlertProvider} from "@/provider/AlertProvider.jsx";
 import {Login} from "@/routes/auth/login.jsx";
+import {FoodImageUpload} from "@/routes/nutrition/foodImageUpload.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -19,6 +20,7 @@ createRoot(document.getElementById('root')).render(
               <Route path="/" element={<Home/>} />
               <Route path="/signup" element={<Signup/>} />
               <Route path="/login" element={<Login/>} />
+              <Route path="/food-image-upload/*" element={<FoodImageUpload/>} />
             </Routes>
           </div>
         </div>
