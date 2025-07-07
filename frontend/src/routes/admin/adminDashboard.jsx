@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { UserContext } from '@/provider/UserContext.js';
 import { fetcher } from '@/lib/fetcher.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
