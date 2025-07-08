@@ -18,7 +18,7 @@ const io = new Server(server, {
 
 app.use(express.static("dist"))
 app.use(cors({
-  origin: origins
+    origin: origins
 }))
 
 Controller(app)
