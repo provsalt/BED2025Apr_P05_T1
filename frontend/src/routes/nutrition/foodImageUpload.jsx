@@ -10,6 +10,7 @@ export const FoodImageUpload = () => {
   const [previewURL, setPreviewURL] = useState(null);
   const [showError, setShowError] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
   const alert = useAlert();
 
   const handleImageChange = (e) => {
@@ -18,6 +19,7 @@ export const FoodImageUpload = () => {
       setSelectedImage(file);
       setPreviewURL(URL.createObjectURL(file));
       setShowError(false);
+      setAnalysisResult(null); // Clear previous analysis
     }
   };
 
@@ -25,6 +27,7 @@ export const FoodImageUpload = () => {
     setSelectedImage(null);
     setPreviewURL(null);
     setShowError(false);
+    setAnalysisResult(null); // Clear analysis when removing image
   };
 
   const handleSubmit = async (e) => {
@@ -49,11 +52,13 @@ export const FoodImageUpload = () => {
       // Show success message
       alert.success({
         title: "Upload Successful",
-        description: "Food image uploaded successfully! Image is ready for analysis.",
+        description: "Food image uploaded and analyzed successfully!",
       });
       
-      // You can add success handling here, like showing the uploaded image URL
-      // or redirecting to analysis page
+      // Store analysis result
+      if (response.analysis) {
+        setAnalysisResult(response.analysis);
+      }
       
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -72,7 +77,7 @@ export const FoodImageUpload = () => {
   return (
     <div className="min-h-screen p-3">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-8">Nutrition</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-8 text-center">Nutrition</h1>
         
         <Card className="p-8 max-w-2xl mx-auto bg-white space-y-6">
           <h2 className="text-xl font-bold text-center">Upload Food Image</h2>
@@ -157,6 +162,67 @@ export const FoodImageUpload = () => {
                 {isUploading ? "Uploading..." : "Analyse"}
               </Button>
             </div>
+
+            {/* Analysis Results */}
+            {analysisResult && (
+              <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-lg">
+                <h3 className="text-lg font-semibold text-green-800 mb-4 text-center">
+                  Nutritional Analysis Results
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="font-medium text-gray-800">Food Item</h4>
+                      <p className="text-gray-600">{analysisResult.foodName || "Not identified"}</p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium text-gray-800">Description</h4>
+                      <p className="text-gray-600">{analysisResult.description || "No description available"}</p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium text-gray-800">Serving Size</h4>
+                      <p className="text-gray-600">{analysisResult.servingSize || "Not specified"}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="font-medium text-gray-800">Calories</h4>
+                      <p className="text-gray-600">{analysisResult.calories || "Not available"}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-800">Protein:</span>
+                        <span className="text-gray-600 ml-1">{analysisResult.protein || "N/A"}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-800">Carbs:</span>
+                        <span className="text-gray-600 ml-1">{analysisResult.carbohydrates || "N/A"}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-800">Fat:</span>
+                        <span className="text-gray-600 ml-1">{analysisResult.fat || "N/A"}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-800">Fiber:</span>
+                        <span className="text-gray-600 ml-1">{analysisResult.fiber || "N/A"}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {analysisResult.healthTips && (
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                    <h4 className="font-medium text-blue-800 mb-2">Health Tips</h4>
+                    <p className="text-blue-700 text-sm">{analysisResult.healthTips}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </Card>
       </div>
