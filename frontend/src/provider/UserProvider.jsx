@@ -31,20 +31,18 @@ export const UserProvider = ({ children }) => {
       return;
     }
     
-    fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/${parse.sub}`, {
-        headers: { Authorization: `Bearer ${token}` }
-    }).then(data => {
-          setUser({
-            id: parse.sub,
-            token,
-            isAuthenticated: true,
-            data: {
-              name: data.name || "",
-              email: data.email || "",
-              language: data.language || "",
-              profile_picture_url: data.profile_picture_url || "",
-            }
-        })
+    fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/${parse.sub}`).then(data => {
+      setUser({
+        id: parse.sub,
+        token,
+        isAuthenticated: true,
+        data: {
+          name: data.name || "",
+          email: data.email || "",
+          language: data.language || "",
+          profile_picture_url: data.profile_picture_url || "",
+        }
+      })
     })
   }, [])
 
@@ -74,9 +72,7 @@ const refreshUser = async () => {
   if (!token) return;
 
   try {
-    const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user`);
 
   setUser((prev) => ({
     ...prev,
