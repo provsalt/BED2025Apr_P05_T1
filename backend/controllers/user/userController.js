@@ -184,10 +184,8 @@ export const uploadProfilePictureController = async (req, res) => {
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  const ext = file.originalname.split('.').pop();
   const uniqueId = randomUUID();
-  const filename = `${uniqueId}.${ext}`;
-  const key = `uploads/${filename}`;
+  const key = `uploads/${uniqueId}`;
 
   try {
     const user = await getUser(userId);
@@ -198,8 +196,7 @@ export const uploadProfilePictureController = async (req, res) => {
 
     await uploadFile(file, key);
 
-    const newUrl = `uploads/${filename}`;
-    const publicUrl = process.env.BACKEND_URL + "/api/s3?key=" + newUrl
+    const publicUrl = process.env.BACKEND_URL + "/api/s3?key=" + key
 
     await updateUserProfilePicture(userId, publicUrl)
 
