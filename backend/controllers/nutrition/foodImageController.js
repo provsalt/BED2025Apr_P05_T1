@@ -8,15 +8,13 @@ export const uploadNutritionImage = async (req, res) => {
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  const ext = file.originalname.split('.').pop();
-  const filename = `${randomUUID()}.${ext}`;
+  const filename = randomUUID().toString();
   const key = `nutrition-images/${filename}`;
 
   try {
     await uploadFile(file, key);
 
-    const newUrl = `nutrition-images/${filename}`;
-    const publicUrl = process.env.BACKEND_URL + "/api/s3?key=" + encodeURIComponent(newUrl);
+    const publicUrl = process.env.BACKEND_URL + "/api/s3?key=" + encodeURIComponent(key);
 
     res.status(200).json({ 
       message: "Food image uploaded successfully", 
