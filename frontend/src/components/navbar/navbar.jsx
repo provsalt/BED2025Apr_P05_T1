@@ -21,18 +21,6 @@ export const Navbar = () => {
                     <Link to={"/login"}>Login</Link>
                 </Button>
             </div>
-          </DropdownMenuTrigger>
-
-          {isAuthenticated && (
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link to="/settings">Settings</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          )}
-        </DropdownMenu>
-      </div>
-    </nav>
-  );
+        </div>
+    );
 };
