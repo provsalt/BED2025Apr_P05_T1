@@ -17,7 +17,6 @@ const io = new Server(server, {
     }
 });
 
-app.use(express.json())
 app.use(express.static("dist"))
 app.use(cors({
     origin: origins,
@@ -28,6 +27,8 @@ app.use(cors({
 app.use(defaultRateLimit)
 
 app.use("/api", ApiController())
+
+app.use(express.json())
 
 setIO(io);
 

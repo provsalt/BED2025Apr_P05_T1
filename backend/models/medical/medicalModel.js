@@ -16,7 +16,7 @@ async function createMedicationReminder(medicationData) {
             .input('medicationName', sql.VarChar(255), medicationData.medicationName)
             .input('reason', sql.VarChar(255), medicationData.reason)
             .input('dosage', sql.VarChar(100), medicationData.dosage)
-            .input('medicineTime', sql.Time, medicineTime)
+            .input('medicineTime', sql.VarChar(8), medicineTime)
             .input('frequencyPerDay', sql.Int, medicationData.frequencyPerDay)
             .input('imageUrl', sql.VarChar(255), medicationData.imageUrl)
             .query(`
@@ -49,6 +49,4 @@ async function createMedicationReminder(medicationData) {
     }
 }
 
-module.exports = {
-    createMedicationReminder
-}
+export { createMedicationReminder };
