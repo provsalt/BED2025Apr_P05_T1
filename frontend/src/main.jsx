@@ -8,6 +8,7 @@ import { Settings } from "@/routes/user/Settings.jsx";
 import {Navbar} from "@/components/navbar/navbar.jsx";
 import {AlertProvider} from "@/provider/AlertProvider.jsx";
 import {Login} from "@/routes/auth/login.jsx";
+import {FoodImageUpload} from "@/routes/nutrition/foodImageUpload.jsx";
 import {Chat} from "@/routes/chats/Chat.jsx";
 import {SelectedChat} from "@/routes/chats/SelectedChat.jsx";
 import {UserProvider} from "@/provider/UserProvider.jsx";
@@ -34,6 +35,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path=":chatId" element={<SelectedChat />}  />
                   </Route>
                   <Route path="/medical" element={<MedicalDashboard />} />
+                  <Route path="/nutrition/food/upload/*" element={<FoodImageUpload/>} />
                 </Routes>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { getFile } from "../../services/s3Service.js";
 
-// make everything public since we're not storing anything lese in the bucket.
+// make everything public since we're not storing anything else in the bucket.
 export const getFileByKey = async (req, res) => {
   try {
     const { key } = req.query;
