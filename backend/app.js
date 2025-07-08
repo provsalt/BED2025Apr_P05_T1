@@ -4,7 +4,7 @@ import { Server } from "socket.io"
 import {Controller} from "./controllers/controller.js";
 import {socketAuthMiddleware} from "./middleware/socketAuth.js";
 import {setIO} from "./config/socket.js";
-import cors from "cors"
+import cors from "cors";
 
 const app = express();
 const server = createServer(app);
