@@ -34,7 +34,7 @@ export const Controller = (app) => {
   });
   // Nutrition image uploading route
   app.post(
-    "/api/nutrition/food-image-upload",
+"/api/nutrition/food/upload"
     upload.single("image"),
     validateImageType,
     prepareImageForOpenAI,
