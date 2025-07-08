@@ -7,6 +7,8 @@ import {Input} from "@/components/ui/input.jsx";
 import {Button} from "@/components/ui/button.jsx";
 import {useForm} from "react-hook-form";
 import {UserContext} from "@/provider/UserContext.js";
+import { fetcher } from "@/lib/fetcher.js";
+
 
 export const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -26,7 +28,7 @@ export const Login = () => {
       },
       body: JSON.stringify({
         email: data.email,
-        password: data.password
+        password: data.password 
       })
     });
     if (res.ok) {
@@ -45,13 +47,24 @@ export const Login = () => {
         isAuthenticated: true,
         role: payload.role
       });
-      
-      // Redirect based on role
-      if (payload.role === 'Admin') {
-        setTimeout(() => navigate("/admin/dashboard"), 1500);
-      } else {
-        setTimeout(() => navigate("/Home"), 1500);
-      }
+
+    const userInfo = await fetcher(import.meta.env.VITE_BACKEND_URL + "/api/user", {
+      headers: { Authorization: `Bearer ${resp.token}` }
+    });
+
+
+    auth.setUser({
+      id: userInfo.id,
+      token: resp.token,
+      isAuthenticated: true,
+      data: {
+        name: userInfo.name || "",
+        email: userInfo.email || "",
+        language: userInfo.language || "",
+        profile_picture_url: userInfo.profile_picture_url || ""
+        }
+      });
+      setTimeout(() => navigate("/medical"), 3000);
     } else {
       alert.error({
         title: "Error",

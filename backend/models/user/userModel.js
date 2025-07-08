@@ -12,14 +12,15 @@ export const getUser = async (id) => {
     const query = "SELECT * FROM Users WHERE id = @id";
     const request = db.request();
     request.input("id", id);
-    const result = await request.query(query)
+    const result = await request.query(query);
 
     if (result.recordset.length === 0) {
-        return null;
+      return null;
     }
 
     return result.recordset[0];
-}
+};
+
 
 export const getUserByEmail = async (email) => {
     const db = await sql.connect(dbConfig);
@@ -75,37 +76,40 @@ export const createUser = async (userData) => {
  * @returns {Promise<boolean>}
  */
 export const updateUser = async (id, userData) => {
-    const db = await sql.connect(dbConfig);
-    const currentUser = await getUser(id, db);
-
-    if (!currentUser) {
-        throw new Error("User not found");
-    }
-
+  const db = await sql.connect(dbConfig);
+  const currentUser = await getUser(id);
+  if (!currentUser) {
+    throw new Error("User not found");
+  }
     const query = `
-        UPDATE Users
-        SET 
-            name = @name,
-            email = @email,
-            hashedPassword = @hashedPassword,
-            date_of_birth = @dob,
-            gender = @gender
-        WHERE id = @id;
+    UPDATE Users
+    SET 
+        name = @name,
+        email = @email,
+        password = @password,
+        date_of_birth = @dob,
+        gender = @gender
+    WHERE id = @id;
     `;
-    const request = db.request();
-    request.input("id", id);
-    request.input("name", userData.name ?? currentUser.name);
-    request.input("email", userData.email ?? currentUser.email);
-    request.input("hashedPassword", userData.password ?? currentUser.password);
-    request.input("dob", userData.date_of_birth ?? currentUser.dob);
-    request.input("gender", userData.gender ?? currentUser.gender);
-    request.input("language", userData.language ?? currentUser.language);
-    request.input("profile_picture_url", userData.profile_picture_url ?? currentUser.profile_picture_url);
 
-    const res = await request.query(query);
 
-    return res.rowsAffected[0] !== 0;
-}
+  const request = db.request();
+  request.input("id", id);
+  request.input("name", userData.name ?? currentUser.name);
+  request.input("email", userData.email ?? currentUser.email);
+
+  request.input("password", userData.password ?? currentUser.password);
+
+  // Ensure DOB and gender are safe
+  request.input("dob", userData.date_of_birth ?? currentUser.date_of_birth);
+  request.input("gender", userData.gender ?? currentUser.gender);
+  request.input("language", userData.language ?? currentUser.language);
+
+  const result = await request.query(query);
+
+  return result.rowsAffected[0] > 0;
+};
+
 
 /**
  * Deletes a user from the database.
@@ -122,6 +126,19 @@ export const deleteUser = async (id) => {
 
     return res.rowsAffected[0] !== 0;
 }
+
+export const updateUserProfilePicture = async (userId, fileUrl) => {
+  const db = await sql.connect(dbConfig);
+  const query = ` UPDATE Users
+                  SET profile_picture_url = @url
+                  WHERE id = @id`;
+  const request = db.request();
+  request.input("url", fileUrl);
+  request.input("id", userId);
+  const result = await request.query(query);
+  return result.rowsAffected[0] > 0;
+};
+
 
 export const changeUserRole = async (id, role) => {
     const user = await getUser(id)
