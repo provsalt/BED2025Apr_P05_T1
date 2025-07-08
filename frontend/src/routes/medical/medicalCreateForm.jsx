@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, X } from 'lucide-react';
+import { UserContext } from '@/provider/UserContext.js';
+import { fetcher } from '@/lib/fetcher.js';
 
 export const MedicationReminderForm = ({ userId = null }) => {
+  const userContext = useContext(UserContext);
+  const effectiveUserId = userId || userContext?.id;
   const [formData, setFormData] = useState({
     medicationName: '',
     reason: '',
@@ -59,7 +63,7 @@ export const MedicationReminderForm = ({ userId = null }) => {
   };
 
   const handleSubmit = async () => {
-    if (!userId) {
+    if (!effectiveUserId) {
       alert('User not authenticated. Please log in.');
       return;
     }
@@ -80,22 +84,27 @@ export const MedicationReminderForm = ({ userId = null }) => {
 
     try {
       const submitData = new FormData();
-      submitData.append('user_id', userId.toString());
+      submitData.append('user_id', effectiveUserId.toString());
       submitData.append('medicine_name', formData.medicationName);
       submitData.append('reason', formData.reason);
       submitData.append('dosage', formData.dosage);
-      submitData.append('medicine_time', formData.medicineTime);
+      // Normalize medicineTime to 'HH:MM:SS' format
+      let normalizedTime = formData.medicineTime;
+      if (normalizedTime && normalizedTime.length === 5) {
+        normalizedTime = normalizedTime + ':00';
+      }
+      console.log('Submitting medicine_time:', normalizedTime); // Debug line
+      submitData.append('medicine_time', normalizedTime);
       submitData.append('frequency_per_day', formData.frequencyPerDay);
       submitData.append('image', formData.imageFile);
 
-      const response = await fetch('http://localhost:3000/api/medications', {
+      const result = await fetcher('http://localhost:3001/api/medications', {
         method: 'POST',
         body: submitData
       });
 
-      const result = await response.json();
-
-      if (response.ok && result.success) {
+      // Use result directly, do NOT call .json() on it
+      if (result.success) {
         setFormData({
           medicationName: '',
           reason: '',

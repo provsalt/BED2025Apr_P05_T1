@@ -6,6 +6,7 @@ import path from 'path';
 // CREATE medication reminder
 export const createMedication = async (req, res) => {
     try {
+        console.log('DEBUG medicine_time:', req.body.medicine_time, typeof req.body.medicine_time);
         const { user_id, medicine_name, reason, dosage, medicine_time, frequency_per_day } = req.body;
         const imageFile = req.file;
 
@@ -57,7 +58,3 @@ export const createMedication = async (req, res) => {
         });
     }
 };
-
-module.exports = {
-    createMedication
-}
