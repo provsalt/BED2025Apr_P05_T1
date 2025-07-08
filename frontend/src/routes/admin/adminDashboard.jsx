@@ -3,6 +3,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router';
 import { UserContext } from '@/provider/UserContext.js';
 import { useAlert } from '@/provider/AlertProvider.jsx';
+import { fetcher } from '@/lib/fetcher';
 
 // Admin Dashboard Component
 const AdminDashboard = () => {
@@ -37,20 +38,12 @@ const AdminDashboard = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users`, {
-        headers: {
-          'Authorization': `Bearer ${user?.token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUsers(userData);
-        console.log('Users fetched:', userData);
-      } else {
-        throw new Error(`Failed to fetch users: ${response.status}`);
-      }
+      console.log('Fetching users from:', `${import.meta.env.VITE_BACKEND_URL}/api/admin/users`);
+      
+      const userData = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users`);
+      
+      setUsers(userData);
+      console.log('Users fetched successfully:', userData);
     } catch (error) {
       console.error('Error fetching users:', error);
       alert.error({
@@ -62,20 +55,12 @@ const AdminDashboard = () => {
 
   const fetchAdmins = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin`, {
-        headers: {
-          'Authorization': `Bearer ${user?.token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const adminData = await response.json();
-        setAdmins(adminData);
-        console.log('Admins fetched:', adminData);
-      } else {
-        throw new Error(`Failed to fetch admins: ${response.status}`);
-      }
+      console.log('Fetching admins from:', `${import.meta.env.VITE_BACKEND_URL}/api/admin`);
+      
+      const adminData = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin`);
+      
+      setAdmins(adminData);
+      console.log('Admins fetched successfully:', adminData);
     } catch (error) {
       console.error('Error fetching admins:', error);
       alert.error({
@@ -87,25 +72,21 @@ const AdminDashboard = () => {
 
   const updateUserRole = async (userId, newRole) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}/role`, {
+      console.log(`Updating user ${userId} role to ${newRole}`);
+      
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}/role`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${user?.token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ role: newRole })
       });
 
-      if (response.ok) {
-        alert.success({
-          title: "Success",
-          description: `User role updated to ${newRole}`
-        });
-        fetchAllData(); // Refresh data
-      } else {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update user role');
-      }
+      alert.success({
+        title: "Success",
+        description: `User role updated to ${newRole}`
+      });
+      fetchAllData(); // Refresh data
     } catch (error) {
       console.error('Error updating user role:', error);
       alert.error({
@@ -119,24 +100,17 @@ const AdminDashboard = () => {
     if (!confirm('Are you sure you want to delete this user?')) return;
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${user?.token}`,
-          'Content-Type': 'application/json'
-        }
+      console.log(`Deleting user ${userId}`);
+      
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}`, {
+        method: 'DELETE'
       });
 
-      if (response.ok) {
-        alert.success({
-          title: "Success",
-          description: "User deleted successfully"
-        });
-        fetchAllData(); // Refresh data
-      } else {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete user');
-      }
+      alert.success({
+        title: "Success",
+        description: "User deleted successfully"
+      });
+      fetchAllData(); // Refresh data
     } catch (error) {
       console.error('Error deleting user:', error);
       alert.error({
@@ -239,12 +213,129 @@ const AdminDashboard = () => {
     </div>
   );
 
+  const renderAnnouncement = () => (
+    <div className="bg-white rounded-lg shadow-md border">
+      <div className="p-6 border-b">
+        <h3 className="text-lg font-semibold">Announcements Management</h3>
+        <p className="text-gray-600">Create and manage system announcements</p>
+      </div>
+      <div className="p-6">
+        {/* You can add AnnouncementsList component here if you have it */}
+        <p className="text-gray-500">Announcements feature coming soon...</p>
+        <button 
+          className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          onClick={() => alert.success({ title: "Feature", description: "Announcements will be implemented here!" })}
+        >
+          Manage Announcements
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderDebug = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-md border">
+        <div className="p-6 border-b">
+          <h3 className="text-lg font-semibold">Debug Information</h3>
+        </div>
+        <div className="p-6 space-y-4">
+          <div>
+            <h4 className="font-medium mb-2">Environment:</h4>
+            <div className="bg-gray-100 p-3 rounded text-sm">
+              <p><strong>Backend URL:</strong> {import.meta.env.VITE_BACKEND_URL}</p>
+              <p><strong>Token exists:</strong> {!!user?.token ? 'Yes' : 'No'}</p>
+              <p><strong>User role:</strong> {user?.role || 'None'}</p>
+              <p><strong>Is authenticated:</strong> {user?.isAuthenticated ? 'Yes' : 'No'}</p>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-medium mb-2">API Test:</h4>
+            <div className="space-x-2 mb-2">
+              <button 
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={() => {
+                  console.log('Testing API endpoints...');
+                  fetchUsers();
+                }}
+              >
+                Test Users API
+              </button>
+              <button 
+                className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+                onClick={() => {
+                  console.log('Testing Admin API...');
+                  fetchAdmins();
+                }}
+              >
+                Test Admin API
+              </button>
+            </div>
+            <div className="space-x-2">
+              <button 
+                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                onClick={async () => {
+                  try {
+                    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin`, {
+                      headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                      }
+                    });
+                    console.log('Direct fetch response:', response.status, response.statusText);
+                    const data = await response.text();
+                    console.log('Direct fetch data:', data);
+                    alert.success({title: "Direct Test", description: `Status: ${response.status}`});
+                  } catch (error) {
+                    console.error('Direct fetch error:', error);
+                    alert.error({title: "Direct Test Error", description: error.message});
+                  }
+                }}
+              >
+                Direct API Test
+              </button>
+              <button 
+                className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                onClick={() => {
+                  console.log('Environment variables:');
+                  console.log('VITE_BACKEND_URL:', import.meta.env.VITE_BACKEND_URL);
+                  console.log('Token from localStorage:', localStorage.getItem('token'));
+                  console.log('User context:', user);
+                }}
+              >
+                Check Environment
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-medium mb-2">Data Status:</h4>
+            <div className="bg-gray-100 p-3 rounded text-sm">
+              <p><strong>Users loaded:</strong> {users.length} users</p>
+              <p><strong>Admins loaded:</strong> {admins.length} admins</p>
+              <p><strong>Loading state:</strong> {loading ? 'Loading...' : 'Ready'}</p>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-medium mb-2">Raw Data:</h4>
+            <div className="bg-gray-100 p-3 rounded text-sm max-h-64 overflow-y-auto">
+              <p><strong>Users:</strong></p>
+              <pre>{JSON.stringify(users, null, 2)}</pre>
+              <p><strong>Admins:</strong></p>
+              <pre>{JSON.stringify(admins, null, 2)}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <p className="text-gray-600 mt-2">Welcome, {user?.email || 'Admin'}</p>
-        <p className="text-sm text-gray-500">Role: {user?.role}</p>
       </div>
 
       {loading && (
@@ -260,6 +351,8 @@ const AdminDashboard = () => {
             {[
               { id: 'overview', label: 'Overview' },
               { id: 'users', label: 'User Management' },
+              { id: 'announcements', label: 'Announcements' },
+              { id: 'debug', label: 'Debug' },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -281,8 +374,9 @@ const AdminDashboard = () => {
       <div className="space-y-6">
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'users' && renderUserManagement()}
-        {activeTab === 'Announcements' && renderAnnouncement()}
-          </div>
+        {activeTab === 'announcements' && renderAnnouncement()}
+        {activeTab === 'debug' && renderDebug()}
+      </div>
       </div>
   );
 };

@@ -24,7 +24,22 @@ import {
   updateMessageController,
   deleteMessageController
 } from "./chat/messageController.js";
+
 import {getFileByKey} from "./s3/fileController.js";
+
+import {
+  addAdminRoleController,
+  getAllAdminsController,
+  removeAdminRoleController,
+  getAllUsersController,
+  getUserByIdController,
+  updateUserRoleController,
+  deleteUserController,
+  getUsersByRoleController,
+  bulkUpdateUserRolesController
+} from "./admin/adminController.js";
+
+import { AdminController } from "./admin/announcementcontroller.js";
 
 /**
  * Controller function to set up routes for the application.
@@ -64,5 +79,21 @@ export const Controller = (app) => {
   app.put("/api/chats/:chatId/:messageId", getUserMiddleware, updateMessageController);
   app.delete("/api/chats/:chatId/:messageId", getUserMiddleware, deleteMessageController);
 
-  app.get("/api/s3", getFileByKey)
+  app.get("/api/s3", getFileByKey);
+
+  // Admin routes (require authentication and admin role)
+  app.get("/api/admin", getUserMiddleware, getAllAdminsController);
+  app.post("/api/admin/add-role", getUserMiddleware, addAdminRoleController);
+  app.post("/api/admin/remove-role", getUserMiddleware, removeAdminRoleController);
+
+  // User management routes (Admin only)
+  app.get("/api/admin/users", getUserMiddleware, getAllUsersController);
+  app.get("/api/admin/users/:userId", getUserMiddleware, getUserByIdController);
+  app.put("/api/admin/users/:userId/role", getUserMiddleware, updateUserRoleController);
+  app.delete("/api/admin/users/:userId", getUserMiddleware, deleteUserController);
+  app.get("/api/admin/users/role/:role", getUserMiddleware, getUsersByRoleController);
+  app.put("/api/admin/users/bulk-role-update", getUserMiddleware, bulkUpdateUserRolesController);
+
+  // Announcement routes
+  AdminController(app);
 };
