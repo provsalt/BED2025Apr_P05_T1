@@ -13,9 +13,11 @@ import { User } from "lucide-react";
 export const Navbar = () => {
   const {
     isAuthenticated,
-    profile_picture_url,
+    data,
     setUser,
   } = useContext(UserContext);
+  const profile_picture_url = data?.profile_picture_url;
+  
   const navigate = useNavigate();
 
   const handleLogout = () => {

@@ -8,7 +8,7 @@ export const UserProvider = ({ children }) => {
     id: null,
     token: null,
     isAuthenticated: false,
-    name: "",
+    data: null,
     profile_picture_url: ""
   });
 
@@ -34,12 +34,16 @@ export const UserProvider = ({ children }) => {
     fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/${parse.sub}`, {
         headers: { Authorization: `Bearer ${token}` }
     }).then(data => {
-        setUser({
-          id: parse.sub,
-          token: token,
-          isAuthenticated: true,
-          profile_picture_url: data.profile_picture_url || "",
-          name: data.name || "",
+          setUser({
+            id: parse.sub,
+            token,
+            isAuthenticated: true,
+            data: {
+              name: data.name || "",
+              email: data.email || "",
+              language: data.language || "",
+              profile_picture_url: data.profile_picture_url || "",
+            }
         })
     })
   }, [])
@@ -74,10 +78,15 @@ const refreshUser = async () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    setUser((prev) => ({
-      ...prev,
-      profile_picture_url: res.profile_picture_url || "",
+  setUser((prev) => ({
+    ...prev,
+    data: {
+      ...prev.data,
       name: res.name || "",
+      email: res.email || "",
+      language: res.language || "",
+      profile_picture_url: res.profile_picture_url || "",
+    },
     }));
   } catch (err) {
     console.error("Failed to refresh user:", err);

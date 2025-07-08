@@ -28,7 +28,7 @@ export const Login = () => {
       },
       body: JSON.stringify({
         email: data.email,
-        password: data.password
+        password: data.password 
       })
     });
     if (res.ok) {
@@ -48,12 +48,16 @@ export const Login = () => {
     });
 
 
-      auth.setUser({
-        id: userInfo.id,
-        token: resp.token,
-        isAuthenticated: true,
+    auth.setUser({
+      id: userInfo.id,
+      token: resp.token,
+      isAuthenticated: true,
+      data: {
         name: userInfo.name || "",
+        email: userInfo.email || "",
+        language: userInfo.language || "",
         profile_picture_url: userInfo.profile_picture_url || ""
+        }
       });
       setTimeout(() => navigate("/medical"), 3000);
     } else {
