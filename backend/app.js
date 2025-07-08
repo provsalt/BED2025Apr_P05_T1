@@ -4,18 +4,23 @@ import { Server } from "socket.io"
 import {Controller} from "./controllers/controller.js";
 import {socketAuthMiddleware} from "./middleware/socketAuth.js";
 import {setIO} from "./config/socket.js";
+import cors from "cors"
 
 const app = express();
 const server = createServer(app);
+const origins = ["https://uat.ngeeann.zip", "https://bed.ngeeann.zip", "http://localhost:5173", "http://localhost:4173"]
 const io = new Server(server, {
     cors: {
-        origin: ["https://uat.ngeeann.zip", "https://bed.ngeeann.zip", "http://localhost:5173", "http://localhost:4173"],
+        origin: origins,
         methods: ["GET", "POST"]
     }
 });
 
 app.use(express.json())
 app.use(express.static("dist"))
+app.use(cors({
+    origin: origins
+}))
 
 Controller(app)
 

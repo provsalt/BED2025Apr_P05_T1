@@ -1,5 +1,5 @@
 import {PutObjectCommand, DeleteObjectCommand, GetObjectCommand} from "@aws-sdk/client-s3";
-import { s3 } from "../config/s3Client.js";
+import { s3 } from "../../config/s3Client.js";
 
 /**
  * Uploads a file to S3.

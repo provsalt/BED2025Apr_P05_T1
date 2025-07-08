@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import {Button} from "@/components/ui/button.jsx";
 import {Card} from "@/components/ui/card.jsx";
+import { fetcher } from "@/lib/fetcher.js";
+import { useAlert } from "@/provider/AlertProvider.jsx";
 
 export const FoodImageUpload = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewURL, setPreviewURL] = useState(null);
   const [showError, setShowError] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const alert = useAlert();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -29,18 +33,38 @@ export const FoodImageUpload = () => {
       return;
     }
 
+    setIsUploading(true);
     const formData = new FormData();
     formData.append("image", selectedImage);
 
     try {
-      const res = await fetch("/api/analyze-food", {
+      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/food-image-upload`, {
         method: "POST",
-        body: formData,
+        body: formData
       });
-      const data = await res.json();
-      console.log(data);
+
+      console.log("Upload successful:", response);
+      
+      // Show success message
+      alert.success({
+        title: "Upload Successful",
+        description: "Food image uploaded successfully! Image is ready for analysis.",
+      });
+      
+      // You can add success handling here, like showing the uploaded image URL
+      // or redirecting to analysis page
+      
     } catch (error) {
       console.error("Error uploading image:", error);
+      
+      // Show error message
+      alert.error({
+        title: "Upload Failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -50,7 +74,7 @@ export const FoodImageUpload = () => {
         <h1 className="text-2xl font-bold text-gray-800 mb-8">Nutrition - Food Image Upload</h1>
         
         <Card className="p-8 max-w-2xl mx-auto bg-white space-y-6">
-          <h2 className="text-2xl font-bold text-center">Insert your Food Image</h2>
+          <h2 className="text-xl font-bold text-center">Insert your Food Image</h2>
 
           <div className="space-y-6">
             <div className="relative flex justify-center">
@@ -93,9 +117,10 @@ export const FoodImageUpload = () => {
             <div className="flex justify-center">
               <Button
                 onClick={handleSubmit}
+                disabled={isUploading}
                 className="px-8 py-3 text-lg font-semibold"
               >
-                Submit for Analysis
+                {isUploading ? "Uploading..." : "Analyse"}
               </Button>
             </div>
           </div>
