@@ -42,7 +42,7 @@ export const FoodImageUpload = () => {
     formData.append("image", selectedImage);
 
     try {
-      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/food-image-upload`, {
+      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/food/upload`, {
         method: "POST",
         body: formData
       });

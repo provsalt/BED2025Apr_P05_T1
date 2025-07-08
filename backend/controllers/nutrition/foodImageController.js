@@ -1,8 +1,7 @@
-import crypto from "crypto";
+import { randomUUID } from "crypto";
 import { uploadFile, deleteFile } from "../../models/services/s3Service.js";
 import { analyzeFoodImage } from "../../models/services/openaiService.js";
 
-// Example: POST /api/nutrition/upload-image
 export const uploadNutritionImage = async (req, res) => {
   const file = req.file;
 
@@ -11,8 +10,7 @@ export const uploadNutritionImage = async (req, res) => {
   }
 
   const ext = file.originalname.split('.').pop();
-  const fileHash = crypto.createHash('md5').update(file.buffer).digest('hex');
-  const filename = `${fileHash}.${ext}`;
+  const filename = `${randomUUID()}.${ext}`;
   const key = `nutrition-images/${filename}`;
 
   try {
@@ -20,7 +18,7 @@ export const uploadNutritionImage = async (req, res) => {
     await uploadFile(file, key);
 
     const newUrl = `nutrition-images/${filename}`;
-    const publicUrl = process.env.BACKEND_URL + "/api/s3?key=" + newUrl;
+    const publicUrl = process.env.BACKEND_URL + "/api/s3?key=" + encodeURIComponent(newUrl);
 
     // Analyze the food image with OpenAI
     let analysisResult = null;

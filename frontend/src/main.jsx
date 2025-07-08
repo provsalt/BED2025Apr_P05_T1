@@ -33,7 +33,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path=":chatId" element={<SelectedChat />}  />
                   </Route>
                   <Route path="/medical" element={<MedicalDashboard />} />
-                  <Route path="/nutrition/food-image-upload/*" element={<FoodImageUpload/>} />
+                  <Route path="/nutrition/food/upload/*" element={<FoodImageUpload/>} />
                 </Routes>
               </div>
             </div>
