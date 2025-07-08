@@ -23,7 +23,7 @@ export const UserProvider = ({ children }) => {
     if (!parse) {
       return;
     }
-    const isAuthenticated = !!token && parse && (Date.now() / 10000 ) < parse.exp;
+    const isAuthenticated = !!token && parse && parse.exp > (Date.now() / 1000);
     if (!isAuthenticated) {
       setUser(undefined)
       localStorage.removeItem("token");

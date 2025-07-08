@@ -1,6 +1,8 @@
 import {createAnnouncement, getAnnouncements, getAnnouncementById, updateAnnouncement, deleteAnnouncement} from "../../models/admin/adminAnnouncement.js";
 import {getUserMiddleware} from "../../middleware/getUser.js";
 import {z} from "zod/v4";
+import {dbConfig} from "../../config/db.js";
+import sql from "mssql";
 
 // Validation schema for announcement data
 const announcementSchema = z.object({
@@ -131,10 +133,53 @@ export const deleteAnnouncementController = async (req, res) => {
 };
 
 /**
+ * Test endpoint to debug announcement issues
+ */
+export const testAnnouncementsController = async (req, res) => {
+  try {
+    console.log('Testing announcements endpoint...');
+    
+    // Test database connection
+    const db = await sql.connect(dbConfig);
+    console.log('Database connected successfully');
+    
+    // Test if table exists
+    const tableCheck = await db.request().query(`
+      SELECT COUNT(*) as count 
+      FROM INFORMATION_SCHEMA.TABLES 
+      WHERE TABLE_NAME = 'Announcement'
+    `);
+    console.log('Announcement table exists:', tableCheck.recordset[0].count > 0);
+    
+    // Get announcements
+    const announcements = await getAnnouncements();
+    console.log('Announcements found:', announcements.length);
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'Announcements endpoint is working',
+      tableExists: tableCheck.recordset[0].count > 0,
+      announcementCount: announcements.length,
+      announcements: announcements
+    });
+  } catch (error) {
+    console.error('Test endpoint error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+      stack: error.stack
+    });
+  }
+};
+
+/**
  * Admin controller for handling announcement-related operations.
  * @param app {import("express").Application} - The Express application instance.
  */
 export const AdminController = (app) => {
+  // Test endpoint for debugging
+  app.get("/api/announcements/test", testAnnouncementsController);
+  
   // Announcement routes
   app.post("/api/announcements", getUserMiddleware, createAnnouncementController);
   app.get("/api/announcements", getAnnouncementsController); // Public route

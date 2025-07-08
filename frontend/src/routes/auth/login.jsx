@@ -41,30 +41,24 @@ export const Login = () => {
       // Decode token to get user info
       const payload = JSON.parse(atob(resp.token.split('.')[1]));
       
+      console.log('Login successful, user payload:', payload);
+      console.log('User role:', payload.role);
+      
       auth.setUser({
         id: resp.id,
         token: resp.token,
         isAuthenticated: true,
         role: payload.role
       });
-
-    const userInfo = await fetcher(import.meta.env.VITE_BACKEND_URL + "/api/user", {
-      headers: { Authorization: `Bearer ${resp.token}` }
-    });
-
-
-    auth.setUser({
-      id: userInfo.id,
-      token: resp.token,
-      isAuthenticated: true,
-      data: {
-        name: userInfo.name || "",
-        email: userInfo.email || "",
-        language: userInfo.language || "",
-        profile_picture_url: userInfo.profile_picture_url || ""
-        }
-      });
-      setTimeout(() => navigate("/medical"), 3000);
+      
+      // Redirect based on role
+      if (payload.role === 'Admin') {
+        console.log('Redirecting admin to /admin');
+        setTimeout(() => navigate("/admin"), 1500);
+      } else {
+        console.log('Redirecting regular user to /medical');
+        setTimeout(() => navigate("/medical"), 1500);
+      }
     } else {
       alert.error({
         title: "Error",

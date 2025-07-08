@@ -1,705 +1,289 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { UserContext } from '@/provider/UserContext.js';
-import { fetcher } from '@/lib/fetcher.js';
+import React from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert } from '@/components/ui/alert';
+import { UserContext } from '@/provider/UserContext.js';
 import { useAlert } from '@/provider/AlertProvider.jsx';
 
 // Admin Dashboard Component
 const AdminDashboard = () => {
-  const { user, setUser } = useContext(UserContext);
-  const navigate = useNavigate();
+  const { user } = useContext(UserContext);
   const alert = useAlert();
+  const navigate = useNavigate();
   
-  // State for different sections
-  const [activeTab, setActiveTab] = useState('overview');
-  const [announcements, setAnnouncements] = useState([]);
-  const [admins, setAdmins] = useState([]);
+  // State for data
   const [users, setUsers] = useState([]);
+  const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(false);
-  
-  // Form states
-  const [announcementForm, setAnnouncementForm] = useState({
-    title: '',
-    content: ''
-  });
-  const [editingAnnouncement, setEditingAnnouncement] = useState(null);
-  const [newAdminUserId, setNewAdminUserId] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [bulkRoleUpdate, setBulkRoleUpdate] = useState('User');
+  const [activeTab, setActiveTab] = useState('overview');
 
-  // Check if user is admin
+  // Fetch data when component mounts
   useEffect(() => {
-    if (!user?.isAuthenticated) {
-      navigate('/login');
-      return;
+    fetchAllData();
+  }, []);
+
+  const fetchAllData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        fetchUsers(),
+        fetchAdmins()
+      ]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    // Decode token to check role
-    if (user.token) {
-      try {
-        const payload = JSON.parse(atob(user.token.split('.')[1]));
-        if (payload.role !== 'Admin') {
-          alert.error({
-            title: 'Access Denied',
-            description: 'You need admin privileges to access this page.',
-            variant: 'destructive'
-          });
-          navigate('/');
-          return;
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users`, {
+        headers: {
+          'Authorization': `Bearer ${user?.token}`,
+          'Content-Type': 'application/json'
         }
-      } catch (error) {
-        console.error('Error decoding token:', error);
-        navigate('/login');
-        return;
-      }
-    }
-    
-    // Load initial data
-    loadAnnouncements();
-    loadAdmins();
-    loadUsers();
-  }, [user, navigate]);
-
-  const loadAnnouncements = async () => {
-    try {
-      setLoading(true);
-      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/announcements`);
-      setAnnouncements(response);
-    } catch (error) {
-      console.error('Error loading announcements:', error);
-      alert.error({
-        title: 'Error',
-        description: 'Failed to load announcements',
-        variant: 'destructive'
       });
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const loadAdmins = async () => {
-    try {
-      setLoading(true);
-      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin`);
-      setAdmins(response);
-    } catch (error) {
-      console.error('Error loading admins:', error);
-      alert.error({
-        title: 'Error',
-        description: 'Failed to load admins',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users`);
-      setUsers(response);
-    } catch (error) {
-      console.error('Error loading users:', error);
-      alert.error({
-        title: 'Error',
-        description: 'Failed to load users',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createAnnouncement = async (e) => {
-    e.preventDefault();
-    if (!announcementForm.title.trim() || !announcementForm.content.trim()) {
-      alert.error({
-        title: 'Validation Error',
-        description: 'Please fill in all fields',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    try {
-      setLoading(true);
-      if (editingAnnouncement) {
-        await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/announcements/${editingAnnouncement.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(announcementForm)
-        });
-        alert.success({
-          title: 'Success',
-          description: 'Announcement updated successfully'
-        });
-        setEditingAnnouncement(null);
+      if (response.ok) {
+        const userData = await response.json();
+        setUsers(userData);
+        console.log('Users fetched:', userData);
       } else {
-        await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/announcements`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(announcementForm)
-        });
-        alert.success({
-          title: 'Success',
-          description: 'Announcement created successfully'
-        });
+        throw new Error(`Failed to fetch users: ${response.status}`);
       }
-      
-      setAnnouncementForm({ title: '', content: '' });
-      loadAnnouncements();
     } catch (error) {
-      console.error('Error saving announcement:', error);
+      console.error('Error fetching users:', error);
       alert.error({
-        title: 'Error',
-        description: 'Failed to save announcement',
-        variant: 'destructive'
+        title: "Error",
+        description: `Failed to fetch users: ${error.message}`
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const deleteAnnouncement = async (id) => {
-    if (!confirm('Are you sure you want to delete this announcement?')) {
-      return;
-    }
-
+  const fetchAdmins = async () => {
     try {
-      setLoading(true);
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/announcements/${id}`, {
-        method: 'DELETE'
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin`, {
+        headers: {
+          'Authorization': `Bearer ${user?.token}`,
+          'Content-Type': 'application/json'
+        }
       });
-      alert.success({
-        title: 'Success',
-        description: 'Announcement deleted successfully'
-      });
-      loadAnnouncements();
+
+      if (response.ok) {
+        const adminData = await response.json();
+        setAdmins(adminData);
+        console.log('Admins fetched:', adminData);
+      } else {
+        throw new Error(`Failed to fetch admins: ${response.status}`);
+      }
     } catch (error) {
-      console.error('Error deleting announcement:', error);
+      console.error('Error fetching admins:', error);
       alert.error({
-        title: 'Error',
-        description: 'Failed to delete announcement',
-        variant: 'destructive'
+        title: "Error", 
+        description: `Failed to fetch admins: ${error.message}`
       });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addAdminRole = async (e) => {
-    e.preventDefault();
-    if (!newAdminUserId.trim()) {
-      alert.error({
-        title: 'Validation Error',
-        description: 'Please enter a user ID',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/add-role`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: parseInt(newAdminUserId) })
-      });
-      alert.success({
-        title: 'Success',
-        description: 'Admin role added successfully'
-      });
-      setNewAdminUserId('');
-      loadAdmins();
-    } catch (error) {
-      console.error('Error adding admin role:', error);
-      alert.error({
-        title: 'Error',
-        description: 'Failed to add admin role',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const removeAdminRole = async (userId) => {
-    if (!confirm('Are you sure you want to remove admin role from this user?')) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/remove-role`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userId })
-      });
-      alert.success({
-        title: 'Success',
-        description: 'Admin role removed successfully'
-      });
-      loadAdmins();
-    } catch (error) {
-      console.error('Error removing admin role:', error);
-      alert.error({
-        title: 'Error',
-        description: 'Failed to remove admin role',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
   const updateUserRole = async (userId, newRole) => {
     try {
-      setLoading(true);
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}/role`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}/role`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${user?.token}`,
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ role: newRole })
       });
-      alert.success({
-        title: 'Success',
-        description: `User role updated to ${newRole} successfully`
-      });
-      loadUsers();
+
+      if (response.ok) {
+        alert.success({
+          title: "Success",
+          description: `User role updated to ${newRole}`
+        });
+        fetchAllData(); // Refresh data
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update user role');
+      }
     } catch (error) {
       console.error('Error updating user role:', error);
       alert.error({
-        title: 'Error',
-        description: 'Failed to update user role',
-        variant: 'destructive'
+        title: "Error",
+        description: error.message
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const deleteUser = async (userId) => {
-    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-      return;
-    }
-
+    if (!confirm('Are you sure you want to delete this user?')) return;
+    
     try {
-      setLoading(true);
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}`, {
-        method: 'DELETE'
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${user?.token}`,
+          'Content-Type': 'application/json'
+        }
       });
-      alert.success({
-        title: 'Success',
-        description: 'User deleted successfully'
-      });
-      loadUsers();
+
+      if (response.ok) {
+        alert.success({
+          title: "Success",
+          description: "User deleted successfully"
+        });
+        fetchAllData(); // Refresh data
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete user');
+      }
     } catch (error) {
       console.error('Error deleting user:', error);
       alert.error({
-        title: 'Error',
-        description: 'Failed to delete user',
-        variant: 'destructive'
+        title: "Error",
+        description: error.message
       });
-    } finally {
-      setLoading(false);
     }
-  };
-
-  const bulkUpdateUserRoles = async () => {
-    if (selectedUsers.length === 0) {
-      alert.error({
-        title: 'No Users Selected',
-        description: 'Please select users to update',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    const updates = selectedUsers.map(userId => ({
-      userId: userId,
-      role: bulkRoleUpdate
-    }));
-
-    try {
-      setLoading(true);
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/bulk-role-update`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userRoleUpdates: updates })
-      });
-      alert.success({
-        title: 'Success',
-        description: `${selectedUsers.length} user roles updated successfully`
-      });
-      setSelectedUsers([]);
-      loadUsers();
-    } catch (error) {
-      console.error('Error bulk updating user roles:', error);
-      alert.error({
-        title: 'Error',
-        description: 'Failed to update user roles',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleUserSelection = (userId) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    );
-  };
-
-  const editAnnouncement = (announcement) => {
-    setEditingAnnouncement(announcement);
-    setAnnouncementForm({
-      title: announcement.title,
-      content: announcement.content
-    });
-    setActiveTab('announcements');
-  };
-
-  const cancelEdit = () => {
-    setEditingAnnouncement(null);
-    setAnnouncementForm({ title: '', content: '' });
-  };
-
-  const logout = () => {
-    setUser({
-      id: null,
-      token: null,
-      isAuthenticated: false,
-      admin: false
-    });
-    navigate('/login');
   };
 
   const renderOverview = () => (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <Card>
-        <CardHeader>
-          <CardTitle>Total Announcements</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{announcements.length}</div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Total Admins</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{admins.length}</div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>System Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-600">Active</div>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="bg-white p-6 rounded-lg shadow-md border">
+        <h3 className="text-lg font-semibold mb-2">Total Users</h3>
+        <p className="text-3xl font-bold text-blue-600">{users.length}</p>
+        <p className="text-gray-600 text-sm">All registered users</p>
+      </div>
+      
+      <div className="bg-white p-6 rounded-lg shadow-md border">
+        <h3 className="text-lg font-semibold mb-2">Admins</h3>
+        <p className="text-3xl font-bold text-red-600">{admins.length}</p>
+        <p className="text-gray-600 text-sm">Users with admin privileges</p>
+      </div>
+      
+      <div className="bg-white p-6 rounded-lg shadow-md border">
+        <h3 className="text-lg font-semibold mb-2">Regular Users</h3>
+        <p className="text-3xl font-bold text-green-600">{users.filter(u => u.role !== 'Admin').length}</p>
+        <p className="text-gray-600 text-sm">Non-admin users</p>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-md border">
+        <h3 className="text-lg font-semibold mb-2">Actions</h3>
+        <button 
+          className="w-full mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          onClick={fetchAllData}
+        >
+          Refresh Data
+        </button>
+      </div>
     </div>
   );
 
-  const renderAnnouncements = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {editingAnnouncement ? 'Edit Announcement' : 'Create New Announcement'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={createAnnouncement} className="space-y-4">
-            <div>
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                type="text"
-                value={announcementForm.title}
-                onChange={(e) => setAnnouncementForm(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter announcement title"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="content">Content</Label>
-              <textarea
-                id="content"
-                className="w-full min-h-[100px] px-3 py-2 border border-gray-300 rounded-md resize-vertical"
-                value={announcementForm.content}
-                onChange={(e) => setAnnouncementForm(prev => ({ ...prev, content: e.target.value }))}
-                placeholder="Enter announcement content"
-                required
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button type="submit" disabled={loading}>
-                {editingAnnouncement ? 'Update' : 'Create'} Announcement
-              </Button>
-              {editingAnnouncement && (
-                <Button type="button" variant="outline" onClick={cancelEdit}>
-                  Cancel
-                </Button>
-              )}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Existing Announcements</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {announcements.length === 0 ? (
-              <p className="text-gray-500">No announcements found.</p>
-            ) : (
-              announcements.map((announcement) => (
-                <div key={announcement.id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{announcement.title}</h3>
-                      <p className="text-gray-600 mt-1">{announcement.content}</p>
-                      <div className="text-sm text-gray-500 mt-2">
-                        By: {announcement.author_name} • {new Date(announcement.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                    <div className="flex gap-2 ml-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => editAnnouncement(announcement)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => deleteAnnouncement(announcement.id)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
+  const renderUserManagement = () => (
+    <div className="bg-white rounded-lg shadow-md border">
+      <div className="p-6 border-b">
+        <h3 className="text-lg font-semibold">User Management</h3>
+        <p className="text-gray-600">Manage user roles and permissions</p>
+      </div>
+      
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {users.map(userItem => (
+              <tr key={userItem.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{userItem.id}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{userItem.email}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    userItem.role === 'Admin' 
+                      ? 'bg-red-100 text-red-800' 
+                      : 'bg-blue-100 text-blue-800'
+                  }`}>
+                    {userItem.role || 'User'}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {userItem.created_at ? new Date(userItem.created_at).toLocaleDateString() : 'N/A'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                  <button
+                    className={`px-3 py-1 rounded text-xs font-medium ${
+                      userItem.role === 'Admin'
+                        ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                        : 'bg-green-200 text-green-800 hover:bg-green-300'
+                    }`}
+                    onClick={() => updateUserRole(userItem.id, userItem.role === 'Admin' ? 'User' : 'Admin')}
+                  >
+                    {userItem.role === 'Admin' ? 'Remove Admin' : 'Make Admin'}
+                  </button>
+                  <button
+                    className="px-3 py-1 bg-red-200 text-red-800 rounded text-xs font-medium hover:bg-red-300"
+                    onClick={() => deleteUser(userItem.id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
-
-  const renderAdmins = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Add Admin Role</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={addAdminRole} className="space-y-4">
-            <div>
-              <Label htmlFor="userId">User ID</Label>
-              <Input
-                id="userId"
-                type="number"
-                value={newAdminUserId}
-                onChange={(e) => setNewAdminUserId(e.target.value)}
-                placeholder="Enter user ID to make admin"
-                required
-              />
-            </div>
-            <Button type="submit" disabled={loading}>
-              Add Admin Role
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Current Admins</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {admins.length === 0 ? (
-              <p className="text-gray-500">No admins found.</p>
-            ) : (
-              admins.map((admin) => (
-                <div key={admin.id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-semibold">{admin.name}</h3>
-                      <p className="text-gray-600">{admin.email}</p>
-                      <p className="text-sm text-gray-500">
-                        ID: {admin.id} • Created: {new Date(admin.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => removeAdminRole(admin.id)}
-                    >
-                      Remove Admin
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderUsers = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Manage Users</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {users.length === 0 ? (
-              <p className="text-gray-500">No users found.</p>
-            ) : (
-              users.map((user) => (
-                <div key={user.id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-semibold">{user.name}</h3>
-                      <p className="text-gray-600">{user.email}</p>
-                      <p className="text-sm text-gray-500">
-                        ID: {user.id} • Role: {user.role} • Created: {new Date(user.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateUserRole(user.id, user.role === 'Admin' ? 'User' : 'Admin')}
-                      >
-                        {user.role === 'Admin' ? 'Revoke Admin' : 'Make Admin'}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => deleteUser(user.id)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  if (!user?.isAuthenticated) {
-    return <div>Loading...</div>;
-  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="border-b bg-white">
-        <div className="flex items-center justify-between px-6 py-4">
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">
-              Welcome, Admin
-            </span>
-            <Button variant="outline" onClick={logout}>
-              Logout
-            </Button>
-          </div>
-        </div>
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <p className="text-gray-600 mt-2">Welcome, {user?.email || 'Admin'}</p>
+        <p className="text-sm text-gray-500">Role: {user?.role}</p>
       </div>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-white border-r min-h-screen">
-          <nav className="p-4">
-            <div className="space-y-2">
+      {loading && (
+        <div className="flex justify-center items-center h-32">
+          <div className="text-lg">Loading...</div>
+        </div>
+      )}
+
+      {/* Tab Navigation */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            {[
+              { id: 'overview', label: 'Overview' },
+              { id: 'users', label: 'User Management' },
+            ].map(tab => (
               <button
-                onClick={() => setActiveTab('overview')}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'overview'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'hover:bg-gray-100'
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Overview
+                {tab.label}
               </button>
-              <button
-                onClick={() => setActiveTab('announcements')}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'announcements'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'hover:bg-gray-100'
-                }`}
-              >
-                Announcements
-              </button>
-              <button
-                onClick={() => setActiveTab('admins')}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'admins'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'hover:bg-gray-100'
-                }`}
-              >
-                Manage Admins
-              </button>
-              <button
-                onClick={() => setActiveTab('users')}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'users'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'hover:bg-gray-100'
-                }`}
-              >
-                Manage Users
-              </button>
-            </div>
+            ))}
           </nav>
         </div>
-
-        {/* Main Content */}
-        <div className="flex-1 p-6">
-          {loading && (
-            <div className="mb-4">
-              <Alert>
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                  Loading...
-                </div>
-              </Alert>
-            </div>
-          )}
-
-          {activeTab === 'overview' && renderOverview()}
-          {activeTab === 'announcements' && renderAnnouncements()}
-          {activeTab === 'admins' && renderAdmins()}
-          {activeTab === 'users' && renderUsers()}
-        </div>
       </div>
-    </div>
+
+      {/* Tab Content */}
+      <div className="space-y-6">
+        {activeTab === 'overview' && renderOverview()}
+        {activeTab === 'users' && renderUserManagement()}
+        {activeTab === 'Announcements' && renderAnnouncement()}
+          </div>
+      </div>
   );
 };
 

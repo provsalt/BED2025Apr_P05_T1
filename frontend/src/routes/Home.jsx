@@ -1,6 +1,5 @@
 import {useContext} from "react";
 import {UserContext} from "@/provider/UserContext.js";
-import AnnouncementsList from "@/components/AnnouncementsList.jsx";
 
 export const Home = () => {
   const auth = useContext(UserContext);
@@ -12,8 +11,6 @@ export const Home = () => {
               {auth.id ? `Hello, User ${auth.id}` : "Please log in to access all features"}
             </p>
           </div>
-          
-          <AnnouncementsList />
         </div>
     )
 }
