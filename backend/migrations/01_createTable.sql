@@ -7,16 +7,8 @@ CREATE TABLE Users (
     gender VARCHAR(10),
     language VARCHAR(50),
     profile_picture_url VARCHAR(255),
-    created_at DATETIME DEFAULT GETDATE()
-);
-
-CREATE TABLE Admin (
-    user_id INT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    password VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (user_id) REFERENCES [Users](id)
+    role VARCHAR(100) DEFAULT 'User' CHECK (role IN ('User', 'Admin'))
 );
 
 CREATE TABLE CommunityEvent (
@@ -31,7 +23,7 @@ CREATE TABLE CommunityEvent (
     approved_by_admin_id INT NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (user_id) REFERENCES [Users](id),
-    FOREIGN KEY (approved_by_admin_id) REFERENCES Admin(user_id)
+    FOREIGN KEY (approved_by_admin_id) REFERENCES Users(id)
 );
 
 CREATE TABLE CommunityEventSignup (
@@ -54,18 +46,21 @@ CREATE TABLE CommunityEventImage (
 CREATE TABLE Chat (
     id INT PRIMARY KEY IDENTITY(1,1),
     created_at DATETIME DEFAULT GETDATE(),
-    message_sender INT NOT NULL,
-    message_receiver INT NOT NULL,
-    FOREIGN KEY (message_sender) REFERENCES [Users](id),
-    FOREIGN KEY (message_receiver) REFERENCES [Users](id)
+    chat_initiator INT NOT NULL,
+    chat_recipient INT NOT NULL,
+    updated_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (chat_initiator) REFERENCES [Users](id),
+    FOREIGN KEY (chat_recipient) REFERENCES [Users](id)
 );
 
 CREATE TABLE ChatMsg (
     id INT PRIMARY KEY IDENTITY(1,1),
     chat_id INT NOT NULL,
     msg VARCHAR(1000),
+    sender INT NOT NULL,
     msg_created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (chat_id) REFERENCES Chat(id)
+    FOREIGN KEY (chat_id) REFERENCES Chat(id),
+    FOREIGN KEY (sender) REFERENCES Users(id)
 );
 
 CREATE TABLE MealCategory (
@@ -96,32 +91,18 @@ CREATE TABLE MealIngredient (
     FOREIGN KEY (scanned_meal_id) REFERENCES ScannedMeal(id)
 );
 
-CREATE TABLE Illness (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    name VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE UserIllness (
-    user_id INT NOT NULL,
-    illness_id INT NOT NULL,
-    added_at DATETIME DEFAULT GETDATE(),
-    PRIMARY KEY (user_id, illness_id),
-    FOREIGN KEY (user_id) REFERENCES [Users](id),
-    FOREIGN KEY (illness_id) REFERENCES Illness(id)
-);
 
 CREATE TABLE Medication (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    user_id INT NOT NULL,
-    medicine_name VARCHAR(100) NOT NULL,
-    dosage VARCHAR(50) NOT NULL,
-    medicine_time DATETIME NOT NULL,
-    frequency_per_day INT NOT NULL,
-    illness_id INT,
-    image_url VARCHAR(255),
-    created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (user_id) REFERENCES [Users](id),
-    FOREIGN KEY (illness_id) REFERENCES Illness(id)
+  id INT PRIMARY KEY IDENTITY(1,1),
+  user_id INT NOT NULL,
+  medicine_name VARCHAR(255) NOT NULL,
+  dosage VARCHAR(100) NOT NULL,
+  medicine_time DATETIME NOT NULL,
+  frequency_per_day INT NOT NULL,
+  image_url VARCHAR(255) NOT NULL,
+  reason VARCHAR(255) NOT NULL,
+  created_at DATETIME DEFAULT GETDATE(),
+  FOREIGN KEY (user_id) REFERENCES [Users](id)
 );
 
 CREATE TABLE MedicationQuestion (

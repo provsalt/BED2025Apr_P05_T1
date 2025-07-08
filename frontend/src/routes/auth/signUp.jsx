@@ -7,7 +7,7 @@ import {
   CardTitle
 } from "@/components/ui/card.jsx";
 import {Link, useNavigate} from "react-router";
-import {useForm} from "react-hook-form";
+import {Controller, useForm} from "react-hook-form";
 import {Input} from "@/components/ui/input.jsx";
 import {Label} from "@radix-ui/react-label";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group.jsx";
@@ -18,7 +18,11 @@ import {UserContext} from "@/provider/UserContext.js";
 
 
 export const Signup = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, control, formState: { errors } } = useForm({
+    defaultValues: {
+      gender: "female"
+    }
+  });
   const alert = useAlert();
   const navigate = useNavigate();
   const auth = useContext(UserContext);
@@ -58,7 +62,7 @@ export const Signup = () => {
         email: data.email,
         password: data.password,
         date_of_birth: new Date(data.dob).getTime() / 1000,
-        gender: data.gender === "female" ? 0 : 1,
+        gender: data.gender === "female" ? "0" : "1",
       })
     });
     if (res.ok) {
@@ -144,12 +148,24 @@ export const Signup = () => {
                 </div>
                 <div>
                   <Label htmlFor="gender" >Gender</Label>
-                  <RadioGroup name="gender" id="gender" defaultValue="female" className="flex items-center">
-                    <RadioGroupItem {...register("gender", {required: true})} value="female" id="gender-female"/>
-                    <Label htmlFor="gender-female">Female</Label>
-                    <RadioGroupItem {...register("gender", {required: true})} value="male" id="gender-male" />
-                    <Label htmlFor="gender-male">Male</Label>
-                  </RadioGroup>
+                  <Controller
+                    name="gender"
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field }) => (
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        className="flex items-center"
+                        id="gender"
+                      >
+                        <RadioGroupItem value="female" id="gender-female"/>
+                        <Label htmlFor="gender-female">Female</Label>
+                        <RadioGroupItem value="male" id="gender-male" />
+                        <Label htmlFor="gender-male">Male</Label>
+                      </RadioGroup>
+                    )}
+                  />
                   {errors.gender && <span className="text-red-500">{errors.gender.message || "Please enter a valid gender."}</span>}
                 </div>
 

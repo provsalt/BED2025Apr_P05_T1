@@ -16,7 +16,7 @@ services:
 #      start_interval: 20s
 #      start_period: 20s
     volumes:
-      - ./db_data:/var/opt/mssql
+      - mssql:/var/opt/mssql
   backend:
     build: ./backend
 
@@ -32,6 +32,7 @@ services:
       - DB_PORT=${DB_PORT}
       - DB_DATABASE=${DB_DATABASE}
       - SECRET=${SECRET}
+      - BACKEND_URL=${BACKEND_URL}
   frontend:
     build: ./frontend
     ports:
@@ -41,8 +42,26 @@ services:
       - backend
     environment:
       - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+  minio:
+    image: minio/minio
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${S3_ACCESS_KEY}
+      - MINIO_ROOT_PASSWORD=${S3_SECRET_KEY}
+      - MINIO_DEFAULT_BUCKETS=${S3_BUCKET_NAME}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
 
 networks:
   bed-assignment:
     name: "bed-assignment"
     driver: bridge
+
+volumes:
+  minio_data:
+
+  mssql:
