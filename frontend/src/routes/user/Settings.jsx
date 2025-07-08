@@ -3,23 +3,20 @@ import { Input } from "@/components/ui/input.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { UserContext } from "@/provider/UserContext.js";
 import { useAlert } from "@/provider/AlertProvider.jsx";
-import { useNavigate } from "react-router";
-import {fetcher} from "@/lib/fetcher.js";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
+import { fetcher } from "@/lib/fetcher.js";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
+import { Label } from "@radix-ui/react-label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.jsx";
+import { Controller, useForm } from "react-hook-form";
 
 export function Settings() {
   const auth = useContext(UserContext);
   const alert = useAlert();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    date_of_birth: "",
-    gender: "",
-    language: "",
-    profile_picture_url: ""
-  });
+  const { register, handleSubmit, control, setValue, formState: { errors } } = useForm();
 
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: "",
@@ -27,34 +24,28 @@ export function Settings() {
     confirmPassword: ""
   });
 
-  const [selectedFile, setSelectedFile] = useState(null);
   const [userId, setUserId] = useState(null);
   const [editMode, setEditMode] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useState("");
 
   useEffect(() => {
     if (!auth) return;
 
     fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user`)
       .then((user) => {
-        setFormData({
-          name: user.name || "",
-          email: user.email || "",
-          date_of_birth: user.date_of_birth?.split("T")[0] || "",
-          gender: user.gender === 0 ? "female" : user.gender === 1 ? "male" : "",
-          language: user.language || "",
-          profile_picture_url: user.profile_picture_url || ""
-        });
+        setValue("name", user.name || "");
+        setValue("email", user.email || "");
+        setValue("date_of_birth", user.date_of_birth?.split("T")[0] || "");
+        setValue("gender", user.gender === "0" ? "female" : user.gender === "1" ? "male" : "");
+        setValue("language", user.language || "");
+        setProfilePictureUrl(user.profile_picture_url || "");
         setUserId(user.id);
       })
       .catch(() => {
         alert.error({ title: "Error", description: "Failed to load user info." });
       });
-  }, [auth]);
-
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  }
+  }, [auth, setValue]);
 
   function handlePasswordChange(e) {
     const { name, value } = e.target;
@@ -76,17 +67,13 @@ export function Settings() {
         body: data
       });
 
-      setFormData((prev) => ({
-        ...prev,
-        profile_picture_url: response.url
-      }));  
+      setProfilePictureUrl(response.url);
 
       auth.setUser((prev) => ({
         ...prev,
         profile_picture_url: response.url || "",
         isAuthenticated: true,
       }));
-
 
       alert.success({ title: "Profile Picture Updated", description: "Image uploaded successfully." });
     } catch (err) {
@@ -99,7 +86,7 @@ export function Settings() {
       await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/profile-picture/${userId}`, {
         method: "DELETE",
       });
-      setFormData((prev) => ({ ...prev, profile_picture_url: "" }));
+      setProfilePictureUrl("");
 
       auth.setUser((prev) => ({
         ...prev,
@@ -112,8 +99,7 @@ export function Settings() {
     }
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function onProfileSubmit(data) {
     if (!userId) return;
 
     try {
@@ -123,10 +109,10 @@ export function Settings() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: formData.name,
-          gender: formData.gender === "female" ? 0 : formData.gender === "male" ? 1 : null,
-          date_of_birth: formData.date_of_birth,
-          language: formData.language
+          name: data.name,
+          gender: data.gender === "female" ? "0" : data.gender === "male" ? "1" : null,
+          date_of_birth: data.date_of_birth,
+          language: data.language
         })
       });
 
@@ -160,10 +146,7 @@ export function Settings() {
       alert.error({ title: "Password Update Failed", description: "Incorrect old password or server error." });
     }
   }
-  
-  const location = useLocation();
 
-  // ###idt this will affect the other parts if it refreshes?
   useEffect(() => {
     return () => {
       if (auth.refreshUser) auth.refreshUser();
@@ -172,112 +155,144 @@ export function Settings() {
 
   if (!auth.token) return null;
 
- return (
+  return (
     <div className="flex flex-col flex-1 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         <h2 className="text-3xl font-bold text-gray-800 mb-8">Profile Settings</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Profile Picture</h3>
-            {formData.profile_picture_url ? (
-              <img
-                src={formData.profile_picture_url}
-                alt="Profile"
-                className="w-32 h-32 rounded-full object-cover mb-4"
-              />
-            ) : (
-              <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center mb-4">
-                <span className="text-gray-600">No Image</span>
-              </div>
-            )}
-            <input type="file" onChange={handleProfilePictureChange} className="mb-4" />
-            <div className="flex gap-2">
-              <Button onClick={handleProfilePictureUpload}>Upload Picture</Button>
-              <Button variant="destructive" onClick={handleDeletePicture}>Delete Picture</Button>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Picture</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center space-y-4">
+                {profilePictureUrl ? (
+                  <img
+                    src={profilePictureUrl}
+                    alt="Profile"
+                    className="w-32 h-32 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center">
+                    <span className="text-gray-600">No Image</span>
+                  </div>
+                )}
+                <Input type="file" onChange={handleProfilePictureChange} className="text-sm" />
+                <div className="flex gap-2">
+                  <Button onClick={handleProfilePictureUpload} size="sm">Upload</Button>
+                  <Button variant="destructive" onClick={handleDeletePicture} size="sm">Delete</Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-800">User Details</h3>
-              <Button onClick={() => setEditMode((prev) => !prev)}>
-                {editMode ? "Cancel" : "Edit Settings"}
-              </Button>
-            </div>
+          <div className="md:col-span-2">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>User Details</CardTitle>
+                  <Button onClick={() => setEditMode((prev) => !prev)} variant="outline">
+                    {editMode ? "Cancel" : "Edit Settings"}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Name</Label>
+                    <Input id="name" {...register("name", { required: true, min: 3, maxLength: 255 })} disabled={!editMode} />
+                    {errors.name && <span className="text-red-500 text-sm">Please enter a valid name.</span>}
+                  </div>
+                  <div>
+                    <Label htmlFor="email">Email (read-only)</Label>
+                    <Input id="email" {...register("email")} disabled />
+                  </div>
+                  <div>
+                    <Label htmlFor="date_of_birth">Date of Birth</Label>
+                    <Input id="date_of_birth" type="date" {...register("date_of_birth", { required: true })} disabled={!editMode} />
+                    {errors.date_of_birth && <span className="text-red-500 text-sm">Please enter a valid date of birth.</span>}
+                  </div>
+                  <div>
+                    <Label>Gender</Label>
+                    <Controller
+                      name="gender"
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          className="flex items-center space-x-4"
+                          disabled={!editMode}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="female" id="gender-female" />
+                            <Label htmlFor="gender-female">Female</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="male" id="gender-male" />
+                            <Label htmlFor="gender-male">Male</Label>
+                          </div>
+                        </RadioGroup>
+                      )}
+                    />
+                    {errors.gender && <span className="text-red-500 text-sm">Please select a gender.</span>}
+                  </div>
+                  <div>
+                    <Label htmlFor="language">Preferred Language</Label>
+                    <Input id="language" {...register("language")} disabled={!editMode} />
+                  </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block font-medium">Name:</label>
-                <Input name="name" value={formData.name} onChange={handleChange} disabled={!editMode} />
-              </div>
-              <div>
-                <label className="block font-medium">Email (read-only):</label>
-                <Input name="email" value={formData.email} disabled />
-              </div>
-              <div>
-                <label className="block font-medium">Date of Birth:</label>
-                <Input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} disabled={!editMode} />
-              </div>
-              <div>
-                <label className="block font-medium">Gender:</label>
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                  disabled={!editMode}>
-                  <option value="">-- Select Gender --</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-medium">Preferred Language:</label>
-                <Input name="language" value={formData.language} onChange={handleChange} disabled={!editMode} />
-              </div>
-
-              {editMode && <Button type="submit">Save Changes</Button>}
-            </form>
+                  {editMode && <Button type="submit">Save Changes</Button>}
+                </form>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="md:col-span-2 bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Change Password</h3>
-            <form onSubmit={handleChangePassword} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block font-medium">Old Password:</label>
-                <Input
-                  type="password"
-                  name="oldPassword"
-                  value={passwordForm.oldPassword}
-                  onChange={handlePasswordChange}
-                  required/>
-              </div>
-              <div>
-                <label className="block font-medium">New Password:</label>
-                <Input
-                  type="password"
-                  name="newPassword"
-                  value={passwordForm.newPassword}
-                  onChange={handlePasswordChange}
-                  required/>
-              </div>
-              <div>
-                <label className="block font-medium">Confirm Password:</label>
-                <Input
-                  type="password"
-                  name="confirmPassword"
-                  value={passwordForm.confirmPassword}
-                  onChange={handlePasswordChange}
-                  required/>
-              </div>
+          <div className="md:col-span-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Change Password</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleChangePassword} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block font-medium">Old Password:</label>
+                    <Input
+                      type="password"
+                      name="oldPassword"
+                      value={passwordForm.oldPassword}
+                      onChange={handlePasswordChange}
+                      required/>
+                  </div>
+                  <div>
+                    <label className="block font-medium">New Password:</label>
+                    <Input
+                      type="password"
+                      name="newPassword"
+                      value={passwordForm.newPassword}
+                      onChange={handlePasswordChange}
+                      required/>
+                  </div>
+                  <div>
+                    <label className="block font-medium">Confirm Password:</label>
+                    <Input
+                      type="password"
+                      name="confirmPassword"
+                      value={passwordForm.confirmPassword}
+                      onChange={handlePasswordChange}
+                      required/>
+                  </div>
 
-              <div className="md:col-span-3">
-                <Button type="submit">Update Password</Button>
-              </div>
-            </form>
+                  <div className="md:col-span-3">
+                    <Button type="submit">Update Password</Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="md:col-span-2 flex justify-center">
+          <div className="md:col-span-3 flex justify-center">
             <Button
               variant="destructive"
               onClick={() => {
@@ -294,4 +309,3 @@ export function Settings() {
     </div>
   );
 }
-
