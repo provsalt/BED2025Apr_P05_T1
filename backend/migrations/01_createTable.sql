@@ -99,33 +99,20 @@ CREATE TABLE MealIngredient (
     FOREIGN KEY (scanned_meal_id) REFERENCES ScannedMeal(id)
 );
 
-CREATE TABLE Illness (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    name VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE UserIllness (
-    user_id INT NOT NULL,
-    illness_id INT NOT NULL,
-    added_at DATETIME DEFAULT GETDATE(),
-    PRIMARY KEY (user_id, illness_id),
-    FOREIGN KEY (user_id) REFERENCES [Users](id),
-    FOREIGN KEY (illness_id) REFERENCES Illness(id)
-);
 
 CREATE TABLE Medication (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    user_id INT NOT NULL,
-    medicine_name VARCHAR(100) NOT NULL,
-    dosage VARCHAR(50) NOT NULL,
-    medicine_time DATETIME NOT NULL,
-    frequency_per_day INT NOT NULL,
-    illness_id INT,
-    image_url VARCHAR(255),
-    created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (user_id) REFERENCES [Users](id),
-    FOREIGN KEY (illness_id) REFERENCES Illness(id)
+  id INT PRIMARY KEY IDENTITY(1,1),
+  user_id INT NOT NULL,
+  medicine_name VARCHAR(255) NOT NULL,
+  dosage VARCHAR(100) NOT NULL,
+  medicine_time DATETIME NOT NULL,
+  frequency_per_day INT NOT NULL,
+  image_url VARCHAR(255) NOT NULL,
+  reason VARCHAR(255) NOT NULL,
+  created_at DATETIME DEFAULT GETDATE(),
+  FOREIGN KEY (user_id) REFERENCES [Users](id)
 );
+
 
 CREATE TABLE MedicationQuestion (
     user_id INT PRIMARY KEY,
