@@ -1,21 +1,20 @@
 import React, { useContext } from 'react';
-import { Navigate } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 import { UserContext } from '@/provider/UserContext.js';
 
-const AdminProtectedRoute = ({ children }) => {
-  const { user } = useContext(UserContext);
-
+const AdminProtectedRoute = () => {
+  const user = useContext(UserContext);
   // Check if user is authenticated
   if (!user?.isAuthenticated) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  // Check if user has admin role
+  // Check if user has admin role - allow access if they are admin
   if (user.role !== 'Admin') {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return <Outlet />;
 };
 
 export default AdminProtectedRoute;

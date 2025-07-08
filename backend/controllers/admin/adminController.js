@@ -1,10 +1,11 @@
 import { addAdminRole, getAllAdmins, removeAdminRole, getAllUsers, getUserWithRole, 
 updateUserRole, deleteUser, getUsersByRole, bulkUpdateUserRoles } from "../../models/admin/adminModel.js";
 import { getUserByEmail } from "../../models/user/userModel.js";
-import { User } from "../../utils/validation/user.js";
 import { SignJWT } from "jose";
 import { z } from "zod/v4";
 import bcrypt from "bcryptjs";
+import {dbConfig} from "../../config/db.js";
+import sql from "mssql";
 /**
  * Add admin role to a user
  * @param req

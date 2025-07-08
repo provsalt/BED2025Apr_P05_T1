@@ -14,17 +14,26 @@ const AnnouncementsList = () => {
   const loadAnnouncements = async () => {
     try {
       setLoading(true);
+      setError(null);
+      console.log('Loading announcements from:', `${import.meta.env.VITE_BACKEND_URL}/api/announcements`);
+      
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/announcements`);
       
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
       if (!response.ok) {
-        throw new Error('Failed to load announcements');
+        const errorData = await response.text();
+        console.error('Error response:', errorData);
+        throw new Error(`Failed to load announcements: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
+      console.log('Announcements loaded:', data);
       setAnnouncements(data);
     } catch (error) {
       console.error('Error loading announcements:', error);
-      setError('Failed to load announcements');
+      setError(`Failed to load announcements: ${error.message}`);
     } finally {
       setLoading(false);
     }

@@ -42,10 +42,10 @@ export const getAnnouncements = async () => {
             a.content, 
             a.created_at, 
             a.updated_at,
-            u.name as author_name,
-            u.email as author_email
+            COALESCE(u.name, 'Unknown User') as author_name,
+            COALESCE(u.email, 'unknown@email.com') as author_email
         FROM Announcement a
-        INNER JOIN Users u ON a.user_id = u.id
+        LEFT JOIN Users u ON a.user_id = u.id
         ORDER BY a.created_at DESC
     `;
     const request = db.request();
