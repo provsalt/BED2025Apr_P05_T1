@@ -32,6 +32,7 @@ services:
       - DB_PORT=${DB_PORT}
       - DB_DATABASE=${DB_DATABASE}
       - SECRET=${SECRET}
+      - BACKEND_URL=${BACKEND_URL}
   frontend:
     build: ./frontend
     ports:
