@@ -22,7 +22,7 @@ app.use(cors({
   origin: origins
 }))
 
-Controller(app);
+Controller(app)
 
 setIO(io);
 

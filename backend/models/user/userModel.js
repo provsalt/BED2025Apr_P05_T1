@@ -144,8 +144,7 @@ export const changeUserRole = async (id, role) => {
     `;
     const request = db.request();
     request.input("id", id);
-    console.log(role.charAt(0).toUpperCase() + role.slice(1));
-    request.input("role", role.charAt(0).toUpperCase() + role.slice(1));
+    request.input("role", role2);
 
     const res = await request.query(query);
 
