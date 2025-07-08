@@ -25,6 +25,7 @@ import {
   deleteMessageController
 } from "./chat/messageController.js";
 import {getFileByKey} from "./s3/fileController.js";
+import { createMedication } from "./medical/medicalController.js";
 
 /**
  * Controller function to set up routes for the application.
@@ -65,4 +66,15 @@ export const Controller = (app) => {
   app.delete("/api/chats/:chatId/:messageId", getUserMiddleware, deleteMessageController);
 
   app.get("/api/s3", getFileByKey)
+
+  // Medication Reminders
+  app.post(
+    "/api/medications",
+    getUserMiddleware,
+    createUploadMiddleware({
+      allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
+      fileSize: 5 * 1024 * 1024,
+    }).single("image"),
+    createMedication
+  );
 };
