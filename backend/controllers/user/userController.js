@@ -156,15 +156,14 @@ export const changePasswordController = async (req, res) => {
 
   try {
     const user = await getUser(userId);
-
-    const valid = await bcrypt.compare(oldPassword, user.hashedPassword);
+    const valid = await bcrypt.compare(oldPassword, user.password);
 
     if (!valid) {
       return res.status(403).json({ error: "Old password is incorrect" });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const updated = await updateUser(userId, { hashedPassword });
+    const updated = await updateUser(userId, { password: hashedPassword });
 
     if (!updated) {
       return res.status(500).json({ error: "Failed to update password" });
