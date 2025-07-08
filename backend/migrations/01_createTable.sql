@@ -7,16 +7,8 @@ CREATE TABLE Users (
     gender VARCHAR(10),
     language VARCHAR(50),
     profile_picture_url VARCHAR(255),
-    created_at DATETIME DEFAULT GETDATE()
-);
-
-CREATE TABLE Admin (
-    user_id INT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    password VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (user_id) REFERENCES [Users](id)
+    role VARCHAR(100) DEFAULT 'User' CHECK (role IN ('User', 'Admin'))
 );
 
 CREATE TABLE CommunityEvent (
@@ -31,7 +23,7 @@ CREATE TABLE CommunityEvent (
     approved_by_admin_id INT NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (user_id) REFERENCES [Users](id),
-    FOREIGN KEY (approved_by_admin_id) REFERENCES Admin(user_id)
+    FOREIGN KEY (approved_by_admin_id) REFERENCES Users(id)
 );
 
 CREATE TABLE CommunityEventSignup (

@@ -16,7 +16,7 @@ services:
 #      start_interval: 20s
 #      start_period: 20s
     volumes:
-      - ./db_data:/var/opt/mssql
+      - db_data/var/opt/mssql
   backend:
     build: ./backend
 
@@ -46,3 +46,6 @@ networks:
   bed-assignment:
     name: "bed-assignment"
     driver: bridge
+
+volumes:
+  db_data:

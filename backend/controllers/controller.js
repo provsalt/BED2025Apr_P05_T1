@@ -2,6 +2,7 @@ import {createUserController, getCurrentUserController, loginUserController} fro
 import {getUserMiddleware} from "../middleware/getUser.js";
 import {getChatsController, createChatController} from "./chat/chatController.js";
 import {getChatMessagesController, createMessageController, updateMessageController, deleteMessageController} from "./chat/messageController.js";
+import {authorizeRole} from "../middleware/authorizeRole.js"
 import { createUploadMiddleware } from "../middleware/upload.js";
 import { validateImageType } from "../middleware/validateImage.js";
 import { prepareImageForOpenAI } from "../middleware/resizeImage.js";

@@ -122,3 +122,31 @@ export const deleteUser = async (id) => {
 
     return res.rowsAffected[0] !== 0;
 }
+
+export const changeUserRole = async (id, role) => {
+    const user = await getUser(id)
+    if (!user) {
+        return false
+    }
+    const role2 = role.charAt(0).toUpperCase() + role.slice(1)
+
+    if (!(role2 === "User" || role2 === "Admin")) {
+        return false
+    }
+
+    const db = await sql.connect(dbConfig);
+
+    const query = `
+        UPDATE Users
+        SET 
+            role = @role
+        WHERE id = @id;
+    `;
+    const request = db.request();
+    request.input("id", id);
+    request.input("role", role2);
+
+    const res = await request.query(query);
+
+    return res.rowsAffected[0] !== 0;
+}
