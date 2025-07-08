@@ -1,4 +1,7 @@
 import { createUploadMiddleware } from "../middleware/upload.js";
+import { validateImageType } from "../middleware/validateImage.js";
+import { prepareImageForOpenAI } from "../middleware/resizeImage.js";
+import { uploadNutritionImage } from "./nutrition/foodImageController.js";
 import { compressImage } from "../middleware/compression.js";
 import {
   createUserController,
@@ -32,13 +35,17 @@ import {getFileByKey} from "./s3/fileController.js";
  * @constructor
  */
 export const Controller = (app) => {
+  // app.get("/api/users/:id", getUserController)
+  app.post("/api/user", createUserController)
+  app.post("/api/user/login", loginUserController)
+  app.get("/api/user", getUserMiddleware, getCurrentUserController)
 
-  // Register and login
-  app.post("/api/user", createUserController);
-  app.post("/api/user/login", loginUserController);
-
-  // Get current user using JWT
-  app.get("/api/user", getUserMiddleware, getCurrentUserController);
+  app.get("/api/chats", getUserMiddleware, getChatsController)
+  app.post("/api/chats", getUserMiddleware, createChatController)
+  app.get("/api/chats/:chatId", getUserMiddleware, getChatMessagesController)
+  app.post("/api/chats/:chatId", getUserMiddleware, createMessageController)
+  app.put("/api/chats/:chatId/:messageId", getUserMiddleware, updateMessageController)
+  app.delete("/api/chats/:chatId/:messageId", getUserMiddleware, deleteMessageController)
 
   // User profile by ID
   app.get("/api/user/:id", getUserController);
@@ -54,15 +61,19 @@ export const Controller = (app) => {
   }).single("avatar"), compressImage, uploadProfilePictureController);
   app.delete("/api/profile-picture/:id", getUserMiddleware, deleteProfilePictureController);
 
-
-  // Chat 
-  app.get("/api/chats", getUserMiddleware, getChatsController);
-  app.post("/api/chats", getUserMiddleware, createChatController);
-
-  app.get("/api/chats/:chatId", getUserMiddleware, getChatMessagesController);
-  app.post("/api/chats/:chatId", getUserMiddleware, createMessageController);
-  app.put("/api/chats/:chatId/:messageId", getUserMiddleware, updateMessageController);
-  app.delete("/api/chats/:chatId/:messageId", getUserMiddleware, deleteMessageController);
+  const upload = createUploadMiddleware({
+    allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
+    fileSize: 5 * 1024 * 1024,
+  });
+  // Nutrition image uploading route
+  app.post(
+"/api/nutrition/food/upload",
+    upload.single("image"),
+    validateImageType,
+    prepareImageForOpenAI,
+    compressImage,
+    uploadNutritionImage
+  );
 
   app.get("/api/s3", getFileByKey)
-};
+}
