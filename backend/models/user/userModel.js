@@ -137,8 +137,7 @@ export const updateUserProfilePicture = async (userId, fileUrl) => {
   request.input("id", userId);
   const result = await request.query(query);
   return result.rowsAffected[0] > 0;
-};
-
+}
 
 export const changeUserRole = async (id, role) => {
     const user = await getUser(id)
