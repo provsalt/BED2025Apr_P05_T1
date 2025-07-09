@@ -5,6 +5,7 @@ import {ApiController} from "./controllers/apiController.js";
 import {socketAuthMiddleware} from "./middleware/socketAuth.js";
 import {setIO} from "./config/socket.js";
 import cors from "cors";
+import { defaultRateLimit } from "./middleware/rateLimit.js";
 
 const app = express();
 const server = createServer(app);
@@ -21,6 +22,9 @@ app.use(express.static("dist"))
 app.use(cors({
     origin: origins
 }))
+
+// Apply rate limiting globally
+app.use(defaultRateLimit)
 
 app.use("/api", ApiController())
 

@@ -13,11 +13,12 @@ import {
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import { createUploadMiddleware } from "../../middleware/upload.js";
 import { compressImage } from "../../middleware/compression.js";
+import { authRateLimit } from "../../middleware/rateLimit.js";
 
 const router = Router();
 
-router.post("/", createUserController);
-router.post("/login", loginUserController);
+router.post("/", authRateLimit, createUserController);
+router.post("/login", authRateLimit, loginUserController);
 router.get("/", getUserMiddleware, getCurrentUserController);
 
 router.get("/:id", getUserController);
