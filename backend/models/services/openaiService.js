@@ -25,10 +25,10 @@ export const analyzeFoodImage = async (imageBuffer) => {
               {
                 "foodName": "Name of the food item",
                 "category": "Category of the food (e.g., fruit, vegetable, grain, etc.)",
-                "carbohydrates": "Carbohydrate content in grams",
-                "protein": "Protein content in grams",
-                "fat": "Fat content in grams",
-                "calories": "Estimated calories",
+                "carbohydrates": "Carbohydrate content in grams. Provide an accurate number or decimal not a range.",
+                "protein": "Protein content in grams. Provide an accurate number or decimal not a range.",
+                "fat": "Fat content in grams. Provide an accurate number or decimal not a range.",
+                "calories": "Estimated calories. Provide an accurate number or decimal not a range.",
                 "ingredients": "ingredients used in the food item"
               }
               

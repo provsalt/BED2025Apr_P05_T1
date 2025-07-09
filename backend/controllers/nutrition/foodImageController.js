@@ -42,7 +42,6 @@ export const uploadNutritionImage = async (req, res) => {
       ingredients: Array.isArray(analysisResult.ingredients)
         ? analysisResult.ingredients.join(", ")
         : (analysisResult.ingredients || ""),
-      scanned_at: new Date(),
       image_url: publicUrl,
       user_id: req.user.id
     };

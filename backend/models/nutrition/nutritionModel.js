@@ -8,7 +8,7 @@ export const createmeal = async (mealData) => {
     connection = await mssql.connect(dbConfig);
     const query = `
       INSERT INTO Meal (name, category, carbohydrates, protein, fat, calories, ingredients, scanned_at, image_url, user_id)
-      VALUES (@name, @category, @carbohydrates, @protein, @fat, @calories, @ingredients, @scanned_at, @image_url, @user_id);
+      VALUES (@name, @category, @carbohydrates, @protein, @fat, @calories, @ingredients, GETDATE(), @image_url, @user_id);
       SELECT SCOPE_IDENTITY() AS id;
     `;
     const request = connection.request();
