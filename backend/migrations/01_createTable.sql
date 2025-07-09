@@ -63,15 +63,10 @@ CREATE TABLE ChatMsg (
     FOREIGN KEY (sender) REFERENCES Users(id)
 );
 
-CREATE TABLE MealCategory (
+CREATE TABLE Meal (
     id INT PRIMARY KEY IDENTITY(1,1),
-    name VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE ScannedMeal (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    meal_name VARCHAR(100),
-    meal_category_id INT NOT NULL,
+    name VARCHAR(100),
+    category VARCHAR(100),
     carbohydrates DECIMAL(5, 2),
     protein DECIMAL(5, 2),
     fat DECIMAL(5, 2),
@@ -80,17 +75,8 @@ CREATE TABLE ScannedMeal (
     scanned_at DATETIME DEFAULT GETDATE(),
     image_url VARCHAR(255),
     user_id INT NOT NULL,
-    FOREIGN KEY (meal_category_id) REFERENCES MealCategory(id),
     FOREIGN KEY (user_id) REFERENCES [Users](id)
 );
-
-CREATE TABLE MealIngredient (
-    scanned_meal_id INT NOT NULL,
-    ingredient VARCHAR(100) NOT NULL,
-    PRIMARY KEY (scanned_meal_id, ingredient),
-    FOREIGN KEY (scanned_meal_id) REFERENCES ScannedMeal(id)
-);
-
 
 CREATE TABLE Medication (
   id INT PRIMARY KEY IDENTITY(1,1),
