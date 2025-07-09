@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Upload, X } from 'lucide-react';
 import { UserContext } from '@/provider/UserContext.js';
 import { fetcher } from '@/lib/fetcher.js';
+import { Link } from 'react-router';
 
 export const MedicationReminderForm = ({ userId = null }) => {
   const userContext = useContext(UserContext);
@@ -147,13 +148,15 @@ export const MedicationReminderForm = ({ userId = null }) => {
       <div className="bg-white rounded-lg shadow-sm border p-6 max-w-md mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-semibold text-gray-800">Create Medication Reminder</h1>
-          <Button 
-            variant="secondary" 
-            size="sm"
-            className="bg-gray-400 hover:bg-gray-500 text-white"
-          >
-            Back to Dashboard
-          </Button>
+          <Link to="/medical">
+            <Button 
+              variant="secondary" 
+              size="sm"
+              className="bg-gray-400 hover:bg-gray-500 text-white cursor-pointer"
+            >
+              Back to Dashboard
+            </Button>
+          </Link>
         </div>
         
         <div className="space-y-6">
