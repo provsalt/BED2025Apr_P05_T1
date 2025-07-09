@@ -1,10 +1,11 @@
 import express from "express"
 import { createServer } from "http"
 import { Server } from "socket.io"
-import {Controller} from "./controllers/controller.js";
+import {ApiController} from "./controllers/apiController.js";
 import {socketAuthMiddleware} from "./middleware/socketAuth.js";
 import {setIO} from "./config/socket.js";
 import cors from "cors";
+import { defaultRateLimit } from "./middleware/rateLimit.js";
 
 const app = express();
 const server = createServer(app);
@@ -22,7 +23,10 @@ app.use(cors({
     origin: origins
 }))
 
-Controller(app)
+// Apply rate limiting globally
+app.use(defaultRateLimit)
+
+app.use("/api", ApiController())
 
 setIO(io);
 

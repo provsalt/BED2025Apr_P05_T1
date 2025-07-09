@@ -78,7 +78,7 @@ export const updateUserController = async (req, res) => {
     const success = await updateUser(userId, updates);
 
     if (!success) {
-      console.log("Backend update failed (model returned false)");
+      
       return res.status(400).json({ error: "Failed to update user" });
     }
 
@@ -176,8 +176,8 @@ export const changePasswordController = async (req, res) => {
   }
 };
 
-export const uploadProfilePictureController = async (req, res) => {
-  const userId = parseInt(req.params.id);
+export const uploadUserProfilePictureController = async (req, res) => {
+  const userId = req.user.id;
   const file = req.file;
 
   if (!file) {
@@ -207,11 +207,8 @@ export const uploadProfilePictureController = async (req, res) => {
   }
 };
 
-export const deleteProfilePictureController = async (req, res) => {
-  const userId = parseInt(req.params.id);
-  if (isNaN(userId)) {
-    return res.status(400).json({ error: "Invalid user ID" });
-  }
+export const deleteUserProfilePictureController = async (req, res) => {
+  const userId = req.user.id;
 
   try {
     const user = await getUser(userId);
