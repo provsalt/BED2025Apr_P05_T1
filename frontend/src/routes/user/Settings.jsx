@@ -57,12 +57,12 @@ export function Settings() {
   }
 
   async function handleProfilePictureUpload() {
-    if (!selectedFile || !userId) return;
+    if (!selectedFile) return;
     const data = new FormData();
     data.append("avatar", selectedFile);
 
     try {
-      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/${userId}/picture`, {
+      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/picture`, {
         method: "POST",
         body: data
       });
@@ -83,7 +83,7 @@ export function Settings() {
 
   async function handleDeletePicture() {
     try {
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/profile-picture/${userId}`, {
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/picture`, {
         method: "DELETE",
       });
       setProfilePictureUrl("");
