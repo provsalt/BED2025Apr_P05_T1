@@ -35,10 +35,6 @@ export const Navbar = () => {
 
       <div className="flex items-center gap-4">
         <Button variant="ghost" asChild className="text-base font-semibold text-black hover:bg-purple-100 rounded-md transition">
-          <Link to="/" className="text-base font-semibold text-black relative after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-0 after:bg-purple-600 after:transition-all after:duration-300 hover:after:w-full"
-          >Home</Link>
-        </Button>
-        <Button variant="ghost" asChild className="text-base font-semibold text-black hover:bg-purple-100 rounded-md transition">
           <Link to="/chats" className="text-base font-semibold text-black relative after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-0 after:bg-purple-600 after:transition-all after:duration-300 hover:after:w-full"
           >Chat</Link>
         </Button>
