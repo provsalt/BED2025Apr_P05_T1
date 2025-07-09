@@ -4,16 +4,15 @@ import { analyzeFoodImage } from "../../models/services/openaiService.js";
 import { createmeal } from "../../models/nutrition/nutritionModel.js";
 
 export const uploadNutritionImage = async (req, res) => {
-  console.log("=== CONTROLLER REACHED ===");
-  console.log("Request method:", req.method);
-  console.log("Request URL:", req.url);
-  console.log("Authorization header:", req.headers.authorization);
-  console.log("All headers:", req.headers);
-  
   const file = req.file;
 
   if (!file) {
     return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  // Check if user is authenticated
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ error: "User not authenticated" });
   }
 
   const filename = randomUUID().toString();
@@ -30,7 +29,6 @@ export const uploadNutritionImage = async (req, res) => {
     try {
       analysisResult = await analyzeFoodImage(file.buffer);
     } catch (analysisError) {
-      console.error("OpenAI analysis failed:", analysisError);
       // Continue with upload even if analysis fails
     }
 
@@ -58,11 +56,9 @@ export const uploadNutritionImage = async (req, res) => {
         analysis: analysisResult
       });
     } catch (err) {
-      console.error("Failed to save meal:", err);
       res.status(500).json({ error: "Failed to upload food image" });
     }
   } catch (err) {
-    console.error("Upload failed:", err);
     res.status(500).json({ error: "Failed to upload food image" });
   }
 };
