@@ -17,8 +17,8 @@ export const Home = () => {
   }, [isAuthenticated]);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <div className="max-w-screen-xl mx-auto px-6 py-12">
+    <div className="flex-1 bg-gray-50 text-gray-900">
+      <div className="mx-auto px-6 py-12">
         {isAuthenticated ? <Dashboard summary={summary} /> : <Landing />}
       </div>
     </div>
