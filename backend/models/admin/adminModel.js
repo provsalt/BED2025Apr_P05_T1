@@ -1,6 +1,5 @@
 import {dbConfig} from "../../config/db.js";
 import sql from "mssql";
-import bcrypt from "bcryptjs";
 
 /**
  * Admin model for interacting with the database.

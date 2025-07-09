@@ -8,6 +8,7 @@ export const UserProvider = ({ children }) => {
     id: null,
     token: null,
     isAuthenticated: false,
+    role: null,
     data: null,
     profile_picture_url: ""
   });
@@ -59,6 +60,7 @@ export const UserProvider = ({ children }) => {
         id: null,
         token: null,
         isAuthenticated: false,
+        role: null,
         name: "",
         profile_picture_url: ""
       });
