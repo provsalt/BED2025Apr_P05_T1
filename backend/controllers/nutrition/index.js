@@ -1,8 +1,7 @@
-
 import { Router } from "express";
 import { createUploadMiddleware } from "../../middleware/upload.js";
 import { validateImageType } from "../../middleware/validateImage.js";
-import { prepareImageForOpenAI } from "../../middleware/resizeImage.js";
+import { prepareImageForOpenAI } from "../../middleware/resizeAndConvertImage.js";
 import { compressImage } from "../../middleware/compression.js";
 import { uploadNutritionImage } from "./foodImageController.js";
 
