@@ -1,7 +1,7 @@
 import express from "express"
 import { createServer } from "http"
 import { Server } from "socket.io"
-import {Controller} from "./controllers/controller.js";
+import {ApiController} from "./controllers/apiController.js";
 import {socketAuthMiddleware} from "./middleware/socketAuth.js";
 import {setIO} from "./config/socket.js";
 import cors from "cors";
@@ -22,7 +22,7 @@ app.use(cors({
     origin: origins
 }))
 
-Controller(app)
+app.use("/api", ApiController())
 
 setIO(io);
 
