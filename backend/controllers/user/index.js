@@ -39,7 +39,7 @@ router.delete("/:id", getUserMiddleware, authorizeRole(["Admin"]), deleteUserCon
 router.put("/:id/role", getUserMiddleware, authorizeRole(["Admin"]), updateUserRoleController);
 
 // Shun Xiang change password, upload profile picture, delete profile picture
-router.put("/:id/password", getUserMiddleware, changePasswordController);
+router.put("/password", getUserMiddleware, changePasswordController);
 router.post("/me/picture", getUserMiddleware, createUploadMiddleware({
   allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
   fileSize: 8 * 1024 * 1024,
