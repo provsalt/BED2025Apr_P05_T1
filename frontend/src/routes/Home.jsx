@@ -2,6 +2,8 @@ import { useContext, useEffect, useState } from "react";
 import { UserContext } from "@/provider/UserContext";
 import { fetcher } from "@/lib/fetcher";
 import AnnouncementsList from "@/components/announcements/AnnouncementsList.jsx";
+import { Dashboard } from "@/components/home/Dashboard";
+import { Landing } from "@/components/home/Landing";
 
 export const Home = () => {
   const { isAuthenticated } = useContext(UserContext);
