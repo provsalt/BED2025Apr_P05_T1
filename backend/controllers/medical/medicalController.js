@@ -19,8 +19,7 @@ export const createMedication = async (req, res) => {
         }
 
         // Generate unique key for S3
-        const fileExtension = path.extname(imageFile.originalname);
-        const imageKey = `medications/${user_id}/${uuidv4()}${fileExtension}`;
+        const imageKey = `medications/${user_id}/${uuidv4()}`;
 
         // Upload image to S3
         await uploadFile(imageFile, imageKey);
