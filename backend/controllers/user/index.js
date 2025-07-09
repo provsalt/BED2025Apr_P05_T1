@@ -25,10 +25,10 @@ router.put("/:id", getUserMiddleware, updateUserController);
 
 router.put("/:id/password", getUserMiddleware, changePasswordController);
 
-router.post("/:id/picture", getUserMiddleware, createUploadMiddleware({
+router.post("/picture", getUserMiddleware, createUploadMiddleware({
   allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
   fileSize: 8 * 1024 * 1024,
 }).single("avatar"), compressImage, uploadUserProfilePictureController);
-router.delete("/:id/picture", getUserMiddleware, deleteUserProfilePictureController);
+router.delete("/picture", getUserMiddleware, deleteUserProfilePictureController);
 
 export default router;
