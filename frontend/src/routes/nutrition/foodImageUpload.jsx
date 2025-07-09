@@ -47,23 +47,14 @@ export const FoodImageUpload = () => {
         body: formData
       });
 
-      console.log("Upload successful:", response);
-      
-      // Show success message
       alert.success({
         title: "Upload Successful",
         description: "Food image uploaded and analyzed successfully!",
       });
-      
-      // Store analysis result
       if (response.analysis) {
         setAnalysisResult(response.analysis);
       }
-      
     } catch (error) {
-      console.error("Error uploading image:", error);
-      
-      // Show error message
       alert.error({
         title: "Upload Failed",
         description: "Failed to upload image. Please try again.",
@@ -74,22 +65,85 @@ export const FoodImageUpload = () => {
     }
   };
 
+  // If analysisResult exists, show the result page
+  if (analysisResult) {
+    return (
+      <div className="min-h-screen p-3 flex flex-col items-center justify-center">
+        <Card className="p-8 max-w-2xl w-full mx-auto bg-white space-y-6">
+          <h2 className="text-2xl font-bold text-center mb-6">Food Analysis Result</h2>
+          {previewURL && (
+            <div className="flex justify-center mb-6">
+              <img
+                src={previewURL}
+                alt="Food Preview"
+                className="max-h-64 rounded-lg border border-gray-300 shadow-md object-contain"
+              />
+            </div>
+          )}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="font-medium text-gray-800">Food Name</h4>
+                <p className="text-gray-600">{analysisResult.foodName || "-"}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800">Category</h4>
+                <p className="text-gray-600">{analysisResult.category || "-"}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800">Carbohydrates (g)</h4>
+                <p className="text-gray-600">{analysisResult.carbohydrates || "-"}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800">Protein (g)</h4>
+                <p className="text-gray-600">{analysisResult.protein || "-"}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800">Fat (g)</h4>
+                <p className="text-gray-600">{analysisResult.fat || "-"}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800">Calories</h4>
+                <p className="text-gray-600">{analysisResult.calories || "-"}</p>
+              </div>
+              <div className="md:col-span-2">
+                <h4 className="font-medium text-gray-800">Ingredients</h4>
+                <p className="text-gray-600">{Array.isArray(analysisResult.ingredients) ? analysisResult.ingredients.join(", ") : (analysisResult.ingredients || "-")}</p>
+              </div>
+              <div className="md:col-span-2">
+                <h4 className="font-medium text-gray-800">Recommended Serving Size</h4>
+                <p className="text-gray-600">{analysisResult.servingSize || "-"}</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-center mt-8">
+            <Button onClick={() => {
+              setAnalysisResult(null);
+              setSelectedImage(null);
+              setPreviewURL(null);
+            }} className="px-6 py-2 text-base font-semibold">
+              Upload Another Image
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Default upload page
   return (
     <div className="min-h-screen p-3">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-800 mb-8 text-center">Nutrition</h1>
-        
         <Card className="p-8 max-w-2xl mx-auto bg-white space-y-6">
           <h2 className="text-xl font-bold text-center">Upload Food Image</h2>
-
           {/* Information section */}
           <div className="text-center space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800">Why Scan Your Food?</h3>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Scanning your meal helps you instantly understand what you're eating. Get accurate details about calories, protein, carbohydrates, and fats — so you can make smarter choices for your health, track your diet easily, and stay informed without the guesswork.
+              Scanning your meal helps you instantly understand what you're eating. Get accurate details about calories, protein, carbohydrates, and fats all so you can make smarter choices for your health, track your diet easily, and stay informed without the guesswork.
             </p>
           </div>
-
           <div className="space-y-6">
             <div className="flex justify-center">
               <div className="relative">
@@ -148,11 +202,9 @@ export const FoodImageUpload = () => {
                 )}
               </div>
             </div>
-            
             {showError && (
               <p className="text-red-500 text-sm text-center">No File Chosen</p>
             )}
-
             <div className="flex justify-center">
               <Button
                 onClick={handleSubmit}
@@ -162,67 +214,6 @@ export const FoodImageUpload = () => {
                 {isUploading ? "Uploading..." : "Analyse"}
               </Button>
             </div>
-
-            {/* Analysis Results */}
-            {analysisResult && (
-              <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-lg">
-                <h3 className="text-lg font-semibold text-green-800 mb-4 text-center">
-                  Nutritional Analysis Results
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium text-gray-800">Food Item</h4>
-                      <p className="text-gray-600">{analysisResult.foodName || "Not identified"}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium text-gray-800">Description</h4>
-                      <p className="text-gray-600">{analysisResult.description || "No description available"}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium text-gray-800">Serving Size</h4>
-                      <p className="text-gray-600">{analysisResult.servingSize || "Not specified"}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium text-gray-800">Calories</h4>
-                      <p className="text-gray-600">{analysisResult.calories || "Not available"}</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <span className="font-medium text-gray-800">Protein:</span>
-                        <span className="text-gray-600 ml-1">{analysisResult.protein || "N/A"}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-800">Carbs:</span>
-                        <span className="text-gray-600 ml-1">{analysisResult.carbohydrates || "N/A"}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-800">Fat:</span>
-                        <span className="text-gray-600 ml-1">{analysisResult.fat || "N/A"}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-800">Fiber:</span>
-                        <span className="text-gray-600 ml-1">{analysisResult.fiber || "N/A"}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {analysisResult.healthTips && (
-                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
-                    <h4 className="font-medium text-blue-800 mb-2">Health Tips</h4>
-                    <p className="text-blue-700 text-sm">{analysisResult.healthTips}</p>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </Card>
       </div>

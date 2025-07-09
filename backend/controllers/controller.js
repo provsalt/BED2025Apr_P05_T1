@@ -5,7 +5,7 @@ import {getChatMessagesController, createMessageController, updateMessageControl
 import {authorizeRole} from "../middleware/authorizeRole.js"
 import { createUploadMiddleware } from "../middleware/upload.js";
 import { validateImageType } from "../middleware/validateImage.js";
-import { prepareImageForOpenAI } from "../middleware/resizeImage.js";
+import { resizeAndConvertImage } from "../middleware/resizeAndConvertImage.js";
 import { compressImage } from "../middleware/compression.js";
 import { uploadNutritionImage } from "./nutrition/foodImageController.js";
 
@@ -34,10 +34,10 @@ export const Controller = (app) => {
   });
   // Nutrition image uploading route
   app.post(
-"/api/nutrition/food/upload",
+    "/api/nutrition/food/upload",
     upload.single("image"),
     validateImageType,
-    prepareImageForOpenAI,
+    resizeAndConvertImage,
     compressImage,
     uploadNutritionImage
   );

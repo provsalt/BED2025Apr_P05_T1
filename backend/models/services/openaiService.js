@@ -14,7 +14,7 @@ const openai = new OpenAI({
 export const analyzeFoodImage = async (imageBuffer) => {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4-vision-preview",
+      model: "gpt-4.1-mini",
       messages: [
         {
           role: "user",
@@ -24,19 +24,16 @@ export const analyzeFoodImage = async (imageBuffer) => {
               text: `Analyze this food image and provide detailed nutritional information. Please respond with a JSON object containing:
               {
                 "foodName": "Name of the food item",
-                "calories": "Estimated calories",
+                "category": "Category of the food (e.g., fruit, vegetable, grain, etc.)",
+                "carbohydrates": "Carbohydrate content in grams",
                 "protein": "Protein content in grams",
-                "carbohydrates": "Carbohydrate content in grams", 
                 "fat": "Fat content in grams",
-                "fiber": "Fiber content in grams",
-                "sugar": "Sugar content in grams",
-                "sodium": "Sodium content in mg",
-                "description": "Brief description of the food",
-                "healthTips": "Health tips or recommendations",
-                "servingSize": "Estimated serving size"
+                "calories": "Estimated calories",
+                "ingredients": "ingredients used in the food item",
+                "servingSize": "Recommended serving size"
               }
               
-              Be as accurate as possible with the nutritional estimates. If you cannot identify the food clearly, indicate that in the description.`
+              Be as accurate as possible with the nutritional estimates. Even if you cannot identify exact details, you can estimate it.`
             },
             {
               type: "image_url",
