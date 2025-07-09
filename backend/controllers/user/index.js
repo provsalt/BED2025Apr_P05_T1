@@ -21,15 +21,15 @@ router.post("/", authRateLimit, createUserController);
 router.post("/login", authRateLimit, loginUserController);
 router.get("/", getUserMiddleware, getCurrentUserController);
 
-router.get("/:id", getUserController);
-router.put("/:id", getUserMiddleware, updateUserController);
-
-router.put("/:id/password", getUserMiddleware, changePasswordController);
+router.put("/password", getUserMiddleware, changePasswordController);
 
 router.post("/picture", getUserMiddleware, createUploadMiddleware({
   allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
   fileSize: 8 * 1024 * 1024,
 }).single("avatar"), compressImage, uploadUserProfilePictureController);
 router.delete("/picture", getUserMiddleware, deleteUserProfilePictureController);
+
+router.get("/:id", getUserController);
+router.put("/:id", getUserMiddleware, updateUserController);
 
 export default router;
