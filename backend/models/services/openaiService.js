@@ -29,8 +29,7 @@ export const analyzeFoodImage = async (imageBuffer) => {
                 "protein": "Protein content in grams",
                 "fat": "Fat content in grams",
                 "calories": "Estimated calories",
-                "ingredients": "ingredients used in the food item",
-                "servingSize": "Recommended serving size"
+                "ingredients": "ingredients used in the food item"
               }
               
               Be as accurate as possible with the nutritional estimates. Even if you cannot identify exact details, you can estimate it.`

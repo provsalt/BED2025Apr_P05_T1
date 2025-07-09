@@ -110,10 +110,6 @@ export const FoodImageUpload = () => {
                 <h4 className="font-medium text-gray-800">Ingredients</h4>
                 <p className="text-gray-600">{Array.isArray(analysisResult.ingredients) ? analysisResult.ingredients.join(", ") : (analysisResult.ingredients || "-")}</p>
               </div>
-              <div className="md:col-span-2">
-                <h4 className="font-medium text-gray-800">Recommended Serving Size</h4>
-                <p className="text-gray-600">{analysisResult.servingSize || "-"}</p>
-              </div>
             </div>
           </div>
           <div className="flex justify-center mt-8">
@@ -134,7 +130,7 @@ export const FoodImageUpload = () => {
   return (
     <div className="min-h-screen p-3">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-8 text-center">Nutrition</h1>
+        <h1 onClick={() => {window.location.href = "/nutrients";}} className=" cursor-pointer text-2xl font-bold mb-8 text-center">Nutrition</h1>
         <Card className="p-8 max-w-2xl mx-auto bg-white space-y-6">
           <h2 className="text-xl font-bold text-center">Upload Food Image</h2>
           {/* Information section */}
