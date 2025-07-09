@@ -4,6 +4,7 @@ import { validateImageType } from "../../middleware/validateImage.js";
 import { resizeAndConvertImage } from "../../middleware/resizeAndConvertImage.js";
 import { compressImage } from "../../middleware/compression.js";
 import { uploadNutritionImage } from "./foodImageController.js";
+import { getUserMiddleware } from "../../middleware/getUser.js";
 
 const router = Router();
 
@@ -13,12 +14,8 @@ const upload = createUploadMiddleware({
 });
 //Post route for uploading food images
 router.post(
-  "/food/upload",
-  upload.single("image"),
-  validateImageType,
-  resizeAndConvertImage,
-  compressImage,
-  uploadNutritionImage
+"/food/upload",getUserMiddleware,upload.single("image"),
+validateImageType,resizeAndConvertImage,compressImage,uploadNutritionImage
 );
 
 export default router;
