@@ -1,5 +1,8 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import {z} from "zod/v4";
+import {nutritionInformation} from "../../utils/validation/nutrition.js";
+
 dotenv.config();
 
 const openai = new OpenAI({
@@ -13,56 +16,39 @@ const openai = new OpenAI({
  */
 export const analyzeFoodImage = async (imageBuffer) => {
   try {
-    const response = await openai.chat.completions.create({
+    const res = nutritionInformation.extend({
+      error: z.string().describe("Error message if no food is detected")
+    });
+
+    console.log(z.toJSONSchema(res, {target: 'draft-7'}))
+    const response = await openai.responses.parse({
       model: "gpt-4.1-mini",
-      messages: [
+      input: [
+        {
+          role: "system",
+          content: "Analyze the food image and provide detailed nutritional information. If the image does not contain any food, please do not analyze the image. Be as accurate as possible with the nutritional estimates. Even if you cannot identify exact details, you can estimate it. If it does not contain any food, please do not analyze the image and place an error message."
+        },
         {
           role: "user",
           content: [
             {
-              type: "text",
-              text: `Analyze this food image and provide detailed nutritional information. Please respond with a JSON object containing:
-              {
-                "foodName": "Name of the food item",
-                "category": "Category of the food (e.g., fruit, vegetable, grain, etc.)",
-                "carbohydrates": "Carbohydrate content in grams. Provide an accurate number or decimal not a range.",
-                "protein": "Protein content in grams. Provide an accurate number or decimal not a range.",
-                "fat": "Fat content in grams. Provide an accurate number or decimal not a range.",
-                "calories": "Estimated calories. Provide an accurate number or decimal not a range.",
-                "ingredients": "ingredients used in the food item"
-              }
-              
-              Be as accurate as possible with the nutritional estimates. Even if you cannot identify exact details, you can estimate it.`
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
-              }
+              type: "input_image",
+              image_url: `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
             }
           ]
         }
       ],
-      max_tokens: 1000,
+      text: {
+        format: {
+          name: "nutrition-analysis",
+          type: "json_schema",
+          strict: true,
+          schema: z.toJSONSchema(res, {target: 'draft-7'}),
+        },
+      },
     });
 
-    const content = response.choices[0].message.content;
-    
-    // Try to parse JSON response
-    try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
-      }
-    } catch (parseError) {
-      console.error("Failed to parse JSON response:", parseError);
-    }
-
-    // Fallback: return the raw response if JSON parsing fails
-    return {
-      analysis: content,
-      error: "Could not parse structured response"
-    };
+   return response.output_parsed
 
   } catch (error) {
     console.error("OpenAI API error:", error);
