@@ -30,7 +30,8 @@ export const MedicationRemindersList = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await fetcher('http://localhost:3001/api/medications');
+        const backendUrl = import.meta.env.VITE_BACKEND_URL;
+        const data = await fetcher(`${backendUrl}/api/medications`);
         if (data.success) {
           setReminders(data.reminders);
         } else {

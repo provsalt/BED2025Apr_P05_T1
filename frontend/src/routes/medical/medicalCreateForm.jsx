@@ -98,7 +98,8 @@ export const MedicationReminderForm = ({ userId = null }) => {
       submitData.append('frequency_per_day', formData.frequencyPerDay);
       submitData.append('image', formData.imageFile);
 
-      const result = await fetcher('http://localhost:3001/api/medications', {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      const result = await fetcher(`${backendUrl}/api/medications`, {
         method: 'POST',
         body: submitData
       });
