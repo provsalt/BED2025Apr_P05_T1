@@ -68,7 +68,7 @@ export const FoodImageUpload = () => {
   // If analysisResult exists, show the result page
   if (analysisResult) {
     return (
-      <div className="min-h-screen p-3 flex flex-col items-center justify-center">
+      <div className="flex-1 p-3 flex flex-col items-center justify-center">
         <Card className="p-8 max-w-2xl w-full mx-auto bg-white space-y-6">
           <h2 className="text-2xl font-bold text-center mb-6">Food Analysis Result</h2>
           {previewURL && (
