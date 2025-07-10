@@ -148,14 +148,14 @@ export const createUserController = async (req, res) => {
 }
 
 export const changePasswordController = async (req, res) => {
-  const userId = parseInt(req.params.id);
-  if (isNaN(userId)) {
-    return res.status(400).json({ error: "Invalid user ID" });
-  }
+  const userId = req.user.id;
   const { oldPassword, newPassword } = req.body;
 
   try {
     const user = await getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
     const valid = await bcrypt.compare(oldPassword, user.password);
 
     if (!valid) {
