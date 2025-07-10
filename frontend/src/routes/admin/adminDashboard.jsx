@@ -159,7 +159,7 @@ const AdminDashboard = () => {
   const handleDeleteAnnouncement = async (id) => {
     if (!confirm('Are you sure you want to delete this announcement?')) return;
     try {
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/announcements/${id}`, {
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/announcements/${id}`, {
         method: 'DELETE'
       });
       
@@ -303,7 +303,7 @@ const AdminDashboard = () => {
           key={announcementsKey}
           isAdmin={true}
           onDelete={handleDeleteAnnouncement}
-          adminApiEndpoint={`${import.meta.env.VITE_BACKEND_URL}/api/admin/announcements`}
+          adminApiEndpoint={`${import.meta.env.VITE_BACKEND_URL}/api/announcements`}
         />
       </div>
     </div>
