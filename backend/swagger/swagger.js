@@ -105,6 +105,56 @@ const swaggerOptions = {
             },
           },
         },
+        Chat: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+            },
+            chat_initiator: {
+              type: "integer",
+            },
+            chat_recipient: {
+              type: "integer",
+            },
+            created_at: {
+              type: "string",
+              format: "date-time",
+            },
+            updated_at: {
+              type: "string",
+              format: "date-time",
+            },
+            last_message: {
+              type: "string",
+            },
+            last_message_time: {
+              type: "string",
+              format: "date-time",
+            },
+          },
+        },
+        Message: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+            },
+            chat_id: {
+              type: "integer",
+            },
+            msg: {
+              type: "string",
+            },
+            sender: {
+              type: "integer",
+            },
+            msg_created_at: {
+              type: "string",
+              format: "date-time",
+            },
+          },
+        },
       },
     },
   },
