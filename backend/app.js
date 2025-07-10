@@ -6,10 +6,12 @@ import {socketAuthMiddleware} from "./middleware/socketAuth.js";
 import {setIO} from "./config/socket.js";
 import cors from "cors";
 import { defaultRateLimit } from "./middleware/rateLimit.js";
+import { metricsHandler } from "./config/metrics.js";
+import { metricsMiddleware } from "./middleware/metrics.js";
 
 const app = express();
 const server = createServer(app);
-const origins = ["https://uat.ngeeann.zip", "https://bed.ngeeann.zip", "http://localhost:5173", "http://localhost:4173"]
+const origins = ["https://uat.ngeeann.zip", "https://bed.ngeeann.zip", "http://localhost:5173", "http://localhost:4173", "http://localhost:5174"]
 const io = new Server(server, {
     cors: {
         origin: origins,
@@ -24,8 +26,14 @@ app.use(cors({
     credentials: true,
 }))
 
+// Apply metrics middleware
+app.use(metricsMiddleware)
+
 // Apply rate limiting globally
 app.use(defaultRateLimit)
+
+// Metrics endpoint for Prometheus
+app.get('/metrics', metricsHandler)
 
 app.use("/api", ApiController())
 

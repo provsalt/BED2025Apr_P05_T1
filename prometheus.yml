@@ -1,0 +1,35 @@
+# Prometheus configuration for monitoring your Eldercare application
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Monitor your backend Node.js application
+  - job_name: 'eldercare-backend'
+    static_configs:
+      - targets: ['localhost:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    
+  # Monitor your frontend (if you add metrics)
+  - job_name: 'eldercare-frontend'
+    static_configs:
+      - targets: ['localhost:5174']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    
+  # Monitor Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+# Optional: Add alerting rules
+rule_files:
+  - "alert_rules.yml"
+
+# Optional: Configure Alertmanager
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093

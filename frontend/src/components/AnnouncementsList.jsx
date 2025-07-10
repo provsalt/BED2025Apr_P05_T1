@@ -17,11 +17,6 @@ const AnnouncementsList = ({ isAdmin = false, onDelete, adminApiEndpoint }) => {
       setLoading(true);
       setError(null);
       const endpoint = adminApiEndpoint || `${import.meta.env.VITE_BACKEND_URL}/api/announcements`;
-      console.log('=== ANNOUNCEMENT LOADING DEBUG ===');
-      console.log('Loading announcements from:', endpoint);
-      console.log('Is admin mode:', isAdmin);
-      console.log('Using admin endpoint:', !!adminApiEndpoint);
-      console.log('Environment VITE_BACKEND_URL:', import.meta.env.VITE_BACKEND_URL);
       
       let data;
       if (isAdmin && adminApiEndpoint) {
