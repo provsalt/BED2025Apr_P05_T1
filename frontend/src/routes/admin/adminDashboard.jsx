@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { UserContext } from '@/provider/UserContext.js';
 import { useAlert } from '@/provider/AlertProvider.jsx';
 import { fetcher } from '@/lib/fetcher';
+import AnnouncementsList from '@/components/AnnouncementsList.jsx';
 
 // Admin Dashboard Component
 const AdminDashboard = () => {
@@ -16,6 +17,11 @@ const AdminDashboard = () => {
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Announcement form state
+  const [announcementTitle, setAnnouncementTitle] = useState("");
+  const [announcementContent, setAnnouncementContent] = useState("");
+  const [announcementsKey, setAnnouncementsKey] = useState(0); // for force refresh
 
   // Fetch data when component mounts
   useEffect(() => {
@@ -120,6 +126,56 @@ const AdminDashboard = () => {
     }
   };
 
+  // Create announcement handler
+  const handleCreateAnnouncement = async (e) => {
+    e.preventDefault();
+    if (!announcementTitle.trim() || !announcementContent.trim()) {
+      alert.error({ title: "Error", description: "Title and content are required." });
+      return;
+    }
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/announcements`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.token}`
+        },
+        body: JSON.stringify({ title: announcementTitle, content: announcementContent })
+      });
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || 'Failed to create announcement');
+      }
+      alert.success({ title: "Success", description: "Announcement created." });
+      setAnnouncementTitle("");
+      setAnnouncementContent("");
+      setAnnouncementsKey(k => k + 1); // force AnnouncementsList to reload
+    } catch (error) {
+      alert.error({ title: "Error", description: error.message });
+    }
+  };
+
+  // Delete announcement handler
+  const handleDeleteAnnouncement = async (id) => {
+    if (!confirm('Are you sure you want to delete this announcement?')) return;
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/announcements/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${user?.token}`
+        }
+      });
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || 'Failed to delete announcement');
+      }
+      alert.success({ title: "Success", description: "Announcement deleted." });
+      setAnnouncementsKey(k => k + 1);
+    } catch (error) {
+      alert.error({ title: "Error", description: error.message });
+    }
+  };
+
   const renderOverview = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <div className="bg-white p-6 rounded-lg shadow-md border">
@@ -219,15 +275,42 @@ const AdminDashboard = () => {
         <h3 className="text-lg font-semibold">Announcements Management</h3>
         <p className="text-gray-600">Create and manage system announcements</p>
       </div>
-      <div className="p-6">
-        {/* You can add AnnouncementsList component here if you have it */}
-        <p className="text-gray-500">Announcements feature coming soon...</p>
-        <button 
-          className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-          onClick={() => alert.success({ title: "Feature", description: "Announcements will be implemented here!" })}
-        >
-          Manage Announcements
-        </button>
+      <div className="p-6 space-y-6">
+        <form onSubmit={handleCreateAnnouncement} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Title</label>
+            <input
+              className="w-full border rounded px-3 py-2"
+              value={announcementTitle}
+              onChange={e => setAnnouncementTitle(e.target.value)}
+              maxLength={255}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Content</label>
+            <textarea
+              className="w-full border rounded px-3 py-2"
+              value={announcementContent}
+              onChange={e => setAnnouncementContent(e.target.value)}
+              maxLength={5000}
+              rows={4}
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Publish Announcement
+          </button>
+        </form>
+        <AnnouncementsList
+          key={announcementsKey}
+          isAdmin={true}
+          onDelete={handleDeleteAnnouncement}
+          adminApiEndpoint={`${import.meta.env.VITE_BACKEND_URL}/api/admin/announcements`}
+        />
       </div>
     </div>
   );

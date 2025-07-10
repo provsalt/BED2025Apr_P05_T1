@@ -1,8 +1,10 @@
-import {createAnnouncement, getAnnouncements, getAnnouncementById, updateAnnouncement, deleteAnnouncement} from "../../models/admin/adminAnnouncement.js";
-import {getUserMiddleware} from "../../middleware/getUser.js";
+
+import {createAnnouncement, getAnnouncements, getAnnouncementById, deleteAnnouncement} from "../../models/admin/adminAnnouncement.js";
 import {z} from "zod/v4";
-import {dbConfig} from "../../config/db.js";
-import sql from "mssql";
+import { Router } from "express";
+import { getUserMiddleware } from "../../middleware/getUser.js";
+
+const announcementRouter = Router();
 
 // Validation schema for announcement data
 const announcementSchema = z.object({
@@ -74,38 +76,6 @@ export const getAnnouncementByIdController = async (req, res) => {
 };
 
 /**
- * Update an announcement
- */
-export const updateAnnouncementController = async (req, res) => {
-  // Check if user is admin
-  if (!req.user || req.user.role !== 'Admin') {
-    return res.status(403).json({ error: "Admin access required" });
-  }
-
-  const { id } = req.params;
-  
-  if (!id || isNaN(id)) {
-    return res.status(400).json({ error: "Invalid announcement ID" });
-  }
-
-  const validate = announcementSchema.safeParse(req.body);
-  if (!validate.success) {
-    return res.status(400).json({ error: "Invalid announcement data", details: validate.error.issues });
-  }
-
-  try {
-    await updateAnnouncement(parseInt(id), validate.data);
-    res.status(200).json({ message: "Announcement updated successfully" });
-  } catch (error) {
-    console.error("Error updating announcement:", error);
-    if (error.message.includes("not found")) {
-      return res.status(404).json({ error: "Announcement not found" });
-    }
-    res.status(500).json({ error: "Error updating announcement" });
-  }
-};
-
-/**
  * Delete an announcement
  */
 export const deleteAnnouncementController = async (req, res) => {
@@ -132,58 +102,11 @@ export const deleteAnnouncementController = async (req, res) => {
   }
 };
 
-/**
- * Test endpoint to debug announcement issues
- */
-export const testAnnouncementsController = async (req, res) => {
-  try {
-    console.log('Testing announcements endpoint...');
-    
-    // Test database connection
-    const db = await sql.connect(dbConfig);
-    console.log('Database connected successfully');
-    
-    // Test if table exists
-    const tableCheck = await db.request().query(`
-      SELECT COUNT(*) as count 
-      FROM INFORMATION_SCHEMA.TABLES 
-      WHERE TABLE_NAME = 'Announcement'
-    `);
-    console.log('Announcement table exists:', tableCheck.recordset[0].count > 0);
-    
-    // Get announcements
-    const announcements = await getAnnouncements();
-    console.log('Announcements found:', announcements.length);
-    
-    res.status(200).json({
-      status: 'success',
-      message: 'Announcements endpoint is working',
-      tableExists: tableCheck.recordset[0].count > 0,
-      announcementCount: announcements.length,
-      announcements: announcements
-    });
-  } catch (error) {
-    console.error('Test endpoint error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: error.message,
-      stack: error.stack
-    });
-  }
-};
+// Announcement routes
+announcementRouter.post("/", getUserMiddleware, createAnnouncementController);
+announcementRouter.get("/", getAnnouncementsController); // Public route
+announcementRouter.get("/:id", getAnnouncementByIdController); // Public route
+announcementRouter.delete("/:id", getUserMiddleware, deleteAnnouncementController);
 
-/**
- * Admin controller for handling announcement-related operations.
- * @param app {import("express").Application} - The Express application instance.
- */
-export const AdminController = (app) => {
-  // Test endpoint for debugging
-  app.get("/api/announcements/test", testAnnouncementsController);
-  
-  // Announcement routes
-  app.post("/api/announcements", getUserMiddleware, createAnnouncementController);
-  app.get("/api/announcements", getAnnouncementsController); // Public route
-  app.get("/api/announcements/:id", getAnnouncementByIdController); // Public route
-  app.put("/api/announcements/:id", getUserMiddleware, updateAnnouncementController);
-  app.delete("/api/announcements/:id", getUserMiddleware, deleteAnnouncementController);
-};
+export default announcementRouter;
+
