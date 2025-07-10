@@ -112,7 +112,7 @@ export const getUserByIdController = async (req, res) => {
         return res.status(403).json({ error: "Admin access required" });
     }
 
-    const { userId } = req.params;
+    const { id: userId } = req.params; // Fix: use 'id' from params, not 'userId'
     
     if (!userId || isNaN(userId)) {
         return res.status(400).json({ error: "Invalid user ID" });
@@ -139,7 +139,7 @@ export const updateUserRoleController = async (req, res) => {
         return res.status(403).json({ error: "Admin access required" });
     }
 
-    const { userId } = req.params;
+    const { id: userId } = req.params; // Fix: use 'id' from params, not 'userId'
     const { role } = req.body;
 
     // Validate input
@@ -181,7 +181,7 @@ export const deleteUserController = async (req, res) => {
         return res.status(403).json({ error: "Admin access required" });
     }
 
-    const { userId } = req.params;
+    const { id: userId } = req.params; // Fix: use 'id' from params, not 'userId'
     
     if (!userId || isNaN(userId)) {
         return res.status(400).json({ error: "Invalid user ID" });

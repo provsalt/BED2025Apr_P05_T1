@@ -3,6 +3,7 @@ import chatRouter from "./chat/index.js";
 import nutritionRouter from "./nutrition/index.js";
 import s3Router from "./s3/index.js";
 import adminRouter from "./admin/index.js";
+import announcementRouter from "./admin/announcementcontroller.js";
 import {Router} from "express";
 
 /**
@@ -16,5 +17,6 @@ export const ApiController = () => {
   router.use("/nutrition", nutritionRouter);
   router.use("/s3", s3Router);
   router.use("/admin", adminRouter);
+  router.use("/announcements", announcementRouter); // Add public announcements route
   return router;
 }

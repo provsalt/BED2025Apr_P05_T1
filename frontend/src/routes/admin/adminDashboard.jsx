@@ -79,8 +79,11 @@ const AdminDashboard = () => {
   const updateUserRole = async (userId, newRole) => {
     try {
       console.log(`Updating user ${userId} role to ${newRole}`);
+      console.log('Request URL:', `${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}/role`);
+      console.log('Request body:', JSON.stringify({ role: newRole }));
+      console.log('Token:', localStorage.getItem('token') ? 'Present' : 'Missing');
       
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}/role`, {
+      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}/role`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -88,6 +91,7 @@ const AdminDashboard = () => {
         body: JSON.stringify({ role: newRole })
       });
 
+      console.log('Update response:', response);
       alert.success({
         title: "Success",
         description: `User role updated to ${newRole}`
@@ -95,6 +99,7 @@ const AdminDashboard = () => {
       fetchAllData(); // Refresh data
     } catch (error) {
       console.error('Error updating user role:', error);
+      console.error('Full error details:', error.message);
       alert.error({
         title: "Error",
         description: error.message
@@ -134,18 +139,14 @@ const AdminDashboard = () => {
       return;
     }
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/announcements`, {
+      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/announcements`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ title: announcementTitle, content: announcementContent })
       });
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || 'Failed to create announcement');
-      }
+      
       alert.success({ title: "Success", description: "Announcement created." });
       setAnnouncementTitle("");
       setAnnouncementContent("");
@@ -159,16 +160,10 @@ const AdminDashboard = () => {
   const handleDeleteAnnouncement = async (id) => {
     if (!confirm('Are you sure you want to delete this announcement?')) return;
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/announcements/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${user?.token}`
-        }
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/announcements/${id}`, {
+        method: 'DELETE'
       });
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || 'Failed to delete announcement');
-      }
+      
       alert.success({ title: "Success", description: "Announcement deleted." });
       setAnnouncementsKey(k => k + 1);
     } catch (error) {

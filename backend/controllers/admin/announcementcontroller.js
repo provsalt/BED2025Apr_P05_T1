@@ -105,7 +105,7 @@ export const deleteAnnouncementController = async (req, res) => {
 // Announcement routes
 announcementRouter.post("/", getUserMiddleware, createAnnouncementController);
 announcementRouter.get("/", getAnnouncementsController); // Public route
-announcementRouter.get("/:id", getAnnouncementByIdController); // Public route
+announcementRouter.get("/:id", getAnnouncementByIdController); // Public route 
 announcementRouter.delete("/:id", getUserMiddleware, deleteAnnouncementController);
 
 export default announcementRouter;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
+import { fetcher } from '@/lib/fetcher';
 
 const AnnouncementsList = ({ isAdmin = false, onDelete, adminApiEndpoint }) => {
   const [announcements, setAnnouncements] = useState([]);
@@ -9,28 +10,44 @@ const AnnouncementsList = ({ isAdmin = false, onDelete, adminApiEndpoint }) => {
 
   useEffect(() => {
     loadAnnouncements();
-  }, []);
+  }, [adminApiEndpoint, isAdmin]); // Add dependencies to reload when props change
 
   const loadAnnouncements = async () => {
     try {
       setLoading(true);
       setError(null);
       const endpoint = adminApiEndpoint || `${import.meta.env.VITE_BACKEND_URL}/api/announcements`;
+      console.log('=== ANNOUNCEMENT LOADING DEBUG ===');
       console.log('Loading announcements from:', endpoint);
+      console.log('Is admin mode:', isAdmin);
+      console.log('Using admin endpoint:', !!adminApiEndpoint);
+      console.log('Environment VITE_BACKEND_URL:', import.meta.env.VITE_BACKEND_URL);
       
-      const response = await fetch(endpoint);
-      
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-      
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Error response:', errorData);
-        throw new Error(`Failed to load announcements: ${response.status} ${response.statusText}`);
+      let data;
+      if (isAdmin && adminApiEndpoint) {
+        // For admin endpoints, use fetcher with auth
+        console.log('Using fetcher with auth for admin endpoint');
+        data = await fetcher(endpoint);
+      } else {
+        // For public endpoints, use plain fetch without auth
+        console.log('Using plain fetch for public endpoint');
+        const response = await fetch(endpoint);
+        
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('Error response:', errorData);
+          throw new Error(`Failed to load announcements: ${response.status} ${response.statusText}`);
+        }
+        
+        data = await response.json();
       }
       
-      const data = await response.json();
-      console.log('Announcements loaded:', data);
+      console.log('Announcements loaded successfully:', data);
+      console.log('Number of announcements:', data.length);
       setAnnouncements(data);
     } catch (error) {
       console.error('Error loading announcements:', error);
