@@ -1,6 +1,6 @@
 import {useContext} from "react";
 import {UserContext} from "@/provider/UserContext.js";
-import AnnouncementsList from "@/components/AnnouncementsList.jsx";
+import AnnouncementsList from "@/components/announcements/AnnouncementsList.jsx";
 
 export const Home = () => {
   const auth = useContext(UserContext);

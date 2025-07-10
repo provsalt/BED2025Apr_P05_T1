@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router';
 import { UserContext } from '@/provider/UserContext.js';
 import { useAlert } from '@/provider/AlertProvider.jsx';
 import { fetcher } from '@/lib/fetcher';
-import AnnouncementsList from '@/components/AnnouncementsList.jsx';
+import AnnouncementsList from '@/components/announcements/AnnouncementsList.jsx';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Admin Dashboard Component
 const AdminDashboard = () => {
@@ -409,7 +410,7 @@ const AdminDashboard = () => {
   );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 mx-auto w-3/4">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <p className="text-gray-600 mt-2">Welcome, {user?.data?.email || 'Admin'}</p>
@@ -421,39 +422,18 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Tab Navigation */}
-      <div className="mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            {[
-              { id: 'overview', label: 'Overview' },
-              { id: 'users', label: 'User Management' },
-              { id: 'announcements', label: 'Announcements' },
-              { id: 'debug', label: 'Debug' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      <div className="space-y-6">
-        {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'users' && renderUserManagement()}
-        {activeTab === 'announcements' && renderAnnouncement()}
-        {activeTab === 'debug' && renderDebug()}
-      </div>
+      <Tabs defaultValue="overview" onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="users">User Management</TabsTrigger>
+          <TabsTrigger value="announcements">Announcements</TabsTrigger>
+          <TabsTrigger value="debug">Debug</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview">{renderOverview()}</TabsContent>
+        <TabsContent value="users">{renderUserManagement()}</TabsContent>
+        <TabsContent value="announcements">{renderAnnouncement()}</TabsContent>
+        <TabsContent value="debug">{renderDebug()}</TabsContent>
+      </Tabs>
       </div>
   );
 };

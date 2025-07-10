@@ -15,7 +15,7 @@ import {UserProvider} from "@/provider/UserProvider.jsx";
 import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
-import AdminProtectedRoute from '@/components/AdminProtectedRoute.jsx';
+import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
 
 createRoot(document.getElementById('root')).render(
