@@ -4,7 +4,8 @@ import {
   getUser,
   getUserByEmail,
   updateUser,
-  updateUserProfilePicture
+  updateUserProfilePicture,
+  getAllUsers
 } from "../../models/user/userModel.js";
 import { randomUUID } from "crypto";
 import { User } from "../../utils/validation/user.js";
@@ -257,6 +258,16 @@ export const deleteUserController = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     res.status(500).json({ error: "Error deleting user" });
+  }
+};
+
+export const getAllUsersController = async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Error fetching users" });
   }
 };
 

@@ -41,10 +41,11 @@ export const updateUserRoleController = async (req, res) => {
  * Get users by role (Admin only)
  */
 export const getUsersByRoleController = async (req, res) => {
-    const { role } = req.params;
-    
+    let { role } = req.params;
+    role = role.charAt(0).toUpperCase() + role.slice(1)
+
     if (!role || !['User', 'Admin'].includes(role)) {
-        return res.status(400).json({ error: "Invalid role. Must be 'User' or 'Admin'" });
+        return res.status(400).json({ error: "Invalid role. Must be 'user' or 'admin'" });
     }
 
     try {
