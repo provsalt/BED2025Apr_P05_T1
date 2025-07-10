@@ -38,7 +38,7 @@ createRoot(document.getElementById('root')).render(
                   </Route>
                   <Route path="/medical" element={<MedicalDashboard />} />
                   <Route path="/nutrition/food/upload/*" element={<FoodImageUpload/>} />
-                  <Route path="/admin/*" element={
+                  <Route path="/admin" element={
                     <AdminProtectedRoute>
                       <AdminDashboard />
                     </AdminProtectedRoute>

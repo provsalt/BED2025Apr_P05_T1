@@ -7,7 +7,7 @@ import { fetcher } from '@/lib/fetcher';
 
 // Admin Dashboard Component
 const AdminDashboard = () => {
-  const { user } = useContext(UserContext);
+  const user = useContext(UserContext);
   const alert = useAlert();
   const navigate = useNavigate();
   
@@ -55,9 +55,9 @@ const AdminDashboard = () => {
 
   const fetchAdmins = async () => {
     try {
-      console.log('Fetching admins from:', `${import.meta.env.VITE_BACKEND_URL}/api/admin`);
+      console.log('Fetching admins from:', `${import.meta.env.VITE_BACKEND_URL}/api/admin/admins`);
       
-      const adminData = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin`);
+      const adminData = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/admins`);
       
       setAdmins(adminData);
       console.log('Admins fetched successfully:', adminData);
@@ -335,7 +335,7 @@ const AdminDashboard = () => {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome, {user?.email || 'Admin'}</p>
+        <p className="text-gray-600 mt-2">Welcome, {user?.data?.email || 'Admin'}</p>
       </div>
 
       {loading && (
