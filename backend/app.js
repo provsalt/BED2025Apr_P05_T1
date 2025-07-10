@@ -6,6 +6,7 @@ import {socketAuthMiddleware} from "./middleware/socketAuth.js";
 import {setIO} from "./config/socket.js";
 import cors from "cors";
 import { defaultRateLimit } from "./middleware/rateLimit.js";
+import {initSwagger} from "./swagger/swagger.js";
 
 const app = express();
 const server = createServer(app);
@@ -29,6 +30,8 @@ app.use(express.json())
 app.use(defaultRateLimit)
 
 app.use("/api", ApiController())
+
+initSwagger(app);
 
 setIO(io);
 
