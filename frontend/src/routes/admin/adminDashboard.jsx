@@ -44,7 +44,7 @@ const AdminDashboard = () => {
 
   const fetchUsers = async () => {
     try {
-      console.log('Fetching users from:', `${import.meta.env.VITE_BACKEND_URL}/api/admin/users`);
+      console.log('Fetching users from:', `${import.meta.env.VITE_BACKEND_URL}/api/users`);
       
       const userData = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users`);
       

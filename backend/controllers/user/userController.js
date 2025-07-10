@@ -12,6 +12,7 @@ import { SignJWT } from "jose";
 import { z } from "zod/v4";
 import bcrypt from "bcryptjs";
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
+import {deleteUser} from "../../models/admin/adminModel.js";
 
 export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
@@ -228,3 +229,34 @@ export const deleteUserProfilePictureController = async (req, res) => {
     res.status(500).json({ error: "Failed to delete profile picture" });
   }
 };
+
+/**
+ * Delete user (Admin only)
+ */
+export const deleteUserController = async (req, res) => {
+  const { id: userId } = req.params; // Fix: use 'id' from params, not 'userId'
+
+  if (!userId || isNaN(userId)) {
+    return res.status(400).json({ error: "Invalid user ID" });
+  }
+
+  // Prevent admin from deleting themselves
+  if (parseInt(userId) === req.user.id) {
+    return res.status(400).json({ error: "Cannot delete your own account" });
+  }
+
+  try {
+    await deleteUser(parseInt(userId));
+    res.status(200).json({
+      message: "User deleted successfully",
+      deletedUserId: parseInt(userId)
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    if (error.message.includes("not found")) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(500).json({ error: "Error deleting user" });
+  }
+};
+
