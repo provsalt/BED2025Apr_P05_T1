@@ -10,8 +10,7 @@ import AnnouncementsList from '@/components/AnnouncementsList.jsx';
 const AdminDashboard = () => {
   const user = useContext(UserContext);
   const alert = useAlert();
-  const navigate = useNavigate();
-  
+
   // State for data
   const [users, setUsers] = useState([]);
   const [admins, setAdmins] = useState([]);
@@ -46,7 +45,7 @@ const AdminDashboard = () => {
     try {
       console.log('Fetching users from:', `${import.meta.env.VITE_BACKEND_URL}/api/users`);
       
-      const userData = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users`);
+      const userData = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users`);
       
       setUsers(userData);
       console.log('Users fetched successfully:', userData);
@@ -61,9 +60,9 @@ const AdminDashboard = () => {
 
   const fetchAdmins = async () => {
     try {
-      console.log('Fetching admins from:', `${import.meta.env.VITE_BACKEND_URL}/api/admin/admins`);
+      console.log('Fetching admins from:', `${import.meta.env.VITE_BACKEND_URL}/api/users/role/admins`);
       
-      const adminData = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/admins`);
+      const adminData = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/role/admin`);
       
       setAdmins(adminData);
       console.log('Admins fetched successfully:', adminData);
@@ -79,11 +78,11 @@ const AdminDashboard = () => {
   const updateUserRole = async (userId, newRole) => {
     try {
       console.log(`Updating user ${userId} role to ${newRole}`);
-      console.log('Request URL:', `${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}/role`);
+      console.log('Request URL:', `${import.meta.env.VITE_BACKEND_URL}/api/users/${userId}/role`);
       console.log('Request body:', JSON.stringify({ role: newRole }));
       console.log('Token:', localStorage.getItem('token') ? 'Present' : 'Missing');
       
-      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}/role`, {
+      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/${userId}/role`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -113,7 +112,7 @@ const AdminDashboard = () => {
     try {
       console.log(`Deleting user ${userId}`);
       
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}`, {
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/${userId}`, {
         method: 'DELETE'
       });
 
@@ -139,7 +138,7 @@ const AdminDashboard = () => {
       return;
     }
     try {
-      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/announcements`, {
+      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/announcements`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

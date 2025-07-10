@@ -12,7 +12,7 @@ import {Router} from "express";
  */
 export const ApiController = () => {
   const router = Router();
-  router.use("/user", userRouter);
+  router.use("/users", userRouter);
   router.use("/chats", chatRouter);
   router.use("/nutrition", nutritionRouter);
   router.use("/s3", s3Router);
