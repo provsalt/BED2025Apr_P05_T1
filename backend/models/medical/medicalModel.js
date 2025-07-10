@@ -1,6 +1,7 @@
 import sql from "mssql";
 import {dbConfig} from "../../config/db.js";
 
+// POST
 async function createMedicationReminder(medicationData) {
     let pool;
     try {
@@ -49,4 +50,35 @@ async function createMedicationReminder(medicationData) {
     }
 }
 
-export { createMedicationReminder };
+//GET
+async function getMedicationRemindersByUser(userId) {
+    let pool;
+    try {
+        pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('userId', sql.Int, userId)
+            .query(`
+                SELECT id, medicine_name, reason, dosage, medicine_time, frequency_per_day, image_url, created_at
+                FROM Medication
+                WHERE user_id = @userId
+                ORDER BY created_at DESC;
+            `);
+        return {
+            success: true,
+            reminders: result.recordset
+        };
+    } catch (error) {
+        console.error('Error fetching medication reminders:', error);
+        return {
+            success: false,
+            message: 'Failed to fetch medication reminders',
+            error: error.message
+        };
+    } finally {
+        if (pool) {
+            await pool.close();
+        }
+    }
+}
+
+export { createMedicationReminder, getMedicationRemindersByUser };

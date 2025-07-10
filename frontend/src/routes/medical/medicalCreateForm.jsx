@@ -94,7 +94,6 @@ export const MedicationReminderForm = ({ userId = null }) => {
       if (normalizedTime && normalizedTime.length === 5) {
         normalizedTime = normalizedTime + ':00';
       }
-      console.log('Submitting medicine_time:', normalizedTime); // Debug line
       submitData.append('medicine_time', normalizedTime);
       submitData.append('frequency_per_day', formData.frequencyPerDay);
       submitData.append('image', formData.imageFile);
@@ -104,7 +103,7 @@ export const MedicationReminderForm = ({ userId = null }) => {
         body: submitData
       });
 
-      // Use result directly, do NOT call .json() on it
+      
       if (result.success) {
         setFormData({
           medicationName: '',
@@ -279,14 +278,14 @@ export const MedicationReminderForm = ({ userId = null }) => {
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 cursor-pointer"
             >
               {isSubmitting ? 'Creating...' : 'Set Reminder'}
             </Button>
             <Button
               variant="outline"
               onClick={handleCancel}
-              className="px-6"
+              className="px-6 cursor-pointer"
             >
               Cancel
             </Button>
