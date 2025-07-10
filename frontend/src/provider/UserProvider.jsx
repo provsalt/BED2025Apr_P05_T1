@@ -8,6 +8,7 @@ export const UserProvider = ({ children }) => {
     id: null,
     token: null,
     isAuthenticated: false,
+    role: null,
     data: null,
     profile_picture_url: ""
   });
@@ -35,6 +36,7 @@ export const UserProvider = ({ children }) => {
         id: parse.sub,
         token,
         isAuthenticated: true,
+        role: parse.role, 
         data: {
           name: data.name || "",
           email: data.email || "",
@@ -59,7 +61,8 @@ export const UserProvider = ({ children }) => {
         id: null,
         token: null,
         isAuthenticated: false,
-        name: "",
+        role: null,
+        data: null,
         profile_picture_url: ""
       });
     }
