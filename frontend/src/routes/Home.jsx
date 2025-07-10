@@ -1,5 +1,6 @@
 import {useContext} from "react";
 import {UserContext} from "@/provider/UserContext.js";
+import AnnouncementsList from "@/components/AnnouncementsList.jsx";
 
 export const Home = () => {
   const auth = useContext(UserContext);
@@ -10,6 +11,14 @@ export const Home = () => {
             <p className="text-gray-600">
               {auth.id ? `Hello, User ${auth.id}` : "Please log in to access all features"}
             </p>
+          </div>
+          
+          {/* Show announcements to all users */}
+          <div className="mb-8">
+            <AnnouncementsList 
+              isAdmin={false}
+              // Use public endpoint for all users
+            />
           </div>
         </div>
     )
