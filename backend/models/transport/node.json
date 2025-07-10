@@ -1,0 +1,690 @@
+{
+  "NS1 EW24": {
+    "name": "Jurong East",
+    "edges": ["NS2", "EW23", "EW25"]
+  },
+  "NS2": {
+    "name": "Bukit Batok",
+    "edges": ["NS1 EW24", "NS3"]
+  },
+  "NS3": {
+    "name": "Bukit Gombak",
+    "edges": ["NS2", "NS4 BP1"]
+  },
+  "NS4 BP1": {
+    "name": "Choa Chu Kang",
+    "edges": ["NS3", "NS5", "BP2"]
+  },
+  "NS5": {
+    "name": "Yew Tee",
+    "edges": ["NS4 BP1", "NS7"]
+  },
+  "NS7": {
+    "name": "Kranji",
+    "edges": ["NS5", "NS8"]
+  },
+  "NS8": {
+    "name": "Marsiling",
+    "edges": ["NS7", "NS9 TE2"]
+  },
+  "NS9 TE2": {
+    "name": "Woodlands",
+    "edges": ["NS8", "NS10", "TE1", "TE3"]
+  },
+  "NS10": {
+    "name": "Admiralty",
+    "edges": ["NS9 TE2", "NS11"]
+  },
+  "NS11": {
+    "name": "Sembawang",
+    "edges": ["NS10", "NS12"]
+  },
+  "NS12": {
+    "name": "Canberra",
+    "edges": ["NS11", "NS13"]
+  },
+  "NS13": {
+    "name": "Yishun",
+    "edges": ["NS12", "NS14"]
+  },
+  "NS14": {
+    "name": "Khatib",
+    "edges": ["NS13", "NS15"]
+  },
+  "NS15": {
+    "name": "Yio Chu Kang",
+    "edges": ["NS14", "NS16"]
+  },
+  "NS16": {
+    "name": "Ang Mo Kio",
+    "edges": ["NS15", "NS17 CC15"]
+  },
+  "NS17 CC15": {
+    "name": "Bishan",
+    "edges": ["NS16", "NS18", "CC14", "CC16"]
+  },
+  "NS18": {
+    "name": "Braddell",
+    "edges": ["NS17 CC15", "NS19"]
+  },
+  "NS19": {
+    "name": "Toa Payoh",
+    "edges": ["NS18", "NS20"]
+  },
+  "NS20": {
+    "name": "Novena",
+    "edges": ["NS19", "NS21 DT11"]
+  },
+  "NS21 DT11": {
+    "name": "Newton",
+    "edges": ["NS20", "NS22 TE14", "DT10 TE11", "DT12 NE7"]
+  },
+  "NS22 TE14": {
+    "name": "Orchard",
+    "edges": ["NS21 DT11", "NS23", "TE13", "TE15"]
+  },
+  "NS23": {
+    "name": "Somerset",
+    "edges": ["NS22 TE14", "NS24 NE6 CC1"]
+  },
+  "NS24 NE6 CC1": {
+    "name": "Dhoby Ghaut",
+    "edges": ["NS23", "NS25 EW13", "NE5", "DT12 NE7", "CC2"]
+  },
+  "NS25 EW13": {
+    "name": "City Hall",
+    "edges": ["NS24 NE6 CC1", "NS26 EW14", "DT14 EW12", "NS26 EW14"]
+  },
+  "NS26 EW14": {
+    "name": "Raffles Place",
+    "edges": ["NS25 EW13", "CE2 NS27 TE20", "NS25 EW13", "EW15"]
+  },
+  "NS28": {
+    "name": "Marina South Pier",
+    "edges": ["CE2 NS27 TE20"]
+  },
+  "EW1": {
+    "name": "Pasir Ris",
+    "edges": ["DT32 EW2"]
+  },
+  "EW3": {
+    "name": "Simei",
+    "edges": ["DT32 EW2", "EW4 CG"]
+  },
+  "EW4 CG": {
+    "name": "Tanah Merah",
+    "edges": ["EW3", "EW5", "CG1 DT35"]
+  },
+  "EW5": {
+    "name": "Bedok",
+    "edges": ["EW4 CG", "EW6"]
+  },
+  "EW6": {
+    "name": "Kembangan",
+    "edges": ["EW5", "EW7"]
+  },
+  "EW7": {
+    "name": "Eunos",
+    "edges": ["EW6", "EW8 CC9"]
+  },
+  "EW8 CC9": {
+    "name": "Paya Lebar",
+    "edges": ["EW7", "EW9", "CC8", "CC10 DT26"]
+  },
+  "EW9": {
+    "name": "Aljunied",
+    "edges": ["EW8 CC9", "EW10"]
+  },
+  "EW10": {
+    "name": "Kallang",
+    "edges": ["EW9", "EW11"]
+  },
+  "EW11": {
+    "name": "Lavender",
+    "edges": ["EW10", "DT14 EW12"]
+  },
+  "EW15": {
+    "name": "Tanjong Pagar",
+    "edges": ["NS26 EW14", "EW16 NE3 TE17"]
+  },
+  "EW16 NE3 TE17": {
+    "name": "Outram Park",
+    "edges": ["EW15", "EW17", "NE1 CC29", "DT19 NE4", "TE16", "TE18"]
+  },
+  "EW17": {
+    "name": "Tiong Bahru",
+    "edges": ["EW16 NE3 TE17", "EW18"]
+  },
+  "EW18": {
+    "name": "Redhill",
+    "edges": ["EW17", "EW19"]
+  },
+  "EW19": {
+    "name": "Queenstown",
+    "edges": ["EW18", "EW20"]
+  },
+  "EW20": {
+    "name": "Commonwealth",
+    "edges": ["EW19", "EW21 CC22"]
+  },
+  "EW21 CC22": {
+    "name": "Buona Vista",
+    "edges": ["EW20", "EW22", "CC21", "CC23"]
+  },
+  "EW22": {
+    "name": "Dover",
+    "edges": ["EW21 CC22", "EW23"]
+  },
+  "EW23": {
+    "name": "Clementi",
+    "edges": ["EW22", "NS1 EW24"]
+  },
+  "EW25": {
+    "name": "Chinese Garden",
+    "edges": ["NS1 EW24", "EW26"]
+  },
+  "EW26": {
+    "name": "Lakeside",
+    "edges": ["EW25", "EW27"]
+  },
+  "EW27": {
+    "name": "Boon Lay",
+    "edges": ["EW26", "EW28"]
+  },
+  "EW28": {
+    "name": "Pioneer",
+    "edges": ["EW27", "EW29"]
+  },
+  "EW29": {
+    "name": "Joo Koon",
+    "edges": ["EW28", "EW30"]
+  },
+  "EW30": {
+    "name": "Gul Circle",
+    "edges": ["EW29", "EW31"]
+  },
+  "EW31": {
+    "name": "Tuas Crescent",
+    "edges": ["EW30", "EW32"]
+  },
+  "EW32": {
+    "name": "Tuas West Road",
+    "edges": ["EW31", "EW33"]
+  },
+  "EW33": {
+    "name": "Tuas Link",
+    "edges": ["EW32"]
+  },
+  "CG1 DT35": {
+    "name": "Expo",
+    "edges": ["DT34", "CG2", "EW4 CG"]
+  },
+  "CG2": {
+    "name": "Changi Airport",
+    "edges": ["CG1 DT35"]
+  },
+  "NE1 CC29": {
+    "name": "HarbourFront",
+    "edges": ["EW16 NE3 TE17", "CC28"]
+  },
+  "NE5": {
+    "name": "Clarke Quay",
+    "edges": ["DT19 NE4", "NS24 NE6 CC1"]
+  },
+  "NE8": {
+    "name": "Farrer Park",
+    "edges": ["DT12 NE7", "NE9"]
+  },
+  "NE9": {
+    "name": "Boon Keng",
+    "edges": ["NE8", "NE10"]
+  },
+  "NE10": {
+    "name": "Potong Pasir",
+    "edges": ["NE9", "NE11"]
+  },
+  "NE11": {
+    "name": "Woodleigh",
+    "edges": ["NE10", "CC13 NE12"]
+  },
+  "NE13": {
+    "name": "Kovan",
+    "edges": ["CC13 NE12", "NE14"]
+  },
+  "NE14": {
+    "name": "Hougang",
+    "edges": ["NE13", "NE15"]
+  },
+  "NE15": {
+    "name": "Buangkok",
+    "edges": ["NE14", "NE16 STC"]
+  },
+  "NE16 STC": {
+    "name": "Sengkang",
+    "edges": ["NE15", "NE17 PTC", "SE1", "SE5", "SW1", "SW8"]
+  },
+  "NE17 PTC": {
+    "name": "Punggol",
+    "edges": ["NE16 STC", "PW1", "PW7", "PE1", "PE7"]
+  },
+  "CC2": {
+    "name": "Bras Basah",
+    "edges": ["NS24 NE6 CC1", "CC3"]
+  },
+  "CC3": {
+    "name": "Esplanade",
+    "edges": ["CC2", "CC4 DT15"]
+  },
+  "CC4 DT15": {
+    "name": "Promenade",
+    "edges": ["CC3", "CC5", "DT14 EW12", "CE1 DT16"]
+  },
+  "CC5": {
+    "name": "Nicoll Highway",
+    "edges": ["CC4 DT15", "CC6"]
+  },
+  "CC6": {
+    "name": "Stadium",
+    "edges": ["CC5", "CC7"]
+  },
+  "CC7": {
+    "name": "Mountbatten",
+    "edges": ["CC6", "CC8"]
+  },
+  "CC8": {
+    "name": "Dakota",
+    "edges": ["CC7", "EW8 CC9"]
+  },
+  "CC10 DT26": {
+    "name": "MacPherson",
+    "edges": ["EW8 CC9", "CC11", "DT25", "DT27"]
+  },
+  "CC11": {
+    "name": "Tai Seng",
+    "edges": ["CC10 DT26", "CC12"]
+  },
+  "CC12": {
+    "name": "Bartley",
+    "edges": ["CC11", "CC13 NE12"]
+  },
+  "CC13 NE12": {
+    "name": "Serangoon",
+    "edges": ["CC12", "CC14", "NE11", "NE13"]
+  },
+  "CC14": {
+    "name": "Lorong Chuan",
+    "edges": ["CC13 NE12", "NS17 CC15"]
+  },
+  "CC16": {
+    "name": "Marymount",
+    "edges": ["NS17 CC15", "CC17 TE9"]
+  },
+  "CC17 TE9": {
+    "name": "Caldecott",
+    "edges": ["CC16", "DT9 CC19", "TE8", "DT10 TE11"]
+  },
+  "CC20": {
+    "name": "Farrer Road",
+    "edges": ["DT9 CC19", "CC21"]
+  },
+  "CC21": {
+    "name": "Holland Village",
+    "edges": ["CC20", "EW21 CC22"]
+  },
+  "CC23": {
+    "name": "one-north",
+    "edges": ["EW21 CC22", "CC24"]
+  },
+  "CC24": {
+    "name": "Kent Ridge",
+    "edges": ["CC23", "CC25"]
+  },
+  "CC25": {
+    "name": "Haw Par Villa",
+    "edges": ["CC24", "CC26"]
+  },
+  "CC26": {
+    "name": "Pasir Panjang",
+    "edges": ["CC25", "CC27"]
+  },
+  "CC27": {
+    "name": "Labrador Park",
+    "edges": ["CC26", "CC28"]
+  },
+  "CC28": {
+    "name": "Telok Blangah",
+    "edges": ["CC27", "NE1 CC29"]
+  },
+  "CE1 DT16": {
+    "name": "Bayfront",
+    "edges": ["CE2 NS27 TE20", "CC4 DT15", "DT17"]
+  },
+  "CE2 NS27 TE20": {
+    "name": "Marina Bay",
+    "edges": ["CE1 DT16", "NS26 EW14", "NS28", "TE19", "TE22"]
+  },
+  "DT1 BP6": {
+    "name": "Bukit Panjang",
+    "edges": ["DT2", "BP5", "BP7", "BP13"]
+  },
+  "DT2": {
+    "name": "Cashew",
+    "edges": ["DT1 BP6", "DT3"]
+  },
+  "DT3": {
+    "name": "Hillview",
+    "edges": ["DT2", "DT5"]
+  },
+  "DT5": {
+    "name": "Beauty World",
+    "edges": ["DT3", "DT6"]
+  },
+  "DT6": {
+    "name": "King Albert Park",
+    "edges": ["DT5", "DT7"]
+  },
+  "DT7": {
+    "name": "Sixth Avenue",
+    "edges": ["DT6", "DT8"]
+  },
+  "DT8": {
+    "name": "Tan Kah Kee",
+    "edges": ["DT7", "DT9 CC19"]
+  },
+  "DT9 CC19": {
+    "name": "Botanic Gardens",
+    "edges": ["DT8", "DT10 TE11", "CC17 TE9", "CC20"]
+  },
+  "DT10 TE11": {
+    "name": "Stevens",
+    "edges": ["DT9 CC19", "NS21 DT11", "CC17 TE9", "TE12"]
+  },
+  "DT12 NE7": {
+    "name": "Little India",
+    "edges": ["NS21 DT11", "DT13", "NS24 NE6 CC1", "NE8"]
+  },
+  "DT13": {
+    "name": "Rochor",
+    "edges": ["DT12 NE7", "DT14 EW12"]
+  },
+  "DT14 EW12": {
+    "name": "Bugis",
+    "edges": ["DT13", "CC4 DT15", "EW11", "NS25 EW13"]
+  },
+  "DT17": {
+    "name": "Downtown",
+    "edges": ["CE1 DT16", "DT18"]
+  },
+  "DT18": {
+    "name": "Telok Ayer",
+    "edges": ["DT17", "DT19 NE4"]
+  },
+  "DT19 NE4": {
+    "name": "Chinatown",
+    "edges": ["DT18", "DT20", "EW16 NE3 TE17", "NE5"]
+  },
+  "DT20": {
+    "name": "Fort Canning",
+    "edges": ["DT19 NE4", "DT21"]
+  },
+  "DT21": {
+    "name": "Bencoolen",
+    "edges": ["DT20", "DT22"]
+  },
+  "DT22": {
+    "name": "Jalan Besar",
+    "edges": ["DT21", "DT23"]
+  },
+  "DT23": {
+    "name": "Bendemeer",
+    "edges": ["DT22", "DT24"]
+  },
+  "DT24": {
+    "name": "Geylang Bahru",
+    "edges": ["DT23", "DT25"]
+  },
+  "DT25": {
+    "name": "Mattar",
+    "edges": ["DT24", "CC10 DT26"]
+  },
+  "DT27": {
+    "name": "Ubi",
+    "edges": ["CC10 DT26", "DT28"]
+  },
+  "DT28": {
+    "name": "Kaki Bukit",
+    "edges": ["DT27", "DT29"]
+  },
+  "DT29": {
+    "name": "Bedok North",
+    "edges": ["DT28", "DT30"]
+  },
+  "DT30": {
+    "name": "Bedok Reservoir",
+    "edges": ["DT29", "DT31"]
+  },
+  "DT31": {
+    "name": "Tampines West",
+    "edges": ["DT30", "DT32 EW2"]
+  },
+  "DT32 EW2": {
+    "name": "Tampines",
+    "edges": ["DT31", "DT33", "EW1", "EW3"]
+  },
+  "DT33": {
+    "name": "Tampines East",
+    "edges": ["DT32 EW2", "DT34"]
+  },
+  "DT34": {
+    "name": "Upper Changi",
+    "edges": ["DT33", "CG1 DT35"]
+  },
+  "TE1": {
+    "name": "Woodlands North",
+    "edges": ["NS9 TE2"]
+  },
+  "TE3": {
+    "name": "Woodlands South",
+    "edges": ["NS9 TE2", "TE4"]
+  },
+  "BP2": {
+    "name": "South View",
+    "edges": ["NS4 BP1", "BP3"]
+  },
+  "BP3": {
+    "name": "Keat Hong",
+    "edges": ["BP2", "BP4"]
+  },
+  "BP4": {
+    "name": "Teck Whye",
+    "edges": ["BP3", "BP5"]
+  },
+  "BP5": {
+    "name": "Phoenix",
+    "edges": ["BP4", "DT1 BP6"]
+  },
+  "BP7": {
+    "name": "Petir",
+    "edges": ["DT1 BP6", "BP8"]
+  },
+  "BP8": {
+    "name": "Pending",
+    "edges": ["BP7", "BP9"]
+  },
+  "BP9": {
+    "name": "Bangkit",
+    "edges": ["BP8", "BP10"]
+  },
+  "BP10": {
+    "name": "Fajar",
+    "edges": ["BP9", "BP11"]
+  },
+  "BP11": {
+    "name": "Segar",
+    "edges": ["BP10", "BP12"]
+  },
+  "BP12": {
+    "name": "Jelapang",
+    "edges": ["BP11", "BP13"]
+  },
+  "BP13": {
+    "name": "Senja",
+    "edges": ["BP12", "DT1 BP6"]
+  },
+  "TE4": {
+    "name": "Springleaf",
+    "edges": ["TE3", "TE5"]
+  },
+  "TE5": {
+    "name": "Lentor",
+    "edges": ["TE4", "TE6"]
+  },
+  "TE6": {
+    "name": "Mayflower",
+    "edges": ["TE5", "TE7"]
+  },
+  "TE7": {
+    "name": "Bright Hill",
+    "edges": ["TE6", "TE8"]
+  },
+  "TE8": {
+    "name": "Upper THomson",
+    "edges": ["TE7", "CC17 TE9"]
+  },
+  "TE12": {
+    "name": "Napier",
+    "edges": ["DT10 TE11", "TE13"]
+  },
+  "TE13": {
+    "name": "Orchard Boulevard",
+    "edges": ["TE12", "NS22 TE14"]
+  },
+  "TE15": {
+    "name": "Great World",
+    "edges": ["NS22 TE14", "TE16"]
+  },
+  "TE16": {
+    "name": "Havelock",
+    "edges": ["TE15", "EW16 NE3 TE17"]
+  },
+  "TE18": {
+    "name": "Maxwell",
+    "edges": ["EW16 NE3 TE17", "TE19"]
+  },
+  "TE19": {
+    "name": "Shenton Way",
+    "edges": ["TE18", "CE2 NS27 TE20"]
+  },
+  "TE22": {
+    "name": "Gardens by the Bay",
+    "edges": ["CE2 NS27 TE20"]
+  },
+  "SW1": {
+    "name": "Cheng Lim",
+    "edges": ["SW2", "NE16 STC"]
+  },
+  "SW2": {
+    "name": "Farmway",
+    "edges": ["SW1", "SW3"]
+  },
+  "SW3": {
+    "name": "Kupang",
+    "edges": ["SW2", "SW4"]
+  },
+  "SW4": {
+    "name": "Thanggam",
+    "edges": ["SW3", "SW5"]
+  },
+  "SW5": {
+    "name": "Fernvale",
+    "edges": ["SW4", "SW6"]
+  },
+  "SW6": {
+    "name": "Layar",
+    "edges": ["SW5", "SW7"]
+  },
+  "SW7": {
+    "name": "Tongkang",
+    "edges": ["SW6", "SW8"]
+  },
+  "SW8": {
+    "name": "Renjong",
+    "edges": ["SW7", "NE16 STC"]
+  },
+  "SE1": {
+    "name": "Compassville",
+    "edges": ["SE2", "NE16 STC"]
+  },
+  "SE2": {
+    "name": "Rumbia",
+    "edges": ["SE1", "SE3"]
+  },
+  "SE3": {
+    "name": "Bakau",
+    "edges": ["SE2", "SE4"]
+  },
+  "SE4": {
+    "name": "Kangkar",
+    "edges": ["SE3", "SE5"]
+  },
+  "SE5": {
+    "name": "Ranggung",
+    "edges": ["SE4", "NE16 STC"]
+  },
+  "PW1": {
+    "name": "Sam Kee",
+    "edges": ["PW2", "NE17 PTC"]
+  },
+  "PW2": {
+    "name": "Teck Lee",
+    "edges": ["PW1", "PW3"]
+  },
+  "PW3": {
+    "name": "Punggol Point",
+    "edges": ["PW2", "PW4"]
+  },
+  "PW4": {
+    "name": "Samudera",
+    "edges": ["PW3", "PW5"]
+  },
+  "PW5": {
+    "name": "Nibong",
+    "edges": ["PW4", "PW6"]
+  },
+  "PW6": {
+    "name": "Sumang",
+    "edges": ["PW5", "PW7"]
+  },
+  "PW7": {
+    "name": "Soo Teck",
+    "edges": ["PW6", "NE17 PTC"]
+  },
+  "PE1": {
+    "name": "Cove",
+    "edges": ["PE2", "NE17 PTC"]
+  },
+  "PE2": {
+    "name": "Meridian",
+    "edges": ["PE1", "PE3"]
+  },
+  "PE3": {
+    "name": "Coral Edge",
+    "edges": ["PE2", "PE4"]
+  },
+  "PE4": {
+    "name": "Riviera",
+    "edges": ["PE3", "PE5"]
+  },
+  "PE5": {
+    "name": "Kadaloor",
+    "edges": ["PE4", "PE6"]
+  },
+  "PE6": {
+    "name": "Oasis",
+    "edges": ["PE5", "PE7"]
+  },
+  "PE7": {
+    "name": "Damai",
+    "edges": ["PE6", "NE17 PTC"]
+  }
+}
