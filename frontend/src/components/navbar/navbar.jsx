@@ -10,8 +10,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, Settings, LogOut } from "lucide-react";
 
-import "@/components/ui/profileRing.css";
-
 export const Navbar = () => {
   const { isAuthenticated, data, setUser } = useContext(UserContext);
   const profile_picture_url = data?.profile_picture_url;
