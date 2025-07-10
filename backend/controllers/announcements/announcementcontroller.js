@@ -4,8 +4,6 @@ import {z} from "zod/v4";
 import { Router } from "express";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 
-const announcementRouter = Router();
-
 // Validation schema for announcement data
 const announcementSchema = z.object({
   title: z.string().min(1, "Title is required").max(255, "Title must be less than 255 characters"),
@@ -16,11 +14,6 @@ const announcementSchema = z.object({
  * Create a new announcement
  */
 export const createAnnouncementController = async (req, res) => {
-  // Check if user is admin
-  if (!req.user || req.user.role !== 'Admin') {
-    return res.status(403).json({ error: "Admin access required" });
-  }
-
   const validate = announcementSchema.safeParse(req.body);
   if (!validate.success) {
     return res.status(400).json({ error: "Invalid announcement data", details: validate.error.issues });
@@ -79,11 +72,6 @@ export const getAnnouncementByIdController = async (req, res) => {
  * Delete an announcement
  */
 export const deleteAnnouncementController = async (req, res) => {
-  // Check if user is admin
-  if (!req.user || req.user.role !== 'Admin') {
-    return res.status(403).json({ error: "Admin access required" });
-  }
-
   const { id } = req.params;
   
   if (!id || isNaN(id)) {
@@ -101,12 +89,3 @@ export const deleteAnnouncementController = async (req, res) => {
     res.status(500).json({ error: "Error deleting announcement" });
   }
 };
-
-// Announcement routes
-announcementRouter.post("/", getUserMiddleware, createAnnouncementController);
-announcementRouter.get("/", getAnnouncementsController); // Public route
-announcementRouter.get("/:id", getAnnouncementByIdController); // Public route 
-announcementRouter.delete("/:id", getUserMiddleware, deleteAnnouncementController);
-
-export default announcementRouter;
-
