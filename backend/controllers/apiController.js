@@ -16,7 +16,6 @@ export const ApiController = () => {
   router.use("/chats", chatRouter);
   router.use("/nutrition", nutritionRouter);
   router.use("/s3", s3Router);
-  router.use("/admin", adminRouter);
   router.use("/announcements", announcementRouter); // Add public announcements route
   return router;
 }

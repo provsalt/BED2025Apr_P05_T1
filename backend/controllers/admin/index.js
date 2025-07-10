@@ -10,7 +10,7 @@ import {  addAdminRoleController,
   updateUserRoleController,
   deleteUserController,
   getUsersByRoleController,
-  bulkUpdateUserRolesController } from "./adminController.js";
+  bulkUpdateUserRolesController } from "../user/userRoleController.js";
 
 // Apply authentication middleware to all admin routes
 router.use(getUserMiddleware);
