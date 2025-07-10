@@ -20,7 +20,6 @@ export const analyzeFoodImage = async (imageBuffer) => {
       error: z.string().describe("Error message if no food is detected")
     });
 
-    console.log(z.toJSONSchema(res, {target: 'draft-7'}))
     const response = await openai.responses.parse({
       model: "gpt-4.1-mini",
       input: [
