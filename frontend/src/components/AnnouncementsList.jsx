@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
 
-const AnnouncementsList = () => {
+const AnnouncementsList = ({ isAdmin = false, onDelete, adminApiEndpoint }) => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,9 +15,10 @@ const AnnouncementsList = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Loading announcements from:', `${import.meta.env.VITE_BACKEND_URL}/api/announcements`);
+      const endpoint = adminApiEndpoint || `${import.meta.env.VITE_BACKEND_URL}/api/announcements`;
+      console.log('Loading announcements from:', endpoint);
       
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/announcements`);
+      const response = await fetch(endpoint);
       
       console.log('Response status:', response.status);
       console.log('Response ok:', response.ok);
@@ -80,6 +81,14 @@ const AnnouncementsList = () => {
                 <div className="text-sm text-gray-500">
                   By {announcement.author_name} • {new Date(announcement.created_at).toLocaleDateString()}
                 </div>
+                {isAdmin && (
+                  <button
+                    className="ml-auto mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                    onClick={() => onDelete && onDelete(announcement.id)}
+                  >
+                    Delete
+                  </button>
+                )}
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 whitespace-pre-wrap">{announcement.content}</p>

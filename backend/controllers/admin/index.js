@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { getUserMiddleware } from "../../middleware/getUser.js";
+import announcementRouter from "./announcementcontroller.js";
 const router = Router();
 import {  addAdminRoleController,
   getAllAdminsController,
@@ -23,5 +24,8 @@ router.put("/users/:id/role", updateUserRoleController);
 router.delete("/users/:id", deleteUserController);
 router.get("/users/role/:role", getUsersByRoleController);
 router.put("/users/role/bulk", bulkUpdateUserRolesController);
+
+// Announcement routes
+router.use("/announcements", announcementRouter);
 
 export default router;
