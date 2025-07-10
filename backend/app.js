@@ -22,12 +22,12 @@ app.use(cors({
     origin: origins
 }))
 
+app.use(express.json())
+
 // Apply rate limiting globally
 app.use(defaultRateLimit)
 
 app.use("/api", ApiController())
-
-app.use(express.json())
 
 setIO(io);
 
