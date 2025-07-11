@@ -2,7 +2,7 @@ import sql from "mssql";
 import {dbConfig} from "../../config/db.js";
 
 // POST
-async function createMedicationReminder(medicationData) {
+export async function createMedicationReminder(medicationData) {
     let pool;
     try {
         // Connect to the database
@@ -51,7 +51,7 @@ async function createMedicationReminder(medicationData) {
 }
 
 //GET
-async function getMedicationRemindersByUser(userId) {
+export async function getMedicationRemindersByUser(userId) {
     let pool;
     try {
         pool = await sql.connect(dbConfig);
@@ -80,5 +80,18 @@ async function getMedicationRemindersByUser(userId) {
         }
     }
 }
-
-export { createMedicationReminder, getMedicationRemindersByUser };
+//GET
+export async function getAllRemindersWithUsers() {
+    let pool;
+    try {
+      pool = await sql.connect(dbConfig);
+      const result = await pool.request().query(`
+        SELECT r.*, u.email, u.name
+        FROM Medication r
+        JOIN [Users] u ON r.user_id = u.id
+      `);
+      return result.recordset;
+    } finally {
+      if (pool) await pool.close();
+    }
+} 
