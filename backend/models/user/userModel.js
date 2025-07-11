@@ -139,6 +139,23 @@ export const updateUserProfilePicture = async (userId, fileUrl) => {
   return result.rowsAffected[0] > 0;
 }
 
+export const getLoginHistoryByUserId = async (userId) => {
+  const db = await sql.connect(dbConfig);
+  const result = await db.request()
+    .input("userId", sql.Int, userId)
+    .query("SELECT id, CONVERT(VARCHAR(30), login_time, 126) as login_time FROM UserLoginHistory WHERE user_id = @userId ORDER BY login_time DESC");
+
+  console.log("Database query result:", result.recordset);
+  return result.recordset;
+};
+
+export const insertLoginHistory = async (userId) => {
+  const db = await sql.connect(dbConfig);
+  await db.request()
+    .input("userId", sql.Int, userId)
+    .query("INSERT INTO UserLoginHistory (user_id) VALUES (@userId)");
+};
+
 export const changeUserRole = async (id, role) => {
     const user = await getUser(id)
     if (!user) {

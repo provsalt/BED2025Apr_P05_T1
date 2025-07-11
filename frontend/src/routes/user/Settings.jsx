@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.j
 import { Label } from "@radix-ui/react-label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.jsx";
 import { Controller, useForm } from "react-hook-form";
+import { LoginHistory } from "@/components/settings/LoginHistory";
 
 export function Settings() {
   const auth = useContext(UserContext);
@@ -297,14 +298,18 @@ export function Settings() {
               variant="destructive"
               onClick={() => {
                 auth.setUser({ id: null, token: null, isAuthenticated: false });
-                localStorage.removeItem("token");
+              localStorage.removeItem("token");
                 navigate("/");
               }}
             >
               Logout
             </Button>
           </div>
+
         </div>
+          <div className="mt-8">
+            <LoginHistory />
+          </div>
       </div>
     </div>
   );

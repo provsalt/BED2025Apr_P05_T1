@@ -22,6 +22,7 @@ import {
   updateUserRoleController
 } from "./userRoleController.js";
 import {authorizeRole} from "../../middleware/authorizeRole.js";
+import { getUserLoginHistoryController } from "../../controllers/user/loginHistoryController.js";
 
 const router = Router();
 
@@ -31,6 +32,9 @@ router.get("/", getUserMiddleware, authorizeRole(["Admin"]), getAllUsersControll
 router.post("/login", authRateLimit, loginUserController);
 router.get("/me", getUserMiddleware, getCurrentUserController);
 
+// Shun Xiang user's login history
+router.get("/login-history", getUserMiddleware, getUserLoginHistoryController);
+
 // Shun Xiang get by id, update user
 router.get("/:id", getUserController);
 router.put("/:id", getUserMiddleware, updateUserController);
@@ -38,7 +42,7 @@ router.put("/:id", getUserMiddleware, updateUserController);
 router.delete("/:id", getUserMiddleware, authorizeRole(["Admin"]), deleteUserController);
 router.put("/:id/role", getUserMiddleware, authorizeRole(["Admin"]), updateUserRoleController);
 
-// Shun Xiang change password, upload profile picture, delete profile picture
+// Shun Xiang change password, upload profile picture, delete profile picture, user's login history
 router.put("/password", getUserMiddleware, changePasswordController);
 router.post("/me/picture", getUserMiddleware, createUploadMiddleware({
   allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],

@@ -5,7 +5,8 @@ import {
   getUserByEmail,
   updateUser,
   updateUserProfilePicture,
-  getAllUsers
+  getAllUsers,
+  insertLoginHistory 
 } from "../../models/user/userModel.js";
 import { randomUUID } from "crypto";
 import { User } from "../../utils/validation/user.js";
@@ -109,7 +110,8 @@ export const loginUserController = async (req, res) => {
 
   if (!isPasswordValid) {
     return res.status(401).json({ error: "Invalid email or password" });
-  }
+  }                       
+  await insertLoginHistory(user.id);
 
   const secret = new TextEncoder().encode(process.env.SECRET || "");
   const tok = await new SignJWT({
