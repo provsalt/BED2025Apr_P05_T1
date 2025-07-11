@@ -132,18 +132,26 @@ export function Settings() {
       return;
     }
 
+  try {
+    const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/password`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ oldPassword, newPassword })
+    });
+
+    alert.success({ title: "Password Updated", description: "Your password was changed successfully." });
+    setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+
+  } catch (err) {
     try {
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/password`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ oldPassword, newPassword })
-      });
-      alert.success({ title: "Password Updated", description: "Your password was changed successfully." });
-      setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
-    } catch (err) {
+      const errorJson = JSON.parse(err.message.replace("Error fetching: ", ""));
+      const description = errorJson.details ? errorJson.details.map(d => d.message).join(" | ") : errorJson.error || "Something went wrong";
+      alert.error({ title: "Password Update Failed", description });
+    } catch (fallback) {
       alert.error({ title: "Password Update Failed", description: "Incorrect old password or server error." });
+      }
     }
   }
 

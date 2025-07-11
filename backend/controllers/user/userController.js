@@ -7,7 +7,7 @@ import {
   updateUserProfilePicture
 } from "../../models/user/userModel.js";
 import { randomUUID } from "crypto";
-import { User } from "../../utils/validation/user.js";
+import { User, ChangePassword } from "../../utils/validation/user.js";
 import { SignJWT } from "jose";
 import { z } from "zod/v4";
 import bcrypt from "bcryptjs";
@@ -151,24 +151,34 @@ export const changePasswordController = async (req, res) => {
   const userId = req.user.id;
   const { oldPassword, newPassword } = req.body;
 
+  const validation = z.object({
+    oldPassword: z.string().min(1, "Old password is required"),
+    newPassword: ChangePassword,
+  }).safeParse({ oldPassword, newPassword });
+  if (!validation.success) {
+    return res.status(400).json({
+      error: "Invalid input",
+      details: validation.error.issues,
+    });
+  }
   try {
     const user = await getUser(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    const valid = await bcrypt.compare(oldPassword, user.password);
-
-    if (!valid) {
+    const isValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isValid) {
       return res.status(403).json({ error: "Old password is incorrect" });
     }
-
+    const isTheSame = await bcrypt.compare(newPassword, user.password);
+    if (isTheSame) {
+      return res.status(400).json({ error: "New password must be different from old password" });
+    }
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const updated = await updateUser(userId, { password: hashedPassword });
-
-    if (!updated) {
+    const success = await updateUser(userId, { password: hashedPassword });
+    if (!success) {
       return res.status(500).json({ error: "Failed to update password" });
     }
-
     res.json({ message: "Password updated successfully" });
   } catch (err) {
     console.error("Password update error:", err);
