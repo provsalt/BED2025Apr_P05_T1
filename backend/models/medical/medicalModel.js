@@ -3,16 +3,16 @@ import {dbConfig} from "../../config/db.js";
 
 // POST
 export async function createMedicationReminder(medicationData) {
-    let pool;
+    let connection;
     try {
         // Connect to the database
-        pool = await sql.connect(dbConfig);
+        connection = await sql.connect(dbConfig);
 
         // Store just the time as TIME type
         const medicineTime = medicationData.timeToTake; // Keep as "HH:MM" format
 
         // Insert medication reminder into the database
-        const result = await pool.request()
+        const result = await connection.request()
             .input('userId', sql.Int, medicationData.userId)
             .input('medicationName', sql.VarChar(255), medicationData.medicationName)
             .input('reason', sql.VarChar(255), medicationData.reason)
@@ -44,18 +44,18 @@ export async function createMedicationReminder(medicationData) {
         };
     } finally {
         // Close the database connection
-        if (pool) {
-            await pool.close();
+        if (connection) {
+            await connection.close();
         }
     }
 }
 
 //GET
 export async function getMedicationRemindersByUser(userId) {
-    let pool;
+    let connection;
     try {
-        pool = await sql.connect(dbConfig);
-        const result = await pool.request()
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
             .input('userId', sql.Int, userId)
             .query(`
                 SELECT id, medicine_name, reason, dosage, medicine_time, frequency_per_day, image_url, created_at
@@ -75,23 +75,25 @@ export async function getMedicationRemindersByUser(userId) {
             error: error.message
         };
     } finally {
-        if (pool) {
-            await pool.close();
+        if (connection) {
+            await connection.close();
         }
     }
 }
 //GET
 export async function getAllRemindersWithUsers() {
-    let pool;
+    let connection;
     try {
-      pool = await sql.connect(dbConfig);
-      const result = await pool.request().query(`
+      connection = await sql.connect(dbConfig);
+      const result = await connection.request().query(`
         SELECT r.*, u.email, u.name
         FROM Medication r
         JOIN [Users] u ON r.user_id = u.id
       `);
       return result.recordset;
     } finally {
-      if (pool) await pool.close();
+      if (connection) {
+        await connection.close();
+      }
     }
 } 
