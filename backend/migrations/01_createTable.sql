@@ -91,6 +91,10 @@ CREATE TABLE Medication (
   FOREIGN KEY (user_id) REFERENCES [Users](id)
 );
 
+-- Altering the Medication table to change the medicine_time column from DATETIME to TIME type
+ALTER TABLE Medication 
+ALTER COLUMN medicine_time TIME NOT NULL;
+
 
 CREATE TABLE MedicationQuestion (
     user_id INT PRIMARY KEY,
@@ -109,5 +113,15 @@ CREATE TABLE HealthSummary (
     user_id INT,
     summary TEXT,
     created_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (user_id) REFERENCES [Users](id)
+);
+
+CREATE TABLE Announcement (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    user_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES [Users](id)
 );

@@ -166,3 +166,11 @@ export const changeUserRole = async (id, role) => {
 
     return res.rowsAffected[0] !== 0;
 }
+
+export const getAllUsers = async () => {
+    const db = await sql.connect(dbConfig);
+    const query = "SELECT * FROM Users";
+    const request = db.request();
+    const result = await request.query(query);
+    return result.recordset;
+}

@@ -1,15 +1,17 @@
 import React from "react";
 import { Pill, FileText, BarChart3, HelpCircle, ArrowLeft } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useNavigate } from 'react-router';
 
 export const MedicalDashboard = () => {
+  const navigate = useNavigate();
   return (
-    <div className="flex flex-col flex-1 bg-gray-50">
+    <div className="flex flex-col flex-1 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-8">Medical Care Center</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/medical/create')}>
             <CardContent className="flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
                 <Pill className="w-8 h-8 text-white" />
@@ -21,7 +23,7 @@ export const MedicalDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/medical/reminders')}>
             <CardContent className="flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
                 <FileText className="w-8 h-8 text-white" />

@@ -28,6 +28,9 @@ export const uploadNutritionImage = async (req, res) => {
     let analysisResult = null;
     try {
       analysisResult = await analyzeFoodImage(file.buffer);
+      if (analysisResult.error) {
+        return res.status(400).json({ error: analysisResult.error });
+      }
     } catch (analysisError) {
       // Continue with upload even if analysis fails
     }

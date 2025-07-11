@@ -7,7 +7,6 @@ import { getUser } from "../models/user/userModel.js";
  */
 export const getUserMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-
   if (!authHeader) {
     return res.status(401).json({ message: "Authorization header missing" });
   }
@@ -22,7 +21,6 @@ export const getUserMiddleware = async (req, res, next) => {
     const { payload } = await jwtVerify(token, secret, {
       algorithms: ["HS256"]
     });
-
     if (Date.now() > payload.exp * 1000) {
       return res.status(401).json({ message: "Token Expired" });
     }

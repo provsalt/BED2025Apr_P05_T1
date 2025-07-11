@@ -32,7 +32,7 @@ export function Settings() {
   useEffect(() => {
     if (!auth) return;
 
-    fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user`)
+    fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me`)
       .then((user) => {
         setValue("name", user.name || "");
         setValue("email", user.email || "");
@@ -62,7 +62,7 @@ export function Settings() {
     data.append("avatar", selectedFile);
 
     try {
-      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/picture`, {
+      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/picture`, {
         method: "POST",
         body: data
       });
@@ -83,7 +83,7 @@ export function Settings() {
 
   async function handleDeletePicture() {
     try {
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/picture`, {
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/picture`, {
         method: "DELETE",
       });
       setProfilePictureUrl("");
@@ -103,7 +103,7 @@ export function Settings() {
     if (!userId) return;
 
     try {
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/${userId}`, {
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
@@ -133,7 +133,7 @@ export function Settings() {
     }
 
     try {
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/${userId}/password`, {
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
