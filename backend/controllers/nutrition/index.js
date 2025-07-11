@@ -3,7 +3,7 @@ import { createUploadMiddleware } from "../../middleware/upload.js";
 import { validateImageType } from "../../middleware/validateImage.js";
 import { resizeAndConvertImage } from "../../middleware/resizeAndConvertImage.js";
 import { compressImage } from "../../middleware/compression.js";
-import { uploadNutritionImage } from "./foodImageController.js";
+import { uploadNutritionImage, retrieveMeals, retrieveMealsById } from "./foodImageController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 
 const router = Router();
@@ -17,5 +17,10 @@ router.post(
 "/food/upload",getUserMiddleware,upload.single("image"),
 validateImageType,resizeAndConvertImage,compressImage,uploadNutritionImage
 );
+// Get route for fetching all meals for the user
+router.get("/food", getUserMiddleware, retrieveMeals);
+
+// Get route for fetching a specific meal by ID
+router.get("/food/:id", getUserMiddleware, retrieveMealsById);
 
 export default router;
