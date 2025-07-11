@@ -4,7 +4,8 @@ import {
   getUser,
   getUserByEmail,
   updateUser,
-  updateUserProfilePicture
+  updateUserProfilePicture,
+  getAllUsers
 } from "../../models/user/userModel.js";
 import { randomUUID } from "crypto";
 import { User } from "../../utils/validation/user.js";
@@ -12,6 +13,7 @@ import { SignJWT } from "jose";
 import { z } from "zod/v4";
 import bcrypt from "bcryptjs";
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
+import {deleteUser} from "../../models/admin/adminModel.js";
 
 export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
@@ -148,23 +150,22 @@ export const createUserController = async (req, res) => {
 }
 
 export const changePasswordController = async (req, res) => {
-  const userId = parseInt(req.params.id);
-  if (isNaN(userId)) {
-    return res.status(400).json({ error: "Invalid user ID" });
-  }
+  const userId = req.user.id;
   const { oldPassword, newPassword } = req.body;
 
   try {
     const user = await getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-    const valid = await bcrypt.compare(oldPassword, user.hashedPassword);
-
+    const valid = await bcrypt.compare(oldPassword, user.password);
     if (!valid) {
       return res.status(403).json({ error: "Old password is incorrect" });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const updated = await updateUser(userId, { hashedPassword });
+    const updated = await updateUser(userId, { password: hashedPassword });
 
     if (!updated) {
       return res.status(500).json({ error: "Failed to update password" });
@@ -228,3 +229,44 @@ export const deleteUserProfilePictureController = async (req, res) => {
     res.status(500).json({ error: "Failed to delete profile picture" });
   }
 };
+
+/**
+ * Delete user (Admin only)
+ */
+export const deleteUserController = async (req, res) => {
+  const { id: userId } = req.params; // Fix: use 'id' from params, not 'userId'
+
+  if (!userId || isNaN(userId)) {
+    return res.status(400).json({ error: "Invalid user ID" });
+  }
+
+  // Prevent admin from deleting themselves
+  if (parseInt(userId) === req.user.id) {
+    return res.status(400).json({ error: "Cannot delete your own account" });
+  }
+
+  try {
+    await deleteUser(parseInt(userId));
+    res.status(200).json({
+      message: "User deleted successfully",
+      deletedUserId: parseInt(userId)
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    if (error.message.includes("not found")) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(500).json({ error: "Error deleting user" });
+  }
+};
+
+export const getAllUsersController = async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Error fetching users" });
+  }
+};
+

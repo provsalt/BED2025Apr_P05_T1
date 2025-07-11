@@ -2,9 +2,9 @@ import userRouter from "./user/index.js";
 import chatRouter from "./chat/index.js";
 import nutritionRouter from "./nutrition/index.js";
 import s3Router from "./s3/index.js";
-import adminRouter from "./admin/index.js";
-import announcementRouter from "./admin/announcementcontroller.js";
+import medicalRouter from "./medical/index.js";
 import {Router} from "express";
+import announcementsRouter from "./announcements/index.js";
 
 /**
  * ApiController function setup api related routes for the application.
@@ -12,11 +12,11 @@ import {Router} from "express";
  */
 export const ApiController = () => {
   const router = Router();
-  router.use("/user", userRouter);
+  router.use("/users", userRouter);
   router.use("/chats", chatRouter);
   router.use("/nutrition", nutritionRouter);
   router.use("/s3", s3Router);
-  router.use("/admin", adminRouter);
-  router.use("/announcements", announcementRouter); // Add public announcements route
+  router.use("/medications", medicalRouter);
+  router.use("/announcements", announcementsRouter); // Add public announcements route
   return router;
 }

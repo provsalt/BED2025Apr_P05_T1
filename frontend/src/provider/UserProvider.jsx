@@ -10,33 +10,35 @@ export const UserProvider = ({ children }) => {
     isAuthenticated: false,
     role: null,
     data: null,
-    profile_picture_url: ""
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-
     if (typeof localStorage === "undefined") {
+      setIsLoading(false);
       return;
     }
 
     const token = localStorage.getItem("token");
     const parse = token ? decodeJwt(token) : null;
     if (!parse) {
+      setIsLoading(false);
       return;
     }
-    const isAuthenticated = !!token && parse && parse.exp > (Date.now() / 1000);
+    const isAuthenticated = !!token && parse && (Date.now() / 10000 ) < parse.exp;
     if (!isAuthenticated) {
-      setUser(undefined)
+      setUser(undefined);
+      setIsLoading(false);
       localStorage.removeItem("token");
       return;
     }
 
-    fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user/${parse.sub}`).then(data => {
+    fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me`).then(data => {
       setUser({
         id: parse.sub,
         token,
+        role: parse.role,
         isAuthenticated: true,
-        role: parse.role, 
         data: {
           name: data.name || "",
           email: data.email || "",
@@ -44,54 +46,54 @@ export const UserProvider = ({ children }) => {
           profile_picture_url: data.profile_picture_url || "",
         }
       })
+    }).finally(() => {
+      setIsLoading(false);
     })
   }, [])
 
 
   const updateUser = (newUserData) => {
     setUser(prev => ({ ...prev, ...newUserData }));
-    
+
     if (newUserData.token) {
       localStorage.setItem("token", newUserData.token);
     }
-    
+
     if (newUserData.isAuthenticated === false) {
       localStorage.removeItem("token");
       setUser({
         id: null,
         token: null,
         isAuthenticated: false,
-        role: null,
-        data: null,
-        profile_picture_url: ""
+        name: "",
       });
     }
   };
 
-const refreshUser = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) return;
+  const refreshUser = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-  try {
-    const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/user`);
+    try {
+      const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me`);
 
-  setUser((prev) => ({
-    ...prev,
-    data: {
-      ...prev.data,
-      name: res.name || "",
-      email: res.email || "",
-      language: res.language || "",
-      profile_picture_url: res.profile_picture_url || "",
-    },
-    }));
-  } catch (err) {
-    console.error("Failed to refresh user:", err);
-  }
-};
+      setUser((prev) => ({
+        ...prev,
+        data: {
+          ...prev.data,
+          name: res.name || "",
+          email: res.email || "",
+          language: res.language || "",
+          profile_picture_url: res.profile_picture_url || "",
+        },
+      }));
+    } catch (err) {
+      console.error("Failed to refresh user:", err);
+    }
+  };
 
   return (
-    <UserContext.Provider value={{ ...user, setUser: updateUser, refreshUser }}>
+    <UserContext.Provider value={{ ...user, isLoading, setUser: updateUser, refreshUser }}>
       {children}
     </UserContext.Provider>
   );

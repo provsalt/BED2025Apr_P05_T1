@@ -7,8 +7,6 @@ import {Input} from "@/components/ui/input.jsx";
 import {Button} from "@/components/ui/button.jsx";
 import {useForm} from "react-hook-form";
 import {UserContext} from "@/provider/UserContext.js";
-import { fetcher } from "@/lib/fetcher.js";
-
 
 export const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -21,14 +19,14 @@ export const Login = () => {
    * @param data
    */
   const onSubmit = async data => {
-    const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/user/login", {
+    const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/users/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         email: data.email,
-        password: data.password 
+        password: data.password
       })
     });
     if (res.ok) {
@@ -41,9 +39,6 @@ export const Login = () => {
       // Decode token to get user info
       const payload = JSON.parse(atob(resp.token.split('.')[1]));
       
-      console.log('Login successful, user payload:', payload);
-      console.log('User role:', payload.role);
-      
       auth.setUser({
         id: resp.id,
         token: resp.token,
@@ -53,11 +48,9 @@ export const Login = () => {
       
       // Redirect based on role
       if (payload.role === 'Admin') {
-        console.log('Redirecting admin to /admin');
-        setTimeout(() => navigate("/admin"), 1500);
+        setTimeout(() => navigate("/admin/dashboard"), 1500);
       } else {
-        console.log('Redirecting regular user to /medical');
-        setTimeout(() => navigate("/medical"), 1500);
+        setTimeout(() => navigate("/"), 1500);
       }
     } else {
       alert.error({

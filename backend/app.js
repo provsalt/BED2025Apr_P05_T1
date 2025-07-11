@@ -19,15 +19,13 @@ const io = new Server(server, {
     }
 });
 
-app.use(express.json())
 app.use(express.static("dist"))
 app.use(cors({
     origin: origins,
     credentials: true,
 }))
 
-// Apply metrics middleware
-app.use(metricsMiddleware)
+app.use(express.json())
 
 // Apply rate limiting globally
 app.use(defaultRateLimit)

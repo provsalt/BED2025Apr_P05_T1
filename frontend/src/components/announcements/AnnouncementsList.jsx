@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert } from '@/components/ui/alert';
-import { fetcher } from '@/lib/fetcher';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.jsx';
+import { Alert } from '@/components/ui/alert.jsx';
+import { fetcher } from '@/lib/fetcher.js';
 
 const AnnouncementsList = ({ isAdmin = false, onDelete, adminApiEndpoint }) => {
   const [announcements, setAnnouncements] = useState([]);
@@ -17,7 +17,6 @@ const AnnouncementsList = ({ isAdmin = false, onDelete, adminApiEndpoint }) => {
       setLoading(true);
       setError(null);
       const endpoint = adminApiEndpoint || `${import.meta.env.VITE_BACKEND_URL}/api/announcements`;
-      
       let data;
       if (isAdmin && adminApiEndpoint) {
         // For admin endpoints, use fetcher with auth
