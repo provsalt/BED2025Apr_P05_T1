@@ -50,7 +50,7 @@ export const Login = () => {
       if (payload.role === 'Admin') {
         setTimeout(() => navigate("/admin/dashboard"), 1500);
       } else {
-        setTimeout(() => navigate("/Home"), 1500);
+        setTimeout(() => navigate("/"), 1500);
       }
     } else {
       alert.error({

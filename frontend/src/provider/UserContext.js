@@ -6,5 +6,4 @@ export const UserContext = createContext({
   isAuthenticated: false,
   role: null,
   data: null,
-  role: null
 });

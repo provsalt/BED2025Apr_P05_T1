@@ -10,7 +10,6 @@ export const UserProvider = ({ children }) => {
     isAuthenticated: false,
     role: null,
     data: null,
-    profile_picture_url: ""
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -67,7 +66,6 @@ export const UserProvider = ({ children }) => {
         token: null,
         isAuthenticated: false,
         name: "",
-        profile_picture_url: ""
       });
     }
   };
