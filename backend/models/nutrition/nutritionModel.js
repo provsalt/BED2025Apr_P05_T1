@@ -2,7 +2,7 @@ import mssql from "mssql";
 import { dbConfig } from "../../config/db.js";
 
 // Create a new food meal in the database
-export const createmeal = async (mealData) => {
+export const createMeal = async (mealData) => {
   let connection;
   try {
     connection = await mssql.connect(dbConfig);
@@ -19,7 +19,6 @@ export const createmeal = async (mealData) => {
     request.input("fat", mssql.Decimal(5,2), Number(mealData.fat));
     request.input("calories", mssql.Decimal(5,2), Number(mealData.calories));
     request.input("ingredients", mssql.NVarChar, mealData.ingredients);
-    request.input("scanned_at", mssql.DateTime, mealData.scanned_at || new Date());
     request.input("image_url", mssql.NVarChar, mealData.image_url);
     request.input("user_id", mssql.Int, mealData.user_id);
     const result = await request.query(query);
@@ -69,11 +68,11 @@ export const getMealById = async (id) => {
 }
 
 // Get all meals for a user
-export const getMealsByUserId = async (userId) => {
+export const getAllMeals = async (userId) => {
   let connection;
   try {
     connection = await mssql.connect(dbConfig);
-    const query = "SELECT * FROM Meal WHERE user_id = @userId";
+    const query = "SELECT * FROM Meal WHERE user_id = @userId ORDER BY scanned_at DESC";
     const request = connection.request();
     request.input("userId", userId);
     const result = await request.query(query);

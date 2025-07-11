@@ -15,6 +15,8 @@ import {UserProvider} from "@/provider/UserProvider.jsx";
 import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
+import { MealsList } from "@/routes/nutrition/MealsList.jsx";
+import { MealDetail } from "@/routes/nutrition/MealDetail.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -36,6 +38,8 @@ createRoot(document.getElementById('root')).render(
                   </Route>
                   <Route path="/medical" element={<MedicalDashboard />} />
                   <Route path="/nutrition/food/upload" element={<FoodImageUpload/>} />
+                  <Route path="/nutrition/food" element={<MealsList/>} />
+                  <Route path="/nutrition/food/:id" element={<MealDetail/>} />
                 </Routes>
               </div>
             </div>
