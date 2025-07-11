@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "@/provider/UserContext";
 import { fetcher } from "@/lib/fetcher";
+import AnnouncementsList from "@/components/announcements/AnnouncementsList.jsx";
 import { Dashboard } from "@/components/home/Dashboard";
 import { Landing } from "@/components/home/Landing";
 
@@ -19,6 +20,9 @@ export const Home = () => {
   return (
     <div className="flex-1 bg-gray-50 text-gray-900">
       <div className="mx-auto px-6 py-12">
+        <AnnouncementsList
+          isAdmin={false}
+        />
         {isAuthenticated ? <Dashboard summary={summary} /> : <Landing />}
       </div>
     </div>

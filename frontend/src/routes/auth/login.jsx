@@ -7,8 +7,6 @@ import {Input} from "@/components/ui/input.jsx";
 import {Button} from "@/components/ui/button.jsx";
 import {useForm} from "react-hook-form";
 import {UserContext} from "@/provider/UserContext.js";
-import { fetcher } from "@/lib/fetcher.js";
-
 
 export const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -21,45 +19,39 @@ export const Login = () => {
    * @param data
    */
   const onSubmit = async data => {
-    const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/user/login", {
+    const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/users/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         email: data.email,
-        password: data.password 
+        password: data.password
       })
     });
     if (res.ok) {
       alert.success({
         title: "Success",
-        description: "Account created successfully. Redirecting...",
+        description: "Login successful. Redirecting...",
       });
       const resp = await res.json();
+      
+      // Decode token to get user info
+      const payload = JSON.parse(atob(resp.token.split('.')[1]));
+      
       auth.setUser({
         id: resp.id,
         token: resp.token,
-        isAuthenticated: true
+        isAuthenticated: true,
+        role: payload.role
       });
-
-    const userInfo = await fetcher(import.meta.env.VITE_BACKEND_URL + "/api/user", {
-      headers: { Authorization: `Bearer ${resp.token}` }
-    });
-
-
-    auth.setUser({
-      id: userInfo.id,
-      token: resp.token,
-      isAuthenticated: true,
-      data: {
-        name: userInfo.name || "",
-        email: userInfo.email || "",
-        language: userInfo.language || "",
-        profile_picture_url: userInfo.profile_picture_url || ""
-        }
-      });
-      setTimeout(() => navigate("/medical"), 3000);
+      
+      // Redirect based on role
+      if (payload.role === 'Admin') {
+        setTimeout(() => navigate("/admin/dashboard"), 1500);
+      } else {
+        setTimeout(() => navigate("/"), 1500);
+      }
     } else {
       alert.error({
         title: "Error",

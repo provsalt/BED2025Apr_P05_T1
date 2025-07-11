@@ -10,6 +10,7 @@ export const FoodImageUpload = () => {
   const [previewURL, setPreviewURL] = useState(null);
   const [showError, setShowError] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
   const alert = useAlert();
 
   const handleImageChange = (e) => {
@@ -18,6 +19,7 @@ export const FoodImageUpload = () => {
       setSelectedImage(file);
       setPreviewURL(URL.createObjectURL(file));
       setShowError(false);
+      setAnalysisResult(null); // Clear previous analysis
     }
   };
 
@@ -25,6 +27,7 @@ export const FoodImageUpload = () => {
     setSelectedImage(null);
     setPreviewURL(null);
     setShowError(false);
+    setAnalysisResult(null); // Clear analysis when removing image
   };
 
   const handleSubmit = async (e) => {
@@ -44,21 +47,14 @@ export const FoodImageUpload = () => {
         body: formData
       });
 
-      console.log("Upload successful:", response);
-      
-      // Show success message
       alert.success({
         title: "Upload Successful",
-        description: "Food image uploaded successfully! Image is ready for analysis.",
+        description: "Food image uploaded and analyzed successfully!",
       });
-      
-      // You can add success handling here, like showing the uploaded image URL
-      // or redirecting to analysis page
-      
+      if (response.analysis) {
+        setAnalysisResult(response.analysis);
+      }
     } catch (error) {
-      console.error("Error uploading image:", error);
-      
-      // Show error message
       alert.error({
         title: "Upload Failed",
         description: "Failed to upload image. Please try again.",
@@ -69,22 +65,81 @@ export const FoodImageUpload = () => {
     }
   };
 
+  // If analysisResult exists, show the result page
+  if (analysisResult) {
+    return (
+      <div className="flex-1 p-3 flex flex-col items-center justify-center">
+        <Card className="p-8 max-w-2xl w-full mx-auto bg-white space-y-6">
+          <h2 className="text-2xl font-bold text-center mb-6">Food Analysis Result</h2>
+          {previewURL && (
+            <div className="flex justify-center mb-6">
+              <img
+                src={previewURL}
+                alt="Food Preview"
+                className="max-h-64 rounded-lg border border-gray-300 shadow-md object-contain"
+              />
+            </div>
+          )}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="font-medium text-gray-800">Food Name</h4>
+                <p className="text-gray-600">{analysisResult.foodName || "-"}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800">Category</h4>
+                <p className="text-gray-600">{analysisResult.category || "-"}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800">Carbohydrates (g)</h4>
+                <p className="text-gray-600">{analysisResult.carbohydrates || "-"}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800">Protein (g)</h4>
+                <p className="text-gray-600">{analysisResult.protein || "-"}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800">Fat (g)</h4>
+                <p className="text-gray-600">{analysisResult.fat || "-"}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800">Calories</h4>
+                <p className="text-gray-600">{analysisResult.calories || "-"}</p>
+              </div>
+              <div className="md:col-span-2">
+                <h4 className="font-medium text-gray-800">Ingredients</h4>
+                <p className="text-gray-600">{Array.isArray(analysisResult.ingredients) ? analysisResult.ingredients.join(", ") : (analysisResult.ingredients || "-")}</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-center mt-8">
+            <Button onClick={() => {
+              setAnalysisResult(null);
+              setSelectedImage(null);
+              setPreviewURL(null);
+            }} className="px-6 py-2 text-base font-semibold">
+              Upload Another Image
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Default upload page
   return (
     <div className="min-h-screen p-3">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-8">Nutrition</h1>
-        
+        <h1 onClick={() => {window.location.href = "/nutrients";}} className=" cursor-pointer text-2xl font-bold mb-8 text-center">Nutrition</h1>
         <Card className="p-8 max-w-2xl mx-auto bg-white space-y-6">
           <h2 className="text-xl font-bold text-center">Upload Food Image</h2>
-
           {/* Information section */}
           <div className="text-center space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800">Why Scan Your Food?</h3>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Scanning your meal helps you instantly understand what you're eating. Get accurate details about calories, protein, carbohydrates, and fats — so you can make smarter choices for your health, track your diet easily, and stay informed without the guesswork.
+              Scanning your meal helps you instantly understand what you're eating. Get accurate details about calories, protein, carbohydrates, and fats all so you can make smarter choices for your health, track your diet easily, and stay informed without the guesswork.
             </p>
           </div>
-
           <div className="space-y-6">
             <div className="flex justify-center">
               <div className="relative">
@@ -143,11 +198,9 @@ export const FoodImageUpload = () => {
                 )}
               </div>
             </div>
-            
             {showError && (
               <p className="text-red-500 text-sm text-center">No File Chosen</p>
             )}
-
             <div className="flex justify-center">
               <Button
                 onClick={handleSubmit}

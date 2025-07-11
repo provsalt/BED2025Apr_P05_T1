@@ -17,6 +17,9 @@ import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 import {MedicationReminderForm} from '@/routes/medical/medicalCreateForm.jsx';
 import { MedicationRemindersList } from '@/routes/medical/MedicationRemindersList.jsx';
+import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
+import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
+
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -40,6 +43,11 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/medical/create" element={<MedicationReminderForm />} />
                   <Route path="/medical/reminders" element={<MedicationRemindersList />} />
                   <Route path="/nutrition/food/upload/*" element={<FoodImageUpload/>} />
+                  <Route path="/admin" element={
+                    <AdminProtectedRoute>
+                      <AdminDashboard />
+                    </AdminProtectedRoute>
+                  } />
                 </Routes>
 
               </div>
