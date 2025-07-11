@@ -155,8 +155,11 @@ export const changePasswordController = async (req, res) => {
 
   try {
     const user = await getUser(userId);
-    const valid = await bcrypt.compare(oldPassword, user.password);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
+    const valid = await bcrypt.compare(oldPassword, user.password);
     if (!valid) {
       return res.status(403).json({ error: "Old password is incorrect" });
     }
