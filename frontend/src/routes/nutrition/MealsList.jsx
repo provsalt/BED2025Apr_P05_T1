@@ -12,7 +12,7 @@ export const MealsList = () => {
   useEffect(() => {
     const fetchMeals = async () => {
       try {
-        const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/food`);
+        const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition`);
         setMeals(res.meals || []);
       } catch (err) {
         setError(err.message || "Failed to fetch meals");
@@ -26,10 +26,10 @@ export const MealsList = () => {
   if (loading) return <div>Loading meals...</div>;
   if (error) return <div style={{ color: "red" }}>{error}</div>;
   if (!meals.length) return (
-    <div className="flex items-center justify-center py-20 text-gray-500 text-xl font-semibold">
-      No Meals Scanned
-      <div>
-          <Link to="/nutrition/food/upload" className="ml-4">
+    <div className="flex flex-col items-center justify-center py-20 text-gray-500 text-xl font-semibold">
+      <div>No Meals Scanned</div>
+      <div className="mt-4">
+          <Link to="/nutrition/upload">
           <Button className="cursor-pointer">
             Upload Image
           </Button>
@@ -43,7 +43,7 @@ export const MealsList = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-left">Your Meals</h1>
-          <Link to="/nutrition/food/upload" className="ml-4">
+          <Link to="/nutrition/upload" className="ml-4">
           <Button className="cursor-pointer">
             Upload Image
           </Button>
@@ -52,17 +52,16 @@ export const MealsList = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {meals.map((meal) => (
             <Link
-              to={`/nutrition/food/${meal.id}`}
+              to={`/nutrition/${meal.id}`}
               className="inline-block mt-3 text-gray-600 hover:text-gray-800 font-medium overflow-hidden"
               key={meal.id}
             >
-              <Card className="flex flex-col w-full min-w-[280px] max-w-[400px] mx-auto overflow-hidden transition-shadow hover:shadow-lg">
-                <div className="w-full flex justify-center items-center" style={{ minHeight: 120, maxHeight: 200 }}>
+              <Card className="flex flex-col h-96 w-full min-w-[280px] max-w-[400px] mx-auto overflow-hidden transition-shadow hover:shadow-lg">
+                <div className="h-48 w-full flex justify-center items-center">
                   <img 
                     src={meal.image_url} 
                     alt={meal.name} 
-                    className="object-contain max-h-[180px] w-auto mx-auto rounded-md"
-                    style={{ maxWidth: '100%' }}
+                    className="object-contain max-h-44 max-w-full rounded-md"
                   />
                 </div>
                 <div className="flex-1 p-4 flex flex-col justify-between">

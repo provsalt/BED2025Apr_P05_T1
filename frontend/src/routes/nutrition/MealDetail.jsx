@@ -13,7 +13,7 @@ export const MealDetail = () => {
   useEffect(() => {
     const fetchMeal = async () => {
       try {
-        const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/food/${id}`);
+        const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/${id}`);
         setMeal(res.meal);
       } catch (err) {
         setError(err.message || "Failed to fetch meal");
@@ -32,7 +32,7 @@ export const MealDetail = () => {
     <div className="p-3">
       <div className="max-w-4xl mx-auto">
         <Card className="overflow-hidden relative">
-          <Link to="/nutrition/food" className="absolute top-4 left-4 z-10">
+          <Link to="/nutrition" className="absolute top-4 left-4 z-10">
             <CircleChevronLeft size={32} className="hover:text-gray-700 transition-colors cursor-pointer" />
           </Link>
           <div className="w-full flex justify-center items-center mb-6">

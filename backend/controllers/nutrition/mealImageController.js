@@ -36,12 +36,12 @@ export const uploadNutritionImage = async (req, res) => {
     }
 
     const mealData = {
-      name: analysisResult.foodName,
-      category: analysisResult.category,
-      carbohydrates: Number(analysisResult.carbohydrates),
-      protein: Number(analysisResult.protein),
-      fat: Number(analysisResult.fat),
-      calories: Number(analysisResult.calories),
+      name: analysisResult.foodName || "Unknown Food",
+      category: analysisResult.category || "Unknown",
+      carbohydrates: Number(analysisResult.carbohydrates) || 0,
+      protein: Number(analysisResult.protein) || 0,
+      fat: Number(analysisResult.fat) || 0,
+      calories: Math.ceil(Number(analysisResult.calories) || 0), // Round up to nearest whole number
       ingredients: Array.isArray(analysisResult.ingredients)
         ? analysisResult.ingredients.join(", ")
         : (analysisResult.ingredients || ""),
@@ -58,7 +58,8 @@ export const uploadNutritionImage = async (req, res) => {
         analysis: analysisResult
       });
     } catch (err) {
-      res.status(500).json({ error: "Failed to upload food image" });
+      console.error("Database error:", err);
+      res.status(500).json({ error: "Failed to upload food image: " + err.message });
     }
   } catch (err) {
     res.status(500).json({ error: "Failed to upload food image" });
