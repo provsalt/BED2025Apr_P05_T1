@@ -23,7 +23,7 @@ export async function sendReminderEmail(reminder) {
       subject,
       html,
     });
-    console.log('Email sent attempted for:', reminder.email, 'Result:', result);
+    console.log('Email sent:', reminder.email, 'Result:', result);
     return true;
   } catch (err) {
     console.error('Email send failed:', err);
