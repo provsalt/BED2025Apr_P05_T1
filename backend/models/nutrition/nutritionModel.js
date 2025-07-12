@@ -91,3 +91,60 @@ export const getAllMeals = async (userId) => {
     }
   }
 }
+
+// Delete a meal by its ID
+export const deleteMeal = async (id) => {
+  let connection;
+  try {
+    connection = await mssql.connect(dbConfig);
+    const query = "DELETE FROM Meal WHERE id = @id";
+    const request = connection.request();
+    request.input("id", id);
+
+    await request.query(query);
+  } catch (error) {
+    console.error("Database error:", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
+
+//Update a meal by its ID
+export const updateMeal = async(id, mealData) => {
+  let connection;
+  try {
+    connection = await mssql.connect(dbConfig);
+    const query =
+      "UPDATE Meal SET name = @name, category = @category, carbohydrates = @carbohydrates, protein = @protein, fat = @fat, calories = @calories, ingredients = @ingredients WHERE id = @id";
+      const request = connection.request();
+    request.input("id", id);
+    request.input("name", mssql.NVarChar, mealData.name);
+    request.input("category", mssql.NVarChar, mealData.category);
+    request.input("carbohydrates", mssql.Decimal(5,2), Number(mealData.carbohydrates));
+    request.input("protein", mssql.Decimal(5,2), Number(mealData.protein));
+    request.input("fat", mssql.Decimal(5,2), Number(mealData.fat));
+    request.input("calories", mssql.Decimal(6,2), Number(mealData.calories));
+    request.input("ingredients", mssql.NVarChar, mealData.ingredients);
+    await request.query(query);
+
+    return await getMealById(id); // Return the updated meal
+  } catch (error) {
+    console.error("Database error:", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
