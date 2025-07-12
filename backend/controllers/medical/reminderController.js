@@ -58,36 +58,24 @@ function timeToHHMM(dt) {
 }
 
 export async function checkAndSendReminders() {
-  console.log('Running reminder check at', DateTime.now().setZone('Asia/Singapore').toISO());
   try {
     const reminders = await getAllRemindersWithUsers();
-    console.log('Fetched reminders:', reminders.length);
     const now = DateTime.now().setZone('Asia/Singapore');
     const todayKey = getTodayKey();
 
     for (const reminder of reminders) {
-      // Debug log for raw medicine_time value
-      console.log(`DEBUG: Reminder ID ${reminder.id} raw medicine_time:`, reminder.medicine_time);
       const reminderId = reminder.id;
       if (!sentReminders[todayKey]) sentReminders[todayKey] = {};
       if (!sentReminders[todayKey][reminderId]) sentReminders[todayKey][reminderId] = [];
 
       const reminderTimes = getReminderTimes(reminder.medicine_time, reminder.frequency_per_day);
-      console.log(`Reminder ID ${reminderId} times:`, reminderTimes.map(t => t.toFormat('HH:mm:ss ZZZZ')));
       for (const time of reminderTimes) {
-        console.log(
-          `Now: ${now.toFormat('HH:mm')} | Reminder: ${time.toFormat('HH:mm')} | Reminder ID: ${reminderId}`
-        );
         if (now.hour === time.hour && now.minute === time.minute) {
           const hhmm = timeToHHMM(time);
-          console.log('Time matched for reminder:', reminderId, 'at', hhmm);
           if (!sentReminders[todayKey][reminderId].includes(hhmm)) {
-            console.log('Sending email reminder:', reminderId, 'to', reminder.email);
             await sendReminderEmail(reminder);
             sentReminders[todayKey][reminderId].push(hhmm);
-          } else {
-            console.log('Already sent for this time:', hhmm, 'reminder:', reminderId);
-          }
+          } 
         }
       }
     }

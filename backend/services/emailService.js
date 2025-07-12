@@ -16,14 +16,12 @@ export async function sendReminderEmail(reminder) {
       Dosage: ${reminder.dosage}<br/>
       Reason: ${reminder.reason}
     </p>`;
-    console.log('Attempting to send email to:', reminder.email);
     const result = await resend.emails.send({
       from: 'Eldercare <noreply@ngeeann.zip >',
       to: Array.isArray(reminder.email) ? reminder.email : [reminder.email],
       subject,
       html,
     });
-    console.log('Email sent:', reminder.email, 'Result:', result);
     return true;
   } catch (err) {
     console.error('Email send failed:', err);
