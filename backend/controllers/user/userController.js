@@ -5,11 +5,10 @@ import {
   getUserByEmail,
   updateUser,
   updateUserProfilePicture,
-  getAllUsers,
   insertLoginHistory 
 } from "../../models/user/userModel.js";
 import {randomUUID} from "crypto";
-import {User} from "../../utils/validation/user.js";
+import {User, Password} from "../../utils/validation/user.js";
 import {SignJWT} from "jose";
 import {z} from "zod/v4";
 import bcrypt from "bcryptjs";
@@ -354,7 +353,7 @@ export const changePasswordController = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   const validation = z.object({
     oldPassword: z.string().min(1, "Old password is required"),
-    newPassword: ChangePassword,
+    newPassword: Password,
   }).safeParse({oldPassword, newPassword});
   if (!validation.success) {
     return res.status(400).json({

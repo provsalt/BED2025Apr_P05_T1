@@ -105,7 +105,25 @@ export function Settings() {
       alert.success({ title: "Password Updated", description: "Your password was changed successfully." });
       setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err) {
-      alert.error({ title: "Password Update Failed", description: "Incorrect old password or server error." });
+      let errorMessage = "Password update failed.";
+      
+      // Parse error response to get specific error message
+      try {
+        const errorMatch = err.message.match(/Error fetching: (.+)/);
+        if (errorMatch) {
+          const errorText = errorMatch[1];
+          const errorData = JSON.parse(errorText);
+          
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        }
+      } catch (parseError) {
+        // If parsing fails, use generic message
+        errorMessage = "Password update failed. Please try again.";
+      }
+      
+      alert.error({ title: "Password Update Failed", description: errorMessage });
     }
   }
 
