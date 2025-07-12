@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { User, Settings, LogOut } from "lucide-react";
+import "@/components/ui/profileRing.css";
 
 export const Navbar = () => {
   const { isAuthenticated, data, setUser } = useContext(UserContext);
@@ -33,12 +34,11 @@ export const Navbar = () => {
 
   return (
     <nav className="flex items-center justify-between px-6 py-4 shadow-md bg-white">
-      <div className="text-lg font-bold text-black">
+      <div className="text-2xl font-bold text-black">
         <Link to="/">ElderCare</Link>
       </div>
 
       <div className="flex items-center gap-4">
-
         {isAuthenticated && (
           links.map((link) => (
             <Link
@@ -52,7 +52,6 @@ export const Navbar = () => {
         )}
 
         {isAuthenticated ? (
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div
@@ -99,9 +98,14 @@ export const Navbar = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button asChild>
-            <Link to="/login" className="text-base font-semibold text-black">Login</Link>
-          </Button>
+          <>
+            <Button variant="ghost" asChild className="text-base font-semibold text-black hover:bg-purple-100 rounded-md transition">
+              <Link to="/login" className="text-base font-semibold text-black">Login</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/signup" className="text-base font-semibold">Sign Up</Link>
+            </Button>
+          </>
         )}
       </div>
     </nav>
