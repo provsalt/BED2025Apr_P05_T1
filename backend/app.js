@@ -18,6 +18,8 @@ const io = new Server(server, {
     }
 });
 
+app.set("trust proxy", 1);
+
 app.use(express.static("dist"))
 app.use(cors({
     origin: origins,
