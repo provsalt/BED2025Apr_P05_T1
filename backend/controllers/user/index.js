@@ -13,7 +13,7 @@ import {
   getAllUsersController
 } from "./userController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
-import { createUploadMiddleware } from "../../middleware/upload.js";
+import { profilePictureUpload } from "../../middleware/upload.js";
 import { compressImage } from "../../middleware/compression.js";
 import { authRateLimit } from "../../middleware/rateLimit.js";
 import {
@@ -35,20 +35,19 @@ router.get("/me", getUserMiddleware, getCurrentUserController);
 // Shun Xiang user's login history
 router.get("/login-history", getUserMiddleware, getUserLoginHistoryController);
 
+// Shun Xiang change password, upload profile picture, delete profile picture, user's login history
+router.put("/password", getUserMiddleware, changePasswordController);
+router.post("/me/picture", getUserMiddleware, profilePictureUpload, compressImage, uploadUserProfilePictureController);
+router.delete("/me/picture", getUserMiddleware, deleteUserProfilePictureController);
+
 // Shun Xiang get by id, update user
 router.get("/:id", getUserController);
 router.put("/:id", getUserMiddleware, updateUserController);
+
 // Dylan delete user,
 router.delete("/:id", getUserMiddleware, authorizeRole(["Admin"]), deleteUserController);
 router.put("/:id/role", getUserMiddleware, authorizeRole(["Admin"]), updateUserRoleController);
 
-// Shun Xiang change password, upload profile picture, delete profile picture, user's login history
-router.put("/password", getUserMiddleware, changePasswordController);
-router.post("/me/picture", getUserMiddleware, createUploadMiddleware({
-  allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
-  fileSize: 8 * 1024 * 1024,
-}).single("avatar"), compressImage, uploadUserProfilePictureController);
-router.delete("/me/picture", getUserMiddleware, deleteUserProfilePictureController);
 
 // Dylan get users by role, bulk update user roles (admin only)
 router.get("/role/:role", getUserMiddleware, authorizeRole(["Admin"]), getUsersByRoleController);

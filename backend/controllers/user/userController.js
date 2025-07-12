@@ -122,7 +122,14 @@ export const loginUserController = async (req, res) => {
     .sign(secret);
   res.status(200).json({
     id: user.id,
-    token: tok
+    token: tok,
+    name: user.name,
+    email: user.email,
+    profile_picture_url: user.profile_picture_url,
+    gender: user.gender,
+    date_of_birth: user.date_of_birth,
+    language: user.language,
+    role: user.role
   });
 }
 
@@ -144,7 +151,14 @@ export const createUserController = async (req, res) => {
           .sign(secret);
         res.status(201).json({
           id: newUser.id,
-          token: tok
+          token: tok,
+          name: newUser.name,
+          email: newUser.email,
+          profile_picture_url: newUser.profile_picture_url,
+          gender: newUser.gender,
+          date_of_birth: newUser.date_of_birth,
+          language: newUser.language,
+          role: newUser.role
         });
     } catch (error) {
         res.status(500).json({ error: "Error creating user" });
