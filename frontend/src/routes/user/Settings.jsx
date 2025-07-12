@@ -95,7 +95,7 @@ export function Settings() {
     }
 
     try {
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/password`, {
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"

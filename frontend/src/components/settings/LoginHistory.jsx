@@ -12,7 +12,7 @@ export const LoginHistory = () => {
   const userZoneAbbr = DateTime.local().toFormat('ZZZZ');
 
   useEffect(() => {
-    fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/login-history`)
+    fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/login-history`)
       .then((data) => {
         setLoginHistory(data);
       })

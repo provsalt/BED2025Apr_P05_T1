@@ -121,15 +121,17 @@ export const loginUserController = async (req, res) => {
     .setExpirationTime("1d")
     .sign(secret);
   res.status(200).json({
-    id: user.id,
-    token: tok,
-    name: user.name,
-    email: user.email,
-    profile_picture_url: user.profile_picture_url,
-    gender: user.gender,
-    date_of_birth: user.date_of_birth,
-    language: user.language,
-    role: user.role
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      profile_picture_url: user.profile_picture_url,
+      gender: user.gender,
+      date_of_birth: user.date_of_birth,
+      language: user.language,
+      role: user.role
+    },
+    token: tok
   });
 }
 
@@ -150,15 +152,17 @@ export const createUserController = async (req, res) => {
           .setExpirationTime("1d")
           .sign(secret);
         res.status(201).json({
-          id: newUser.id,
-          token: tok,
-          name: newUser.name,
-          email: newUser.email,
-          profile_picture_url: newUser.profile_picture_url,
-          gender: newUser.gender,
-          date_of_birth: newUser.date_of_birth,
-          language: newUser.language,
-          role: newUser.role
+          user: {
+            id: newUser.id,
+            name: newUser.name,
+            email: newUser.email,
+            profile_picture_url: newUser.profile_picture_url,
+            gender: newUser.gender,
+            date_of_birth: newUser.date_of_birth,
+            language: newUser.language,
+            role: newUser.role
+          },
+          token: tok
         });
     } catch (error) {
         res.status(500).json({ error: "Error creating user" });
