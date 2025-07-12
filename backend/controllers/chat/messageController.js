@@ -2,6 +2,39 @@ import {getMessages, createMessage, getMessage, updateMessage, deleteMessage} fr
 import {getChat, updateChatTimestamp} from "../../models/chat/chatModel.js";
 import {broadcastMessageCreated, broadcastMessageUpdated, broadcastMessageDeleted} from "../../utils/websocket.js";
 
+/**
+ * @openapi
+ * /api/chats/{chatId}:
+ *   get:
+ *     tags:
+ *       - Chat
+ *     summary: Get all messages in a chat
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: A list of messages
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Message'
+ *       400:
+ *         description: Chat ID is required
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: No messages found for this chat
+ *       500:
+ *         description: Internal server error
+ */
 export const getChatMessagesController = async (req, res) => {
   if (!req.user) {
     return res.status(401).json({"message": "Unauthorized"});
@@ -24,6 +57,53 @@ export const getChatMessagesController = async (req, res) => {
   }
 }
 
+/**
+ * @openapi
+ * /api/chats/{chatId}:
+ *   post:
+ *     tags:
+ *       - Chat
+ *     summary: Create a new message in a chat
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Message sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 messageId:
+ *                   type: integer
+ *       400:
+ *         description: Chat ID and message are required
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: You are not authorized to send messages in this chat
+ *       404:
+ *         description: Chat not found
+ *       500:
+ *         description: Internal server error
+ */
 export const createMessageController = async (req, res) => {
   if (!req.user) {
     return res.status(401).json({"message": "Unauthorized"});
@@ -61,6 +141,49 @@ export const createMessageController = async (req, res) => {
   }
 }
 
+/**
+ * @openapi
+ * /api/chats/{chatId}/{messageId}:
+ *   put:
+ *     tags:
+ *       - Chat
+ *     summary: Update a message
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Message updated successfully
+ *       400:
+ *         description: Chat ID, message ID, and message are required
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: You can only edit your own messages
+ *       404:
+ *         description: Chat or message not found
+ *       500:
+ *         description: Internal server error
+ */
 export const updateMessageController = async (req, res) => {
   if (!req.user) {
     return res.status(401).json({"message": "Unauthorized"});
@@ -108,6 +231,40 @@ export const updateMessageController = async (req, res) => {
   }
 }
 
+/**
+ * @openapi
+ * /api/chats/{chatId}/{messageId}:
+ *   delete:
+ *     tags:
+ *       - Chat
+ *     summary: Delete a message
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Message deleted successfully
+ *       400:
+ *         description: Chat ID and message ID are required
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: You can only delete your own messages
+ *       404:
+ *         description: Chat or message not found
+ *       500:
+ *         description: Internal server error
+ */
 export const deleteMessageController = async (req, res) => {
   if (!req.user) {
     return res.status(401).json({"message": "Unauthorized"});

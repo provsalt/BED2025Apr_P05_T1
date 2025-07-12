@@ -6,8 +6,7 @@ import {socketAuthMiddleware} from "./middleware/socketAuth.js";
 import {setIO} from "./config/socket.js";
 import cors from "cors";
 import { defaultRateLimit } from "./middleware/rateLimit.js";
-import { metricsHandler } from "./config/metrics.js";
-import { metricsMiddleware } from "./middleware/metrics.js";
+import {initSwagger} from "./swagger/swagger.js";
 
 const app = express();
 const server = createServer(app);
@@ -18,6 +17,8 @@ const io = new Server(server, {
         methods: ["GET", "POST"]
     }
 });
+
+app.set("trust proxy", 1);
 
 app.use(express.static("dist"))
 app.use(cors({
@@ -34,6 +35,8 @@ app.use(defaultRateLimit)
 app.get('/metrics', metricsHandler)
 
 app.use("/api", ApiController())
+
+initSwagger(app);
 
 setIO(io);
 
