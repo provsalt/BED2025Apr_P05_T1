@@ -2,7 +2,7 @@ import mssql from "mssql";
 import { dbConfig } from "../../config/db.js";
 
 // Create a new food meal in the database
-export const createmeal = async (mealData) => {
+export const createMeal = async (mealData) => {
   let connection;
   try {
     connection = await mssql.connect(dbConfig);
@@ -17,9 +17,8 @@ export const createmeal = async (mealData) => {
     request.input("carbohydrates", mssql.Decimal(5,2), Number(mealData.carbohydrates));
     request.input("protein", mssql.Decimal(5,2), Number(mealData.protein));
     request.input("fat", mssql.Decimal(5,2), Number(mealData.fat));
-    request.input("calories", mssql.Decimal(5,2), Number(mealData.calories));
+    request.input("calories", mssql.Decimal(6,2), Number(mealData.calories));
     request.input("ingredients", mssql.NVarChar, mealData.ingredients);
-    request.input("scanned_at", mssql.DateTime, mealData.scanned_at || new Date());
     request.input("image_url", mssql.NVarChar, mealData.image_url);
     request.input("user_id", mssql.Int, mealData.user_id);
     const result = await request.query(query);
@@ -69,16 +68,73 @@ export const getMealById = async (id) => {
 }
 
 // Get all meals for a user
-export const getMealsByUserId = async (userId) => {
+export const getAllMeals = async (userId) => {
   let connection;
   try {
     connection = await mssql.connect(dbConfig);
-    const query = "SELECT * FROM Meal WHERE user_id = @userId";
+    const query = "SELECT * FROM Meal WHERE user_id = @userId ORDER BY scanned_at DESC";
     const request = connection.request();
     request.input("userId", userId);
     const result = await request.query(query);
 
     return result.recordset;
+  } catch (error) {
+    console.error("Database error:", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
+
+// Delete a meal by its ID
+export const deleteMeal = async (id) => {
+  let connection;
+  try {
+    connection = await mssql.connect(dbConfig);
+    const query = "DELETE FROM Meal WHERE id = @id";
+    const request = connection.request();
+    request.input("id", id);
+
+    await request.query(query);
+  } catch (error) {
+    console.error("Database error:", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
+
+//Update a meal by its ID
+export const updateMeal = async(id, mealData) => {
+  let connection;
+  try {
+    connection = await mssql.connect(dbConfig);
+    const query =
+      "UPDATE Meal SET name = @name, category = @category, carbohydrates = @carbohydrates, protein = @protein, fat = @fat, calories = @calories, ingredients = @ingredients WHERE id = @id";
+      const request = connection.request();
+    request.input("id", id);
+    request.input("name", mssql.NVarChar, mealData.name);
+    request.input("category", mssql.NVarChar, mealData.category);
+    request.input("carbohydrates", mssql.Decimal(5,2), Number(mealData.carbohydrates));
+    request.input("protein", mssql.Decimal(5,2), Number(mealData.protein));
+    request.input("fat", mssql.Decimal(5,2), Number(mealData.fat));
+    request.input("calories", mssql.Decimal(6,2), Number(mealData.calories));
+    request.input("ingredients", mssql.NVarChar, mealData.ingredients);
+    await request.query(query);
+
+    return await getMealById(id); // Return the updated meal
   } catch (error) {
     console.error("Database error:", error);
     throw error;

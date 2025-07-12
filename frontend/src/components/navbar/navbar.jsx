@@ -38,7 +38,6 @@ export const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-4">
-
         {isAuthenticated && (
           links.map((link) => (
             <Link
@@ -52,7 +51,6 @@ export const Navbar = () => {
         )}
 
         {isAuthenticated ? (
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div
@@ -99,9 +97,14 @@ export const Navbar = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button asChild>
-            <Link to="/login" className="text-base font-semibold text-black">Login</Link>
-          </Button>
+          <>
+            <Button variant="ghost" asChild className="text-base font-semibold text-black hover:bg-purple-100 rounded-md transition">
+              <Link to="/login" className="text-base font-semibold text-black">Login</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/signup" className="text-base font-semibold">Sign Up</Link>
+            </Button>
+          </>
         )}
       </div>
     </nav>
