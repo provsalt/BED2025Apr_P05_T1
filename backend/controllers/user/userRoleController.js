@@ -1,7 +1,41 @@
 import { updateUserRole, getUsersByRole, bulkUpdateUserRoles } from "../../models/admin/adminModel.js";
 
 /**
- * Update user role (Admin only)
+ * @openapi
+ * /api/users/{id}/role:
+ *   put:
+ *     tags:
+ *       - User
+ *     summary: Update user role
+ *     description: Update a user's role. This is an admin-only action.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The user's ID.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 enum: [User, Admin]
+ *     responses:
+ *       200:
+ *         description: User role updated successfully
+ *       400:
+ *         description: Invalid user ID or role
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Error updating user role
  */
 export const updateUserRoleController = async (req, res) => {
     const { id: userId } = req.params; // Fix: use 'id' from params, not 'userId'
@@ -38,7 +72,36 @@ export const updateUserRoleController = async (req, res) => {
 };
 
 /**
- * Get users by role (Admin only)
+ * @openapi
+ * /api/users/role/{role}:
+ *   get:
+ *     tags:
+ *       - User
+ *     summary: Get users by role
+ *     description: Get a list of users by their role. This is an admin-only action.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: role
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [user, admin]
+ *         description: The role to filter by.
+ *     responses:
+ *       200:
+ *         description: A list of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid role
+ *       500:
+ *         description: Error fetching users by role
  */
 export const getUsersByRoleController = async (req, res) => {
     let { role } = req.params;
@@ -58,7 +121,39 @@ export const getUsersByRoleController = async (req, res) => {
 };
 
 /**
- * Bulk update user roles (Admin only)
+ * @openapi
+ * /api/users/role/bulk:
+ *   put:
+ *     tags:
+ *       - User
+ *     summary: Bulk update user roles
+ *     description: Bulk update the roles of multiple users. This is an admin-only action.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userRoleUpdates:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: integer
+ *                     role:
+ *                       type: string
+ *                       enum: [User, Admin]
+ *     responses:
+ *       200:
+ *         description: User roles updated successfully
+ *       400:
+ *         description: Invalid user role updates array
+ *       500:
+ *         description: Error updating user roles
  */
 export const bulkUpdateUserRolesController = async (req, res) => {
     const { userRoleUpdates } = req.body;

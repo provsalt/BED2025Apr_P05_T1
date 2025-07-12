@@ -17,7 +17,7 @@ import {deleteUser} from "../../models/admin/adminModel.js";
 
 /**
  * @openapi
- * /api/user:
+ * /api/users/me:
  *   get:
  *     tags:
  *       - User
@@ -65,7 +65,7 @@ export const getCurrentUserController = async (req, res) => {
 
 /**
  * @openapi
- * /api/user/{id}:
+ * /api/users/{id}:
  *   get:
  *     tags:
  *       - User
@@ -114,7 +114,7 @@ export const getUserController = async (req, res) => {
 
 /**
  * @openapi
- * /api/user/{id}:
+ * /api/users/{id}:
  *   put:
  *     tags:
  *       - User
@@ -179,7 +179,7 @@ export const updateUserController = async (req, res) => {
 
 /**
  * @openapi
- * /api/user/login:
+ * /api/users/login:
  *   post:
  *     tags:
  *       - User
@@ -245,7 +245,7 @@ export const loginUserController = async (req, res) => {
 
 /**
  * @openapi
- * /api/user:
+ * /api/users:
  *   post:
  *     tags:
  *       - User
@@ -301,7 +301,7 @@ export const createUserController = async (req, res) => {
 
 /**
  * @openapi
- * /api/user/password:
+ * /api/users/password:
  *   put:
  *     tags:
  *       - User
@@ -361,7 +361,7 @@ export const changePasswordController = async (req, res) => {
 
 /**
  * @openapi
- * /api/user/picture:
+ * /api/users/me/picture:
  *   post:
  *     tags:
  *       - User
@@ -429,7 +429,7 @@ export const uploadUserProfilePictureController = async (req, res) => {
 
 /**
  * @openapi
- * /api/user/picture:
+ * /api/users/me/picture:
  *   delete:
  *     tags:
  *       - User
@@ -467,7 +467,31 @@ export const deleteUserProfilePictureController = async (req, res) => {
 };
 
 /**
- * Delete user (Admin only)
+ * @openapi
+ * /api/users/{id}:
+ *   delete:
+ *     tags:
+ *       - User
+ *     summary: Delete user by ID
+ *     description: Delete a user's account by their ID. This is an admin-only action.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The user's ID.
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       400:
+ *         description: Invalid user ID or trying to delete own account
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Error deleting user
  */
 export const deleteUserController = async (req, res) => {
   const { id: userId } = req.params; // Fix: use 'id' from params, not 'userId'
@@ -496,6 +520,28 @@ export const deleteUserController = async (req, res) => {
   }
 };
 
+/**
+ * @openapi
+ * /api/users:
+ *   get:
+ *     tags:
+ *       - User
+ *     summary: Get all users
+ *     description: Get a list of all users. This is an admin-only action.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Error fetching users
+ */
 export const getAllUsersController = async (req, res) => {
   try {
     const users = await getAllUsers();

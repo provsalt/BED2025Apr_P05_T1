@@ -9,7 +9,6 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { User, Settings, LogOut } from "lucide-react";
-import "@/components/ui/profileRing.css";
 
 export const Navbar = () => {
   const { isAuthenticated, data, setUser } = useContext(UserContext);
@@ -34,7 +33,7 @@ export const Navbar = () => {
 
   return (
     <nav className="flex items-center justify-between px-6 py-4 shadow-md bg-white">
-      <div className="text-2xl font-bold text-black">
+      <div className="text-lg font-bold text-black">
         <Link to="/">ElderCare</Link>
       </div>
 
