@@ -7,6 +7,7 @@ import {setIO} from "./config/socket.js";
 import cors from "cors";
 import { defaultRateLimit } from "./middleware/rateLimit.js";
 import {initSwagger} from "./swagger/swagger.js";
+import {metricsHandler} from "./config/metrics.js";
 
 const app = express();
 const server = createServer(app);
