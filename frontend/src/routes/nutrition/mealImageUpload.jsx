@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import {Button} from "@/components/ui/button.jsx";
 import {Card} from "@/components/ui/card.jsx";
-import { fetcher } from "@/lib/fetcher.js";
-import { useAlert } from "@/provider/AlertProvider.jsx";
-import { X } from "lucide-react";
+import {fetcher} from "@/lib/fetcher.js";
+import {useAlert} from "@/provider/AlertProvider.jsx";
+import {X} from "lucide-react";
 
-export const FoodImageUpload = () => {
+export const MealImageUpload = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewURL, setPreviewURL] = useState(null);
   const [showError, setShowError] = useState(false);
@@ -42,7 +42,7 @@ export const FoodImageUpload = () => {
     formData.append("image", selectedImage);
 
     try {
-      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/food/upload`, {
+      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/upload`, {
         method: "POST",
         body: formData
       });
@@ -68,7 +68,7 @@ export const FoodImageUpload = () => {
   // If analysisResult exists, show the result page
   if (analysisResult) {
     return (
-      <div className="flex-1 p-3 flex flex-col items-center justify-center">
+      <div className="p-3 flex flex-col items-center justify-center">
         <Card className="p-8 max-w-2xl w-full mx-auto bg-white space-y-6">
           <h2 className="text-2xl font-bold text-center mb-6">Food Analysis Result</h2>
           {previewURL && (
@@ -112,13 +112,19 @@ export const FoodImageUpload = () => {
               </div>
             </div>
           </div>
-          <div className="flex justify-center mt-8">
+          <div className="flex justify-center gap-8 mt-8">
             <Button onClick={() => {
               setAnalysisResult(null);
               setSelectedImage(null);
               setPreviewURL(null);
-            }} className="px-6 py-2 text-base font-semibold">
-              Upload Another Image
+            }} className="px-6 py-2 text-base font-semibold cursor-pointer">
+              Upload Image
+            </Button>
+            <Button 
+              onClick={() => {window.location.href = "/nutrition";}} 
+              className="px-6 py-2 text-base font-semibold cursor-pointer"
+            >
+              View All Meals
             </Button>
           </div>
         </Card>
@@ -128,9 +134,17 @@ export const FoodImageUpload = () => {
 
   // Default upload page
   return (
-    <div className="min-h-screen p-3">
+    <div className="p-3">
       <div className="max-w-4xl mx-auto">
-        <h1 onClick={() => {window.location.href = "/nutrients";}} className=" cursor-pointer text-2xl font-bold mb-8 text-center">Nutrition</h1>
+        <div className="flex items-center justify-between mb-8 pl-30 pr-30">
+          <h1 className="text-2xl font-bold text-left">Nutrition</h1>
+            <Button 
+              onClick={() => {window.location.href = "/nutrition";}} 
+              className="ml-4 px-4 py-2 text-sm cursor-pointer"
+            >
+              View All Meals
+            </Button>
+        </div>
         <Card className="p-8 max-w-2xl mx-auto bg-white space-y-6">
           <h2 className="text-xl font-bold text-center">Upload Food Image</h2>
           {/* Information section */}

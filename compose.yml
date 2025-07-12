@@ -32,7 +32,7 @@ services:
       - DB_PORT=${DB_PORT}
       - DB_DATABASE=${DB_DATABASE}
       - SECRET=${SECRET}
-      - BACKEND_URL=${BACKEND_URL}
+      - BACKEND_URL=${VITE_BACKEND_URL}
   frontend:
     build: ./frontend
     ports:
@@ -52,8 +52,8 @@ services:
     volumes:
       - minio_data:/data
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${S3_PORT:-9000}:${S3_PORT:-9000}"
+      - "${S3_CONSOLE_PORT:-9001}:${S3_CONSOLE_PORT:-9001}"
 
 networks:
   bed-assignment:

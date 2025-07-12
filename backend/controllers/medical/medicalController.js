@@ -3,7 +3,47 @@ import { createMedicationReminder, getMedicationRemindersByUser } from "../../mo
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 
-// CREATE medication reminder
+/**
+ * @openapi
+ * /api/medications:
+ *   post:
+ *     tags:
+ *       - Medical
+ *     summary: Create a new medication reminder
+ *     description: Creates a new medication reminder for a user, including an image of the medication.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user_id:
+ *                 type: integer
+ *               medicine_name:
+ *                 type: string
+ *               reason:
+ *                 type: string
+ *               dosage:
+ *                 type: string
+ *               medicine_time:
+ *                 type: string
+ *                 format: time
+ *               frequency_per_day:
+ *                 type: integer
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Medication reminder created successfully
+ *       400:
+ *         description: All fields including image are required
+ *       500:
+ *         description: Internal server error
+ */
 export const createMedication = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -62,7 +102,24 @@ export const createMedication = async (req, res) => {
     }
 };
 
-// GET  medication reminders for user
+/**
+ * @openapi
+ * /api/medications:
+ *   get:
+ *     tags:
+ *       - Medical
+ *     summary: Get medication reminders for a user
+ *     description: Retrieves all medication reminders for the authenticated user.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of medication reminders
+ *       400:
+ *         description: User ID is required
+ *       500:
+ *         description: Internal server error
+ */
 export const getMedicationReminders = async (req, res) => {
     try {
         const userId = req.user.id;
