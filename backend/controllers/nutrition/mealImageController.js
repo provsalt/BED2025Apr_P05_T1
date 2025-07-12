@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { uploadFile } from "../../models/services/s3Service.js";
 import { analyzeFoodImage } from "../../models/services/openaiService.js";
-import { createMeal, getMealById, getAllMeals } from "../../models/nutrition/nutritionModel.js";
+import { createMeal, getMealById, getAllMeals, deleteMeal, updateMeal } from "../../models/nutrition/nutritionModel.js";
 
 export const uploadNutritionImage = async (req, res) => {
   const file = req.file;
@@ -115,3 +115,62 @@ export const retrieveMealsById = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch meal" });
   }
 };
+
+// Delete a meal by ID
+export const removeMeal = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    const meal = await getMealById(id);
+    
+    if (!meal) {
+      return res.status(404).json({ error: "Meal not found" });
+    }
+
+    // Check if the meal belongs to the authenticated user
+    if (meal.user_id !== req.user.id) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    await deleteMeal(id);
+    res.status(200).json({ message: "Meal deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting meal:", error);
+    res.status(500).json({ error: "Failed to delete meal" });
+  }
+};
+
+// Update a meal by ID
+export const amendMeal = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const mealData = req.body;
+
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    const meal = await getMealById(id);
+    
+    if (!meal) {
+      return res.status(404).json({ error: "Meal not found" });
+    }
+
+    // Check if the meal belongs to the authenticated user
+    if (meal.user_id !== req.user.id) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    await updateMeal(id, mealData);
+    res.status(200).json({ message: "Meal updated successfully" });
+  } catch (error) {
+    console.error("Error updating meal:", error);
+    res.status(500).json({ error: "Failed to update meal" });
+  }
+}
