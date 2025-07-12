@@ -3,6 +3,36 @@ import { uploadFile } from "../../models/services/s3Service.js";
 import { analyzeFoodImage } from "../../models/services/openaiService.js";
 import { createMeal, getMealById, getAllMeals, deleteMeal, updateMeal } from "../../models/nutrition/nutritionModel.js";
 
+/**
+ * @openapi
+ * /api/nutrition/upload:
+ *   post:
+ *     tags:
+ *       - Nutrition
+ *     summary: Upload a food image for analysis
+ *     description: Upload an image of a food item to be analyzed for nutritional information. The image is uploaded to S3, and the nutritional information is extracted using OpenAI.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Food image uploaded and analyzed successfully
+ *       400:
+ *         description: No file uploaded or error in analysis
+ *       401:
+ *         description: User not authenticated
+ *       500:
+ *         description: Failed to upload food image
+ */
 export const uploadNutritionImage = async (req, res) => {
   const file = req.file;
 
@@ -66,7 +96,24 @@ export const uploadNutritionImage = async (req, res) => {
   }
 };
 
-// Get all meals for the authenticated user
+/**
+ * @openapi
+ * /api/nutrition:
+ *   get:
+ *     tags:
+ *       - Nutrition
+ *     summary: Retrieve all meals for the user
+ *     description: Fetches a list of all meals that have been logged by the authenticated user.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Meals retrieved successfully
+ *       401:
+ *         description: User not authenticated
+ *       500:
+ *         description: Failed to fetch meals
+ */
 export const retrieveMeals = async (req, res) => {
   try {
     // Check if user is authenticated
@@ -85,7 +132,35 @@ export const retrieveMeals = async (req, res) => {
   }
 };
 
-// Get a specific meal by ID
+/**
+ * @openapi
+ * /api/nutrition/{id}:
+ *   get:
+ *     tags:
+ *       - Nutrition
+ *     summary: Retrieve a specific meal by ID
+ *     description: Fetches the details of a specific meal by its ID. The user must be the owner of the meal.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the meal to retrieve.
+ *     responses:
+ *       200:
+ *         description: Meal retrieved successfully
+ *       401:
+ *         description: User not authenticated
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Meal not found
+ *       500:
+ *         description: Failed to fetch meal
+ */
 export const retrieveMealsById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -116,7 +191,35 @@ export const retrieveMealsById = async (req, res) => {
   }
 };
 
-// Delete a meal by ID
+/**
+ * @openapi
+ * /api/nutrition/{id}:
+ *   delete:
+ *     tags:
+ *       - Nutrition
+ *     summary: Delete a meal by ID
+ *     description: Deletes a specific meal by its ID. The user must be the owner of the meal.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the meal to delete.
+ *     responses:
+ *       200:
+ *         description: Meal deleted successfully
+ *       401:
+ *         description: User not authenticated
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Meal not found
+ *       500:
+ *         description: Failed to delete meal
+ */
 export const removeMeal = async (req, res) => {
   try {
     const { id } = req.params;
@@ -145,7 +248,56 @@ export const removeMeal = async (req, res) => {
   }
 };
 
-// Update a meal by ID
+/**
+ * @openapi
+ * /api/nutrition/{id}:
+ *   put:
+ *     tags:
+ *       - Nutrition
+ *     summary: Update a meal by ID
+ *     description: Updates the details of a specific meal by its ID. The user must be the owner of the meal.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the meal to update.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               carbohydrates:
+ *                 type: number
+ *               protein:
+ *                 type: number
+ *               fat:
+ *                 type: number
+ *               calories:
+ *                 type: number
+ *               ingredients:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Meal updated successfully
+ *       401:
+ *         description: User not authenticated
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Meal not found
+ *       500:
+ *         description: Failed to update meal
+ */
 export const amendMeal = async (req, res) => {
   try {
     const { id } = req.params;

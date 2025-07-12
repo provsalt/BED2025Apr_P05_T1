@@ -15,6 +15,30 @@ import bcrypt from "bcryptjs";
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
 import {deleteUser} from "../../models/admin/adminModel.js";
 
+/**
+ * @openapi
+ * /api/users/me:
+ *   get:
+ *     tags:
+ *       - User
+ *     summary: Get current user
+ *     description: Get the currently authenticated user's details.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Failed to fetch current user
+ */
 export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
@@ -39,6 +63,35 @@ export const getCurrentUserController = async (req, res) => {
   }
 };
 
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   get:
+ *     tags:
+ *       - User
+ *     summary: Get user by ID
+ *     description: Get a user's details by their ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The user's ID.
+ *     responses:
+ *       200:
+ *         description: User details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid user ID
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Error fetching user
+ */
 export const getUserController = async (req, res) => {
   const userId = parseInt(req.params.id);
   if (isNaN(userId)) {
@@ -59,6 +112,39 @@ export const getUserController = async (req, res) => {
 
 
 
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   put:
+ *     tags:
+ *       - User
+ *     summary: Update user
+ *     description: Update a user's details.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The user's ID.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserUpdate'
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       400:
+ *         description: Failed to update user
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Failed to update user
+ */
 export const updateUserController = async (req, res) => {
   const userId = parseInt(req.params.id);
   const updates = req.body;
@@ -91,6 +177,39 @@ export const updateUserController = async (req, res) => {
   }
 };
 
+/**
+ * @openapi
+ * /api/users/login:
+ *   post:
+ *     tags:
+ *       - User
+ *     summary: Login user
+ *     description: Authenticate a user and get a JWT.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserLogin'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 token:
+ *                   type: string
+ *       400:
+ *         description: Invalid user data
+ *       401:
+ *         description: Invalid email or password
+ *       500:
+ *         description: Error creating user
+ */
 export const loginUserController = async (req, res) => {
   const body = req.body;
   const validate = z.object({
@@ -124,6 +243,37 @@ export const loginUserController = async (req, res) => {
   });
 }
 
+/**
+ * @openapi
+ * /api/users:
+ *   post:
+ *     tags:
+ *       - User
+ *     summary: Create user
+ *     description: Create a new user.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserCreate'
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 token:
+ *                   type: string
+ *       400:
+ *         description: Invalid user data
+ *       500:
+ *         description: Error creating user
+ */
 export const createUserController = async (req, res) => {
     const body = req.body;
 
@@ -149,6 +299,37 @@ export const createUserController = async (req, res) => {
     }
 }
 
+/**
+ * @openapi
+ * /api/users/password:
+ *   put:
+ *     tags:
+ *       - User
+ *     summary: Change password
+ *     description: Change the current user's password.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Invalid user ID
+ *       403:
+ *         description: Old password is incorrect
+ *       500:
+ *         description: Failed to update password
+ */
 export const changePasswordController = async (req, res) => {
   const userId = req.user.id;
   const { oldPassword, newPassword } = req.body;
@@ -178,6 +359,43 @@ export const changePasswordController = async (req, res) => {
   }
 };
 
+/**
+ * @openapi
+ * /api/users/me/picture:
+ *   post:
+ *     tags:
+ *       - User
+ *     summary: Upload profile picture
+ *     description: Upload a profile picture for the current user.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Upload successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 url:
+ *                   type: string
+ *       400:
+ *         description: No file uploaded
+ *       500:
+ *         description: Failed to upload image
+ */
 export const uploadUserProfilePictureController = async (req, res) => {
   const userId = req.user.id;
   const file = req.file;
@@ -209,6 +427,24 @@ export const uploadUserProfilePictureController = async (req, res) => {
   }
 };
 
+/**
+ * @openapi
+ * /api/users/me/picture:
+ *   delete:
+ *     tags:
+ *       - User
+ *     summary: Delete profile picture
+ *     description: Delete the current user's profile picture.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile picture deleted successfully
+ *       404:
+ *         description: No profile picture to delete
+ *       500:
+ *         description: Failed to delete profile picture
+ */
 export const deleteUserProfilePictureController = async (req, res) => {
   const userId = req.user.id;
 
@@ -231,7 +467,31 @@ export const deleteUserProfilePictureController = async (req, res) => {
 };
 
 /**
- * Delete user (Admin only)
+ * @openapi
+ * /api/users/{id}:
+ *   delete:
+ *     tags:
+ *       - User
+ *     summary: Delete user by ID
+ *     description: Delete a user's account by their ID. This is an admin-only action.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The user's ID.
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       400:
+ *         description: Invalid user ID or trying to delete own account
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Error deleting user
  */
 export const deleteUserController = async (req, res) => {
   const { id: userId } = req.params; // Fix: use 'id' from params, not 'userId'
@@ -260,6 +520,28 @@ export const deleteUserController = async (req, res) => {
   }
 };
 
+/**
+ * @openapi
+ * /api/users:
+ *   get:
+ *     tags:
+ *       - User
+ *     summary: Get all users
+ *     description: Get a list of all users. This is an admin-only action.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Error fetching users
+ */
 export const getAllUsersController = async (req, res) => {
   try {
     const users = await getAllUsers();

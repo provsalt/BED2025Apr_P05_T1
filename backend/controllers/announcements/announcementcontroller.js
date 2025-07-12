@@ -11,7 +11,33 @@ const announcementSchema = z.object({
 });
 
 /**
- * Create a new announcement
+ * @openapi
+ * /api/announcements:
+ *   post:
+ *     tags:
+ *       - Announcements
+ *     summary: Create a new announcement
+ *     description: Creates a new announcement. This is an admin-only action.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               content:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Announcement created successfully
+ *       400:
+ *         description: Invalid announcement data
+ *       500:
+ *         description: Error creating announcement
  */
 export const createAnnouncementController = async (req, res) => {
   const validate = announcementSchema.safeParse(req.body);
@@ -34,7 +60,18 @@ export const createAnnouncementController = async (req, res) => {
 };
 
 /**
- * Get all announcements
+ * @openapi
+ * /api/announcements:
+ *   get:
+ *     tags:
+ *       - Announcements
+ *     summary: Get all announcements
+ *     description: Retrieves a list of all announcements. This is a public route.
+ *     responses:
+ *       200:
+ *         description: A list of announcements
+ *       500:
+ *         description: Error fetching announcements
  */
 export const getAnnouncementsController = async (req, res) => {
   try {
@@ -47,7 +84,29 @@ export const getAnnouncementsController = async (req, res) => {
 };
 
 /**
- * Get announcement by ID
+ * @openapi
+ * /api/announcements/{id}:
+ *   get:
+ *     tags:
+ *       - Announcements
+ *     summary: Get an announcement by ID
+ *     description: Retrieves a single announcement by its ID. This is a public route.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the announcement to retrieve.
+ *     responses:
+ *       200:
+ *         description: The announcement
+ *       400:
+ *         description: Invalid announcement ID
+ *       404:
+ *         description: Announcement not found
+ *       500:
+ *         description: Error fetching announcement
  */
 export const getAnnouncementByIdController = async (req, res) => {
   const { id } = req.params;
@@ -69,7 +128,31 @@ export const getAnnouncementByIdController = async (req, res) => {
 };
 
 /**
- * Delete an announcement
+ * @openapi
+ * /api/announcements/{id}:
+ *   delete:
+ *     tags:
+ *       - Announcements
+ *     summary: Delete an announcement
+ *     description: Deletes an announcement by its ID. This is an admin-only action.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the announcement to delete.
+ *     responses:
+ *       200:
+ *         description: Announcement deleted successfully
+ *       400:
+ *         description: Invalid announcement ID
+ *       404:
+ *         description: Announcement not found
+ *       500:
+ *         description: Error deleting announcement
  */
 export const deleteAnnouncementController = async (req, res) => {
   const { id } = req.params;
