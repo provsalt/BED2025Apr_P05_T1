@@ -1,8 +1,5 @@
-
 import {createAnnouncement, getAnnouncements, getAnnouncementById, deleteAnnouncement} from "../../models/admin/adminAnnouncement.js";
 import {z} from "zod/v4";
-import { Router } from "express";
-import { getUserMiddleware } from "../../middleware/getUser.js";
 
 // Validation schema for announcement data
 const announcementSchema = z.object({

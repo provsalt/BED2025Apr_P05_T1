@@ -27,14 +27,14 @@ const router = Router();
 
 // Raymond signup, login, get current user
 router.post("/", authRateLimit, createUserController);
-router.get("/", getUserMiddleware, authorizeRole(["Admin"]), getAllUsersController);
+router.get("/", getUserMiddleware, authorizeRole(["Admin"]), getAllUsersController); //dylan 
 router.post("/login", authRateLimit, loginUserController);
 router.get("/me", getUserMiddleware, getCurrentUserController);
 
 // Shun Xiang get by id, update user
 router.get("/:id", getUserController);
 router.put("/:id", getUserMiddleware, updateUserController);
-// Dylan delete user,
+// Dylan delete user, update user
 router.delete("/:id", getUserMiddleware, authorizeRole(["Admin"]), deleteUserController);
 router.put("/:id/role", getUserMiddleware, authorizeRole(["Admin"]), updateUserRoleController);
 

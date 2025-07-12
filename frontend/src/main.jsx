@@ -46,7 +46,8 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/nutrition/:id" element={<MealDetail/>} />
                   <Route path="/medical/create" element={<MedicationReminderForm />} />
                   <Route path="/medical/reminders" element={<MedicationRemindersList />} />
-                  <Route path="/admin" element={
+                  <Route path="/nutrition/food/upload/*" element={<FoodImageUpload/>} />
+                  <Route path="/admin/dashboard" element={
                     <AdminProtectedRoute>
                       <AdminDashboard />
                     </AdminProtectedRoute>
