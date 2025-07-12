@@ -1,18 +1,17 @@
-
 import {
   createUser,
+  getAllUsers,
   getUser,
   getUserByEmail,
   updateUser,
-  updateUserProfilePicture,
-  getAllUsers
+  updateUserProfilePicture
 } from "../../models/user/userModel.js";
-import { randomUUID } from "crypto";
-import { User } from "../../utils/validation/user.js";
-import { SignJWT } from "jose";
-import { z } from "zod/v4";
+import {randomUUID} from "crypto";
+import {User} from "../../utils/validation/user.js";
+import {SignJWT} from "jose";
+import {z} from "zod/v4";
 import bcrypt from "bcryptjs";
-import { uploadFile, deleteFile } from "../../services/s3Service.js";
+import {deleteFile, uploadFile} from "../../services/s3Service.js";
 import {deleteUser} from "../../models/admin/adminModel.js";
 
 /**
@@ -41,12 +40,12 @@ import {deleteUser} from "../../models/admin/adminModel.js";
  */
 export const getCurrentUserController = async (req, res) => {
   if (!req.user) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({message: "Unauthorized"});
   }
 
   try {
     const fullUser = await getUser(req.user.id);
-    if (!fullUser) return res.status(404).json({ error: "User not found" });
+    if (!fullUser) return res.status(404).json({error: "User not found"});
 
     res.status(200).json({
       id: fullUser.id,
@@ -59,7 +58,7 @@ export const getCurrentUserController = async (req, res) => {
     });
   } catch (err) {
     console.error("Fetch current user failed:", err);
-    res.status(500).json({ error: "Failed to fetch current user" });
+    res.status(500).json({error: "Failed to fetch current user"});
   }
 };
 
@@ -95,21 +94,20 @@ export const getCurrentUserController = async (req, res) => {
 export const getUserController = async (req, res) => {
   const userId = parseInt(req.params.id);
   if (isNaN(userId)) {
-    return res.status(400).json({ error: "Invalid user ID" });
+    return res.status(400).json({error: "Invalid user ID"});
   }
 
   try {
     const user = await getUser(userId);
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({error: "User not found"});
     }
     res.json(user);
   } catch (error) {
-    console.error("Error fetching user:", error); 
-    res.status(500).json({ error: "Error fetching user" });
+    console.error("Error fetching user:", error);
+    res.status(500).json({error: "Error fetching user"});
   }
 };
-
 
 
 /**
@@ -152,7 +150,7 @@ export const updateUserController = async (req, res) => {
   try {
     const currentUser = await getUser(userId);
     if (!currentUser) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({error: "User not found"});
     }
 
     // Protect non-editable fields
@@ -166,14 +164,14 @@ export const updateUserController = async (req, res) => {
     const success = await updateUser(userId, updates);
 
     if (!success) {
-      
-      return res.status(400).json({ error: "Failed to update user" });
+
+      return res.status(400).json({error: "Failed to update user"});
     }
 
-    res.json({ message: "User updated successfully" });
+    res.json({message: "User updated successfully"});
   } catch (error) {
     console.error("Update error:", error);
-    res.status(500).json({ error: "Failed to update user" });
+    res.status(500).json({error: "Failed to update user"});
   }
 };
 
@@ -217,24 +215,24 @@ export const loginUserController = async (req, res) => {
     password: z.string().min(12).max(255).regex(/(?=.*[A-Z])/, "Password must contain at least one uppercase letter").regex(/(?=.*[!@#$%^&*()])/, "Password must contain at least one special character"),
   }).safeParse(body)
   if (!validate.success) {
-    return res.status(400).json({ error: "Invalid user data", details: validate.error.issues });
+    return res.status(400).json({error: "Invalid user data", details: validate.error.issues});
   }
 
   const user = await getUserByEmail(validate.data.email);
   if (!user) {
-    return res.status(401).json({ error: "Invalid email or password" });
+    return res.status(401).json({error: "Invalid email or password"});
   }
   const isPasswordValid = await bcrypt.compare(validate.data.password, user.password);
 
   if (!isPasswordValid) {
-    return res.status(401).json({ error: "Invalid email or password" });
+    return res.status(401).json({error: "Invalid email or password"});
   }
 
   const secret = new TextEncoder().encode(process.env.SECRET || "");
   const tok = await new SignJWT({
     sub: user.id,
     role: user.role
-  }).setProtectedHeader({ alg: "HS256" })
+  }).setProtectedHeader({alg: "HS256"})
     .setExpirationTime("1d")
     .sign(secret);
   res.status(200).json({
@@ -275,28 +273,28 @@ export const loginUserController = async (req, res) => {
  *         description: Error creating user
  */
 export const createUserController = async (req, res) => {
-    const body = req.body;
+  const body = req.body;
 
-    const validate = User.safeParse(body);
+  const validate = User.safeParse(body);
 
-    if (!validate.success) {
-        return res.status(400).json({ error: "Invalid user data", details: validate.error.issues });
-    }
-    try {
-        const newUser = await createUser(validate.data);
-        const secret = new TextEncoder().encode(process.env.SECRET || "");
-        const tok = await new SignJWT({
-          sub: newUser.id
-        }).setProtectedHeader({ alg: "HS256" })
-          .setExpirationTime("1d")
-          .sign(secret);
-        res.status(201).json({
-          id: newUser.id,
-          token: tok
-        });
-    } catch (error) {
-        res.status(500).json({ error: "Error creating user" });
-    }
+  if (!validate.success) {
+    return res.status(400).json({error: "Invalid user data", details: validate.error.issues});
+  }
+  try {
+    const newUser = await createUser(validate.data);
+    const secret = new TextEncoder().encode(process.env.SECRET || "");
+    const tok = await new SignJWT({
+      sub: newUser.id
+    }).setProtectedHeader({alg: "HS256"})
+      .setExpirationTime("1d")
+      .sign(secret);
+    res.status(201).json({
+      id: newUser.id,
+      token: tok
+    });
+  } catch (error) {
+    res.status(500).json({error: "Error creating user"});
+  }
 }
 
 /**
@@ -333,29 +331,39 @@ export const createUserController = async (req, res) => {
 export const changePasswordController = async (req, res) => {
   const userId = req.user.id;
   const { oldPassword, newPassword } = req.body;
-
+  const validation = z.object({
+    oldPassword: z.string().min(1, "Old password is required"),
+    newPassword: ChangePassword,
+  }).safeParse({oldPassword, newPassword});
+  if (!validation.success) {
+    return res.status(400).json({
+      error: "Invalid input",
+      details: validation.error.issues,
+    });
+  }
   try {
     const user = await getUser(userId);
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({error: "User not found"});
     }
-
-    const valid = await bcrypt.compare(oldPassword, user.password);
-    if (!valid) {
-      return res.status(403).json({ error: "Old password is incorrect" });
+    const isValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isValid) {
+      return res.status(403).json({error: "Old password is incorrect"});
     }
-
+    const isTheSame = await bcrypt.compare(newPassword, user.password);
+    if (isTheSame) {
+      return res.status(400).json({error: "New password must be different from old password"});
+    }
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const updated = await updateUser(userId, { password: hashedPassword });
-
-    if (!updated) {
-      return res.status(500).json({ error: "Failed to update password" });
+    const success = await updateUser(userId, {password: hashedPassword});
+    if (!success) {
+      return res.status(500).json({error: "Failed to update password"});
     }
 
-    res.json({ message: "Password updated successfully" });
+    res.json({message: "Password updated successfully"});
   } catch (err) {
     console.error("Password update error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({error: "Internal server error"});
   }
 };
 
@@ -401,7 +409,7 @@ export const uploadUserProfilePictureController = async (req, res) => {
   const file = req.file;
 
   if (!file) {
-    return res.status(400).json({ error: "No file uploaded" });
+    return res.status(400).json({error: "No file uploaded"});
   }
 
   const uniqueId = randomUUID();
@@ -420,10 +428,10 @@ export const uploadUserProfilePictureController = async (req, res) => {
 
     await updateUserProfilePicture(userId, publicUrl)
 
-    res.status(200).json({ message: "Upload successful", url:  publicUrl });
+    res.status(200).json({message: "Upload successful", url: publicUrl});
   } catch (err) {
     console.error("Upload failed:", err);
-    res.status(500).json({ error: "Failed to upload image" });
+    res.status(500).json({error: "Failed to upload image"});
   }
 };
 
@@ -451,7 +459,7 @@ export const deleteUserProfilePictureController = async (req, res) => {
   try {
     const user = await getUser(userId);
     if (!user || !user.profile_picture_url) {
-      return res.status(404).json({ error: "No profile picture to delete" });
+      return res.status(404).json({error: "No profile picture to delete"});
     }
 
     const key = `uploads/${user.profile_picture_url.split("/").pop()}`;
@@ -459,10 +467,10 @@ export const deleteUserProfilePictureController = async (req, res) => {
     await deleteFile(key);
 
     await updateUserProfilePicture(userId, null)
-    res.status(200).json({ message: "Profile picture deleted successfully" });
+    res.status(200).json({message: "Profile picture deleted successfully"});
   } catch (err) {
     console.error("Delete picture error:", err);
-    res.status(500).json({ error: "Failed to delete profile picture" });
+    res.status(500).json({error: "Failed to delete profile picture"});
   }
 };
 
@@ -494,15 +502,15 @@ export const deleteUserProfilePictureController = async (req, res) => {
  *         description: Error deleting user
  */
 export const deleteUserController = async (req, res) => {
-  const { id: userId } = req.params; // Fix: use 'id' from params, not 'userId'
+  const {id: userId} = req.params; // Fix: use 'id' from params, not 'userId'
 
   if (!userId || isNaN(userId)) {
-    return res.status(400).json({ error: "Invalid user ID" });
+    return res.status(400).json({error: "Invalid user ID"});
   }
 
   // Prevent admin from deleting themselves
   if (parseInt(userId) === req.user.id) {
-    return res.status(400).json({ error: "Cannot delete your own account" });
+    return res.status(400).json({error: "Cannot delete your own account"});
   }
 
   try {
@@ -514,9 +522,9 @@ export const deleteUserController = async (req, res) => {
   } catch (error) {
     console.error("Error deleting user:", error);
     if (error.message.includes("not found")) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({error: "User not found"});
     }
-    res.status(500).json({ error: "Error deleting user" });
+    res.status(500).json({error: "Error deleting user"});
   }
 };
 
@@ -548,7 +556,7 @@ export const getAllUsersController = async (req, res) => {
     res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
-    res.status(500).json({ error: "Error fetching users" });
+    res.status(500).json({error: "Error fetching users"});
   }
 };
 
