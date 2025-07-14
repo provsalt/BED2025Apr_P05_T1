@@ -1,7 +1,6 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
 import { createMedicationReminder, getMedicationRemindersByUser } from "../../models/medical/medicalModel.js";
 import { v4 as uuidv4 } from 'uuid';
-import path from 'path';
 
 /**
  * @openapi
@@ -20,8 +19,6 @@ import path from 'path';
  *           schema:
  *             type: object
  *             properties:
- *               user_id:
- *                 type: integer
  *               medicine_name:
  *                 type: string
  *               reason:
@@ -46,19 +43,24 @@ import path from 'path';
  */
 export const createMedication = async (req, res) => {
     try {
-        const { user_id, medicine_name, reason, dosage, medicine_time, frequency_per_day } = req.body;
+        const userId = req.user.id;
+        // validate user
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'User ID is required' });
+        }
         const imageFile = req.file;
+        const { medicine_name, reason, dosage, medicine_time, frequency_per_day } = req.validatedBody;
 
-        // Validate required fields
-        if (!user_id || !medicine_name || !reason || !dosage || !medicine_time || !frequency_per_day || !imageFile) {
+        // validate image
+        if (!imageFile) {
             return res.status(400).json({
                 success: false,
-                message: 'All fields including image are required'
+                message: 'Image is required'
             });
         }
 
         // Generate unique key for S3
-        const imageKey = `medications/${user_id}/${uuidv4()}`;
+        const imageKey = `medications/${userId}/${uuidv4()}`;
 
         // Upload image to S3
         await uploadFile(imageFile, imageKey);
@@ -68,12 +70,12 @@ export const createMedication = async (req, res) => {
 
         // Prepare data for model
         const medicationData = {
-            userId: parseInt(user_id),
+            userId,
             medicationName: medicine_name,
             reason,
             dosage,
             timeToTake: medicine_time,
-            frequencyPerDay: parseInt(frequency_per_day),
+            frequencyPerDay: frequency_per_day,
             imageUrl
         };
 
@@ -117,7 +119,7 @@ export const createMedication = async (req, res) => {
  */
 export const getMedicationReminders = async (req, res) => {
     try {
-        const userId = req.user?.id || req.query.user_id;
+        const userId = req.user.id;
         if (!userId) {
             return res.status(400).json({ success: false, message: 'User ID is required' });
         }

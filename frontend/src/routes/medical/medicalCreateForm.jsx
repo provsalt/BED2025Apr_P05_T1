@@ -85,14 +85,13 @@ export const MedicationReminderForm = ({ userId = null }) => {
 
     try {
       const submitData = new FormData();
-      submitData.append('user_id', effectiveUserId.toString());
       submitData.append('medicine_name', formData.medicationName);
       submitData.append('reason', formData.reason);
       submitData.append('dosage', formData.dosage);
-      // Normalize medicineTime to 'HH:MM:SS' format
+      // Ensure medicine_time is in 'HH:MM' format
       let normalizedTime = formData.medicineTime;
-      if (normalizedTime && normalizedTime.length === 5) {
-        normalizedTime = normalizedTime + ':00';
+      if (normalizedTime && normalizedTime.length > 5) {
+        normalizedTime = normalizedTime.slice(0, 5);
       }
       submitData.append('medicine_time', normalizedTime);
       submitData.append('frequency_per_day', formData.frequencyPerDay);
