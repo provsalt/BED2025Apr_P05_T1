@@ -1,5 +1,3 @@
-import { z } from 'zod/v4';
-
 export function validateMedical(schema) {
   return (req, res, next) => {
     const result = schema.safeParse(req.body);

@@ -1,7 +1,6 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
 import { createMedicationReminder, getMedicationRemindersByUser } from "../../models/medical/medicalModel.js";
 import { v4 as uuidv4 } from 'uuid';
-import path from 'path';
 
 /**
  * @openapi
@@ -20,8 +19,6 @@ import path from 'path';
  *           schema:
  *             type: object
  *             properties:
- *               user_id:
- *                 type: integer
  *               medicine_name:
  *                 type: string
  *               reason:
