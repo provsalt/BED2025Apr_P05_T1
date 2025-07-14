@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Input } from "@/components/ui/input.jsx";
+import { User } from "lucide-react";
 
 export function ProfilePictureCard({
   profilePictureUrl,
@@ -27,8 +28,8 @@ export function ProfilePictureCard({
             className="w-32 h-32 rounded-full object-cover"
           />
         ) : (
-          <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center">
-            <span className="text-gray-600">No Image</span>
+          <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
+            <User className="w-16 h-16" />
           </div>
         )}
         <label
