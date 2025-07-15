@@ -1,17 +1,9 @@
 import transportModel from "../../models/transport/transportModel.js";
 
-export const getStationCodes = (req, res) => {
-  const codes = transportModel.getStationCodes()
+export const getStationCodeNameMap = (req, res) => {
+  const codeNameMap = transportModel.getStationCodeNameMap()
   return res.status(200).json({
-    codes: codes,
-  })
-}
-
-export const getStationNames = (req, res) => {
-  const names = transportModel.getStationNames()
-
-  return res.status(200).json({
-    names: names,
+    codeNameMap: codeNameMap,
   })
 }
 

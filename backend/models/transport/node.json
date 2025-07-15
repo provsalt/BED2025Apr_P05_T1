@@ -577,7 +577,35 @@
   },
   "TE22": {
     "name": "Gardens by the Bay",
-    "edges": ["CE2 NS27 TE20"]
+    "edges": ["CE2 NS27 TE20", "TE23"]
+  },
+  "TE23": {
+    "name": "Tanjong Rhu",
+    "edges": ["TE22", "TE24"]
+  },
+  "TE24": {
+    "name": "Katong Park",
+    "edges": ["TE23", "TE25"]
+  },
+  "TE25": {
+    "name": "Tanjong Katong",
+    "edges": ["TE24", "TE26"]
+  },
+  "TE26": {
+    "name": "Marine Parade",
+    "edges": ["TE25", "TE27"]
+  },
+  "TE27": {
+    "name": "Marine Terrace",
+    "edges": ["TE26", "TE28"]
+  },
+  "TE28": {
+    "name": "Siglap",
+    "edges": ["TE27", "TE29"]
+  },
+  "TE29": {
+    "name": "Bayshore",
+    "edges": ["TE28"]
   },
   "SW1": {
     "name": "Cheng Lim",

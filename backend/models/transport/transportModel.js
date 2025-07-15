@@ -1,4 +1,4 @@
-import nodes from './node.json' with { type: 'json' };
+import nodes from "./node.json" with { type: "json" };
 
 const stationNames = Object.values(nodes).map(node => node.name);
 const stationCodes = Object.keys(nodes);
@@ -88,6 +88,14 @@ const transportModel = {
     getStationNames: () => stationNames,
 
     getStationCodes: () => stationCodes,
+
+    getStationCodeNameMap: () => {
+        const codeNameMap = {};
+        for (const code in nodes) {
+            codeNameMap[code] = nodes[code].name;
+        }
+        return codeNameMap;
+    },
 
     getStationByName: (name) => {
         const stationCode = Object.keys(nodes).find(code => nodes[code].name === name);
