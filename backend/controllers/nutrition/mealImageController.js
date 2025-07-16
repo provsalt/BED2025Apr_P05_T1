@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
-import { uploadFile } from "../../models/services/s3Service.js";
-import { analyzeFoodImage } from "../../models/services/openaiService.js";
+import { uploadFile } from "../../services/s3Service.js";
+import { analyzeFoodImage } from "../../services/openaiService.js";
 import { createMeal, getMealById, getAllMeals, deleteMeal, updateMeal } from "../../models/nutrition/nutritionModel.js";
 
 /**

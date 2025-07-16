@@ -90,3 +90,33 @@ CREATE TABLE RealtimeActivity (
 -- Index for fast activity queries
 CREATE INDEX IX_RealtimeActivity_UserRecent ON RealtimeActivity(user_id, activity_timestamp DESC); 
 
+-- Table for tracking failed login attempts
+CREATE TABLE FailedLoginAttempts (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    email NVARCHAR(255) NOT NULL,
+    ip_address NVARCHAR(45),
+    user_agent NVARCHAR(500),
+    device_type NVARCHAR(50),
+    attempt_timestamp DATETIME DEFAULT GETDATE(),
+    created_at DATETIME DEFAULT GETDATE()
+);
+
+-- Index for fast failed login queries
+CREATE INDEX IX_FailedLoginAttempts_EmailTime ON FailedLoginAttempts(email, attempt_timestamp DESC);
+CREATE INDEX IX_FailedLoginAttempts_IPTime ON FailedLoginAttempts(ip_address, attempt_timestamp DESC); 
+
+-- Table for Prometheus metrics snapshots (every 5 min)
+CREATE TABLE PrometheusMetricsSnapshots (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    snapshot_time DATETIME NOT NULL,
+    avg_login_attempts FLOAT,
+    avg_page_visits FLOAT,
+    avg_failed_logins FLOAT,
+    avg_active_users FLOAT,
+    avg_age_groups FLOAT,
+    raw_json NVARCHAR(MAX),
+    created_at DATETIME DEFAULT GETDATE()
+);
+
+CREATE INDEX IX_PrometheusMetricsSnapshots_Time ON PrometheusMetricsSnapshots(snapshot_time DESC); 
+

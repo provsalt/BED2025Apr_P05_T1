@@ -43,7 +43,13 @@ export const Login = () => {
         id: resp.id,
         token: resp.token,
         isAuthenticated: true,
-        role: payload.role
+        role: payload.role,
+        data: {
+          name: resp.name || "",
+          email: resp.email || "",
+          language: resp.language || "",
+          profile_picture_url: resp.profile_picture_url || "",
+        }
       });
       
       // Redirect based on role

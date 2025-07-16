@@ -17,6 +17,31 @@ export const httpRequestDuration = new Histogram({
   buckets: [0.1, 0.5, 1, 2, 5]
 });
 
+// User analytics metrics
+export const userLoginAttempts = new Counter({
+  name: 'user_login_attempts_total',
+  help: 'Total number of login attempts',
+  labelNames: ['status', 'device_type']
+});
+
+export const userPageVisits = new Counter({
+  name: 'user_page_visits_total',
+  help: 'Total number of page visits',
+  labelNames: ['page_url', 'device_type']
+});
+
+export const userAgeGroupDistribution = new Gauge({
+  name: 'user_age_group_distribution',
+  help: 'Number of users by age group',
+  labelNames: ['age_group']
+});
+
+export const failedLoginAttempts = new Counter({
+  name: 'failed_login_attempts_total',
+  help: 'Total number of failed login attempts',
+  labelNames: ['email_domain']
+});
+
 export const activeUsers = new Gauge({
   name: 'eldercare_active_users',
   help: 'Number of currently active users'

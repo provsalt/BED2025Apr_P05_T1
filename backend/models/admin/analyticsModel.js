@@ -281,3 +281,273 @@ export const updateEngagementSummary = async (userId, date) => {
     
     await request.query(query);
 };
+
+/**
+ * Track login attempt (successful or failed)
+ */
+export const trackLoginAttempt = async (userId, loginData) => {
+    const db = await sql.connect(dbConfig);
+    const query = `
+        INSERT INTO UserLoginAnalytics (user_id, login_date, login_count, first_login_time, last_login_time, ip_addresses, device_types)
+        VALUES (@userId, CAST(GETDATE() AS DATE), 1, GETDATE(), GETDATE(), @ipAddress, @deviceType)
+        ON DUPLICATE KEY UPDATE
+            login_count = login_count + 1,
+            last_login_time = GETDATE(),
+            ip_addresses = CASE 
+                WHEN ip_addresses IS NULL THEN @ipAddress
+                WHEN ip_addresses NOT LIKE '%' + @ipAddress + '%' THEN ip_addresses + ',' + @ipAddress
+                ELSE ip_addresses
+            END,
+            device_types = CASE 
+                WHEN device_types IS NULL THEN @deviceType
+                WHEN device_types NOT LIKE '%' + @deviceType + '%' THEN device_types + ',' + @deviceType
+                ELSE device_types
+            END,
+            updated_at = GETDATE();
+    `;
+    const request = db.request();
+    request.input("userId", sql.Int, userId);
+    request.input("ipAddress", sql.VarChar(45), loginData.ipAddress || null);
+    request.input("deviceType", sql.VarChar(50), loginData.deviceType || null);
+    
+    await request.query(query);
+};
+
+/**
+ * Track failed login attempt
+ */
+export const trackFailedLoginAttempt = async (email, loginData) => {
+    const db = await sql.connect(dbConfig);
+    const query = `
+        INSERT INTO FailedLoginAttempts (email, ip_address, user_agent, device_type, attempt_timestamp)
+        VALUES (@email, @ipAddress, @userAgent, @deviceType, GETDATE());
+    `;
+    const request = db.request();
+    request.input("email", sql.VarChar(255), email);
+    request.input("ipAddress", sql.VarChar(45), loginData.ipAddress || null);
+    request.input("userAgent", sql.VarChar(500), loginData.userAgent || null);
+    request.input("deviceType", sql.VarChar(50), loginData.deviceType || null);
+    
+    await request.query(query);
+};
+
+/**
+ * Track page visit
+ */
+export const trackPageVisit = async (userId, pageData) => {
+    const db = await sql.connect(dbConfig);
+    const query = `
+        INSERT INTO PageVisitAnalytics (user_id, page_url, page_title, visit_timestamp, session_id, action_type, referrer_url, user_agent, device_type)
+        VALUES (@userId, @pageUrl, @pageTitle, GETDATE(), @sessionId, @actionType, @referrerUrl, @userAgent, @deviceType);
+    `;
+    const request = db.request();
+    request.input("userId", sql.Int, userId);
+    request.input("pageUrl", sql.VarChar(255), pageData.pageUrl);
+    request.input("pageTitle", sql.VarChar(255), pageData.pageTitle || null);
+    request.input("sessionId", sql.Int, pageData.sessionId || null);
+    request.input("actionType", sql.VarChar(50), pageData.actionType || 'view');
+    request.input("referrerUrl", sql.VarChar(255), pageData.referrerUrl || null);
+    request.input("userAgent", sql.VarChar(500), pageData.userAgent || null);
+    request.input("deviceType", sql.VarChar(50), pageData.deviceType || null);
+    
+    await request.query(query);
+};
+
+/**
+ * Get user metrics by age group
+ */
+export const getUserMetricsByAge = async (startDate, endDate) => {
+    const db = await sql.connect(dbConfig);
+    const query = `
+        WITH UserAgeGroups AS (
+            SELECT 
+                u.id,
+                u.name,
+                u.email,
+                u.date_of_birth,
+                CASE 
+                    WHEN DATEDIFF(YEAR, u.date_of_birth, GETDATE()) < 18 THEN 'Under 18'
+                    WHEN DATEDIFF(YEAR, u.date_of_birth, GETDATE()) BETWEEN 18 AND 25 THEN '18-25'
+                    WHEN DATEDIFF(YEAR, u.date_of_birth, GETDATE()) BETWEEN 26 AND 35 THEN '26-35'
+                    WHEN DATEDIFF(YEAR, u.date_of_birth, GETDATE()) BETWEEN 36 AND 50 THEN '36-50'
+                    WHEN DATEDIFF(YEAR, u.date_of_birth, GETDATE()) BETWEEN 51 AND 65 THEN '51-65'
+                    ELSE '65+'
+                END as age_group,
+                COUNT(DISTINCT s.id) as total_sessions,
+                COUNT(DISTINCT p.id) as total_page_visits,
+                COUNT(DISTINCT l.id) as total_logins
+            FROM Users u
+            LEFT JOIN UserSessions s ON u.id = s.user_id 
+                AND s.session_start >= @startDate 
+                AND s.session_start <= @endDate
+            LEFT JOIN PageVisitAnalytics p ON u.id = p.user_id 
+                AND p.visit_timestamp >= @startDate 
+                AND p.visit_timestamp <= @endDate
+            LEFT JOIN UserLoginAnalytics l ON u.id = l.user_id 
+                AND l.login_date >= CAST(@startDate AS DATE) 
+                AND l.login_date <= CAST(@endDate AS DATE)
+            WHERE u.date_of_birth IS NOT NULL
+            GROUP BY u.id, u.name, u.email, u.date_of_birth
+        )
+        SELECT 
+            age_group,
+            COUNT(*) as total_users,
+            AVG(CAST(total_sessions AS FLOAT)) as avg_sessions_per_user,
+            AVG(CAST(total_page_visits AS FLOAT)) as avg_page_visits_per_user,
+            AVG(CAST(total_logins AS FLOAT)) as avg_logins_per_user,
+            SUM(total_sessions) as total_sessions,
+            SUM(total_page_visits) as total_page_visits,
+            SUM(total_logins) as total_logins
+        FROM UserAgeGroups
+        GROUP BY age_group
+        ORDER BY 
+            CASE age_group
+                WHEN 'Under 18' THEN 1
+                WHEN '18-25' THEN 2
+                WHEN '26-35' THEN 3
+                WHEN '36-50' THEN 4
+                WHEN '51-65' THEN 5
+                WHEN '65+' THEN 6
+            END;
+    `;
+    const request = db.request();
+    request.input("startDate", sql.DateTime, startDate);
+    request.input("endDate", sql.DateTime, endDate);
+    
+    const result = await request.query(query);
+    return result.recordset;
+};
+
+/**
+ * Get most frequently visited pages
+ */
+export const getMostFrequentPages = async (startDate, endDate, limit = 10) => {
+    const db = await sql.connect(dbConfig);
+    const query = `
+        SELECT 
+            page_url,
+            page_title,
+            COUNT(*) as visit_count,
+            COUNT(DISTINCT user_id) as unique_users,
+            AVG(CAST(time_spent_seconds AS FLOAT)) as avg_time_spent_seconds
+        FROM PageVisitAnalytics
+        WHERE visit_timestamp >= @startDate AND visit_timestamp <= @endDate
+        GROUP BY page_url, page_title
+        ORDER BY visit_count DESC
+        OFFSET 0 ROWS FETCH NEXT @limit ROWS ONLY
+    `;
+    const request = db.request();
+    request.input("startDate", sql.DateTime, startDate);
+    request.input("endDate", sql.DateTime, endDate);
+    request.input("limit", sql.Int, limit);
+    
+    const result = await request.query(query);
+    return result.recordset;
+};
+
+/**
+ * Get login attempt statistics
+ */
+export const getLoginAttemptStats = async (startDate, endDate) => {
+    const db = await sql.connect(dbConfig);
+    const query = `
+        SELECT 
+            CAST(login_date AS DATE) as date,
+            COUNT(*) as total_logins,
+            COUNT(DISTINCT user_id) as unique_users_logging_in,
+            AVG(CAST(login_count AS FLOAT)) as avg_logins_per_user
+        FROM UserLoginAnalytics
+        WHERE login_date >= CAST(@startDate AS DATE) AND login_date <= CAST(@endDate AS DATE)
+        GROUP BY CAST(login_date AS DATE)
+        ORDER BY date DESC
+    `;
+    const request = db.request();
+    request.input("startDate", sql.DateTime, startDate);
+    request.input("endDate", sql.DateTime, endDate);
+    
+    const result = await request.query(query);
+    return result.recordset;
+};
+
+/**
+ * Get failed login attempts
+ */
+export const getFailedLoginAttempts = async (startDate, endDate, limit = 100) => {
+    const db = await sql.connect(dbConfig);
+    const query = `
+        SELECT 
+            email,
+            ip_address,
+            device_type,
+            attempt_timestamp,
+            user_agent
+        FROM FailedLoginAttempts
+        WHERE attempt_timestamp >= @startDate AND attempt_timestamp <= @endDate
+        ORDER BY attempt_timestamp DESC
+        OFFSET 0 ROWS FETCH NEXT @limit ROWS ONLY
+    `;
+    const request = db.request();
+    request.input("startDate", sql.DateTime, startDate);
+    request.input("endDate", sql.DateTime, endDate);
+    request.input("limit", sql.Int, limit);
+    
+    const result = await request.query(query);
+    return result.recordset;
+};
+
+/**
+ * Get comprehensive user metrics dashboard data
+ */
+export const getUserMetricsDashboard = async (startDate, endDate) => {
+    const db = await sql.connect(dbConfig);
+    const query = `
+        SELECT 
+            (SELECT COUNT(*) FROM Users WHERE created_at >= @startDate AND created_at <= @endDate) as new_users,
+            (SELECT COUNT(DISTINCT user_id) FROM UserSessions WHERE session_start >= @startDate AND session_start <= @endDate) as active_users,
+            (SELECT COUNT(*) FROM UserLoginAnalytics WHERE login_date >= CAST(@startDate AS DATE) AND login_date <= CAST(@endDate AS DATE)) as total_logins,
+            (SELECT COUNT(*) FROM PageVisitAnalytics WHERE visit_timestamp >= @startDate AND visit_timestamp <= @endDate) as total_page_visits,
+            (SELECT COUNT(*) FROM FailedLoginAttempts WHERE attempt_timestamp >= @startDate AND attempt_timestamp <= @endDate) as failed_login_attempts,
+            (SELECT AVG(CAST(session_duration_minutes AS FLOAT)) FROM UserSessions WHERE session_start >= @startDate AND session_start <= @endDate) as avg_session_duration
+    `;
+    const request = db.request();
+    request.input("startDate", sql.DateTime, startDate);
+    request.input("endDate", sql.DateTime, endDate);
+    
+    const result = await request.query(query);
+    return result.recordset[0];
+};
+
+/**
+ * Store a Prometheus metrics snapshot (every 5 min)
+ */
+export const storePrometheusSnapshot = async (snapshot) => {
+    const db = await sql.connect(dbConfig);
+    const query = `
+        INSERT INTO PrometheusMetricsSnapshots (
+            snapshot_time,
+            avg_login_attempts,
+            avg_page_visits,
+            avg_failed_logins,
+            avg_active_users,
+            avg_age_groups,
+            raw_json
+        ) VALUES (
+            @snapshotTime,
+            @avgLoginAttempts,
+            @avgPageVisits,
+            @avgFailedLogins,
+            @avgActiveUsers,
+            @avgAgeGroups,
+            @rawJson
+        );
+    `;
+    const request = db.request();
+    request.input("snapshotTime", sql.DateTime, snapshot.timestamp);
+    request.input("avgLoginAttempts", sql.Float, snapshot.avgLoginAttempts);
+    request.input("avgPageVisits", sql.Float, snapshot.avgPageVisits);
+    request.input("avgFailedLogins", sql.Float, snapshot.avgFailedLogins);
+    request.input("avgActiveUsers", sql.Float, snapshot.avgActiveUsers);
+    request.input("avgAgeGroups", sql.Float, snapshot.avgAgeGroups);
+    request.input("rawJson", sql.NVarChar(sql.MAX), JSON.stringify(snapshot.raw));
+    await request.query(query);
+};

@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import {z} from "zod/v4";
-import {nutritionInformation} from "../../utils/validation/nutrition.js";
+import {nutritionInformation} from "../utils/validation/nutrition.js";
 
 dotenv.config();
 

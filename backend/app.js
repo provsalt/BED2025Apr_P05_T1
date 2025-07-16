@@ -9,6 +9,7 @@ import { defaultRateLimit } from "./middleware/rateLimit.js";
 import {initSwagger} from "./swagger/swagger.js";
 import {metricsHandler} from "./config/metrics.js";
 
+
 const app = express();
 const server = createServer(app);
 const origins = ["https://uat.ngeeann.zip", "https://bed.ngeeann.zip", "http://localhost:5173", "http://localhost:4173", "http://localhost:5174"]

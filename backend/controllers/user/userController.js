@@ -4,15 +4,18 @@ import {
   getUser,
   getUserByEmail,
   updateUser,
-  updateUserProfilePicture
+  updateUserProfilePicture,
+  insertLoginHistory 
 } from "../../models/user/userModel.js";
 import {randomUUID} from "crypto";
-import {User} from "../../utils/validation/user.js";
+import {User, Password} from "../../utils/validation/user.js";
 import {SignJWT} from "jose";
 import {z} from "zod/v4";
 import bcrypt from "bcryptjs";
 import {deleteFile, uploadFile} from "../../services/s3Service.js";
 import {deleteUser} from "../../models/admin/adminModel.js";
+import { trackLoginAttempt, trackFailedLoginAttempt } from "../../models/admin/analyticsModel.js";
+import { userLoginAttempts, failedLoginAttempts } from "../../config/metrics.js";
 
 /**
  * @openapi
@@ -197,8 +200,8 @@ export const updateUserController = async (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 id:
- *                   type: integer
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *                 token:
  *                   type: string
  *       400:
@@ -220,13 +223,44 @@ export const loginUserController = async (req, res) => {
 
   const user = await getUserByEmail(validate.data.email);
   if (!user) {
+    // Track failed login attempt
+    const loginData = {
+      ipAddress: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('User-Agent'),
+      deviceType: getDeviceType(req.get('User-Agent') || '')
+    };
+    
+    trackFailedLoginAttempt(validate.data.email, loginData).catch(err => {
+      console.error('Failed to track failed login attempt:', err);
+    });
+    
+    // Increment Prometheus metrics
+    failedLoginAttempts.labels(validate.data.email.split('@')[1] || 'unknown').inc();
+    userLoginAttempts.labels('failed', loginData.deviceType).inc();
+    
     return res.status(401).json({error: "Invalid email or password"});
   }
+  
   const isPasswordValid = await bcrypt.compare(validate.data.password, user.password);
 
   if (!isPasswordValid) {
-    return res.status(401).json({error: "Invalid email or password"});
-  }
+    return res.status(401).json({ error: "Invalid email or password" });
+  }                       
+  await insertLoginHistory(user.id);
+
+  // Track successful login attempt
+  const loginData = {
+    ipAddress: req.ip || req.connection.remoteAddress,
+    userAgent: req.get('User-Agent'),
+    deviceType: getDeviceType(req.get('User-Agent') || '')
+  };
+  
+  trackLoginAttempt(user.id, loginData).catch(err => {
+    console.error('Failed to track successful login attempt:', err);
+  });
+  
+  // Increment Prometheus metrics
+  userLoginAttempts.labels('success', loginData.deviceType).inc();
 
   const secret = new TextEncoder().encode(process.env.SECRET || "");
   const tok = await new SignJWT({
@@ -236,9 +270,31 @@ export const loginUserController = async (req, res) => {
     .setExpirationTime("1d")
     .sign(secret);
   res.status(200).json({
-    id: user.id,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      profile_picture_url: user.profile_picture_url,
+      gender: user.gender,
+      date_of_birth: user.date_of_birth,
+      language: user.language,
+      role: user.role
+    },
     token: tok
   });
+}
+
+// Helper function to determine device type from user agent
+function getDeviceType(userAgent) {
+  const ua = userAgent.toLowerCase();
+  
+  if (ua.includes('mobile') || ua.includes('android') || ua.includes('iphone')) {
+    return 'mobile';
+  } else if (ua.includes('tablet') || ua.includes('ipad')) {
+    return 'tablet';
+  } else {
+    return 'desktop';
+  }
 }
 
 /**
@@ -263,8 +319,8 @@ export const loginUserController = async (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 id:
- *                   type: integer
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *                 token:
  *                   type: string
  *       400:
@@ -277,24 +333,33 @@ export const createUserController = async (req, res) => {
 
   const validate = User.safeParse(body);
 
-  if (!validate.success) {
-    return res.status(400).json({error: "Invalid user data", details: validate.error.issues});
-  }
-  try {
-    const newUser = await createUser(validate.data);
-    const secret = new TextEncoder().encode(process.env.SECRET || "");
-    const tok = await new SignJWT({
-      sub: newUser.id
-    }).setProtectedHeader({alg: "HS256"})
-      .setExpirationTime("1d")
-      .sign(secret);
-    res.status(201).json({
-      id: newUser.id,
-      token: tok
-    });
-  } catch (error) {
-    res.status(500).json({error: "Error creating user"});
-  }
+    if (!validate.success) {
+        return res.status(400).json({ error: "Invalid user data", details: validate.error.issues });
+    }
+    try {
+        const newUser = await createUser(validate.data);
+        const secret = new TextEncoder().encode(process.env.SECRET || "");
+        const tok = await new SignJWT({
+          sub: newUser.id
+        }).setProtectedHeader({ alg: "HS256" })
+          .setExpirationTime("1d")
+          .sign(secret);
+        res.status(201).json({
+          user: {
+            id: newUser.id,
+            name: newUser.name,
+            email: newUser.email,
+            profile_picture_url: newUser.profile_picture_url,
+            gender: newUser.gender,
+            date_of_birth: newUser.date_of_birth,
+            language: newUser.language,
+            role: newUser.role
+          },
+          token: tok
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Error creating user" });
+    }
 }
 
 /**
@@ -333,7 +398,7 @@ export const changePasswordController = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   const validation = z.object({
     oldPassword: z.string().min(1, "Old password is required"),
-    newPassword: ChangePassword,
+    newPassword: Password,
   }).safeParse({oldPassword, newPassword});
   if (!validation.success) {
     return res.status(400).json({
