@@ -46,7 +46,7 @@ export const LoginHistory = () => {
             </TableHeader>
             <TableBody>
               {loginHistory.map((entry) => {
-                const dt = DateTime.fromISO(entry.login_time).setZone("local");
+                const dt = DateTime.fromISO(`${entry.login_time}Z`).setZone("local");
                 return (
                   <TableRow key={entry.id}>
                     <TableCell>{dt.toFormat("yyyy-MM-dd")}</TableCell>

@@ -37,7 +37,7 @@ router.get("/me/login-history", getUserMiddleware, getUserLoginHistoryController
 router.put("/me/password", getUserMiddleware, changePasswordController);
 
 // Shun Xiang upload profile picture, delete profile picture
-router.post("/me/picture", getUserMiddleware, genericUploadMiddleware.single("image"), compressImage, uploadUserProfilePictureController);
+router.post("/me/picture", getUserMiddleware, genericUploadMiddleware.single("avatar"), compressImage, uploadUserProfilePictureController);
 router.delete("/me/picture", getUserMiddleware, deleteUserProfilePictureController);
 
 // Shun Xiang get by id, update user
