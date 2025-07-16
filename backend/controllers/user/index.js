@@ -13,7 +13,7 @@ import {
   getAllUsersController
 } from "./userController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
-import { profilePictureUpload } from "../../middleware/upload.js";
+import {genericUploadMiddleware} from "../../middleware/upload.js";
 import { compressImage } from "../../middleware/compression.js";
 import { authRateLimit } from "../../middleware/rateLimit.js";
 import {
@@ -37,7 +37,7 @@ router.get("/me/login-history", getUserMiddleware, getUserLoginHistoryController
 router.put("/me/password", getUserMiddleware, changePasswordController);
 
 // Shun Xiang upload profile picture, delete profile picture
-router.post("/me/picture", getUserMiddleware, profilePictureUpload, compressImage, uploadUserProfilePictureController);
+router.post("/me/picture", getUserMiddleware, genericUploadMiddleware.single("image"), compressImage, uploadUserProfilePictureController);
 router.delete("/me/picture", getUserMiddleware, deleteUserProfilePictureController);
 
 // Shun Xiang get by id, update user
