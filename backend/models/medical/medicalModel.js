@@ -84,16 +84,20 @@ export async function getMedicationRemindersByUser(userId) {
 export async function getAllRemindersWithUsers() {
     let connection;
     try {
-      connection = await sql.connect(dbConfig);
-      const result = await connection.request().query(`
-        SELECT r.*, u.email, u.name
-        FROM Medication r
-        JOIN [Users] u ON r.user_id = u.id
-      `);
-      return result.recordset;
+        connection = new sql.ConnectionPool(dbConfig); // Using dedicated connection so that after, it only closes its own pool
+        await connection.connect();
+        const result = await connection.request().query(`
+            SELECT r.*, u.email, u.name
+            FROM Medication r
+            JOIN [Users] u ON r.user_id = u.id
+        `);
+        return result.recordset;
+    } catch (error) {
+        console.error('Error in getAllRemindersWithUsers:', error);
+        throw error;
     } finally {
-      if (connection) {
-        await connection.close();
-      }
+        if (connection) {
+            await connection.close();   
+        }
     }
 } 
