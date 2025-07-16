@@ -1,5 +1,5 @@
 import { getAllRemindersWithUsers } from '../../models/medical/medicalModel.js';
-import { sendReminderEmail } from '../../services/emailService.js';
+import { sendEmail } from '../../services/emailService.js';
 import { DateTime } from 'luxon';
 
 const sentReminders = {}; // { [date]: { [reminderId]: [array of sent times as 'HH:MM'] } }
@@ -55,6 +55,22 @@ function  getReminderTimes(baseTime, frequency) {
 function timeToHHMM(dt) {
   // dt is a Luxon DateTime
   return dt.toFormat('HH:mm');
+}
+
+//send medication reminder email
+async function sendReminderEmail(reminder) {
+  const subject = `Medication Reminder: ${reminder.medicine_name}`;
+  const html = `<p>Hi ${reminder.name},<br/>
+    This is your reminder to take your medication:<br/>
+    Medicine: <b>${reminder.medicine_name}</b><br/>
+    Dosage: ${reminder.dosage}<br/>
+    Reason: ${reminder.reason}
+  </p>`;
+  return sendEmail({
+    to: reminder.email,
+    subject,
+    html
+  });
 }
 
 export async function checkAndSendReminders() {
