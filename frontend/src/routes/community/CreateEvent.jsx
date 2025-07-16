@@ -6,18 +6,28 @@ import { Button } from "../../components/ui/button";
 import { Upload, X } from "lucide-react";
 import { fetcher } from "../../lib/fetcher";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
+import { UserContext } from '../../provider/UserContext.js';
 
 export const CreateEventPage = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState({ type: "", message: "" });
+  const [dialog, setDialog] = useState({ open: false, type: '', message: '' });
   const [category, setCategory] = useState("");
   const fileInputRef = useRef(null);
+  const userContext = React.useContext(UserContext);
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        setDialog({ open: true, type: 'error', message: 'Please select a valid image file' });
+        return;
+      }
+      if (file.size > 30 * 1024 * 1024) {
+        setDialog({ open: true, type: 'error', message: 'Image size should be less than 30MB' });
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (e) => {
         setImageFile(file);
@@ -33,35 +43,62 @@ export const CreateEventPage = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleFeedbackClose = () => {
-    setFeedback({ type: "", message: "" });
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
-    const formData = new FormData(event.target);
-    formData.set("category", category);
-    // Ensure time is always sent as HH:mm 
-    let time = formData.get("time");
-    if (time && time.length > 5) {
-      time = time.slice(0, 5);
-      formData.set("time", time);
+
+    //check if user logged in
+    if (!userContext || !userContext.isAuthenticated || !userContext.id) {
+      setDialog({ open: true, type: 'error', message: 'You must be logged in to create an event.' });
+      setIsSubmitting(false);
+      return;
     }
-    formData.set("image", imageFile);
+    
+    // Get form values
+    const eventName = event.target.name.value.trim();
+    const location = event.target.location.value.trim();
+    const date = event.target.date.value;
+    const time = event.target.time.value;
+    const description = event.target.description.value.trim();
+    if (!eventName || !location || !category || !date || !time || !description || !imageFile) {
+      setDialog({ open: true, type: 'error', message: 'Please fill in all required fields' });
+      setIsSubmitting(false);
+      return;
+    }
+
+    //date cannnot be in the past
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const inputDate = new Date(date);
+    inputDate.setHours(0,0,0,0);
+    if (inputDate < today) {
+      setDialog({ open: true, type: 'error', message: 'Date cannot be in the past' });
+      setIsSubmitting(false);
+      return;
+    }
+    
+    const formData = new FormData(event.target);
+    formData.set('category', category);
+    let timeValue = formData.get('time');
+    if (timeValue && timeValue.length > 5) {
+      timeValue = timeValue.slice(0, 5);
+      formData.set('time', timeValue);
+    }
+    formData.set('image', imageFile);
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
       const result = await fetcher(`${backendUrl}/api/community/create`, {
-        method: "POST",
+        method: 'POST',
         body: formData
       });
+
       if (result.success) {
         event.target.reset();
         setImageFile(null);
         setImagePreview(null);
         setCategory("");
         if (fileInputRef.current) fileInputRef.current.value = "";
-        setFeedback({ type: "success", message: "Event created!" });
+        setDialog({ open: true, type: 'success', message: 'Event created!' });
       } else {
         let errorMessage;
         if (result.errors) {
@@ -71,10 +108,10 @@ export const CreateEventPage = () => {
         } else {
           errorMessage = "Failed to create event";
         }
-        setFeedback({ type: "error", message: errorMessage });
+        setDialog({ open: true, type: 'error', message: errorMessage });
       }
     } catch (err) {
-      setFeedback({ type: "error", message: "Network error. Please check if the server is running and try again." });
+      setDialog({ open: true, type: 'error', message: 'Network error. Please check if the server is running and try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -173,22 +210,16 @@ export const CreateEventPage = () => {
           <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>{(() => { if (isSubmitting) { return "Submitting..."; } else { return "Submit"; } })()}</Button>
         </form>
 
-        <Dialog open={!!feedback.message} onOpenChange={open => { if (!open) setFeedback({ type: "", message: "" }); }}>
+        <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
           <DialogContent className="rounded-xl">
             <DialogHeader>
-              {(() => {
-                let titleClass = "text-red-700";
-                let titleText = "Error";
-                if (feedback.type === "success") {
-                  titleClass = "text-green-700";
-                  titleText = "Success";
-                }
-                return <DialogTitle className={titleClass}>{titleText}</DialogTitle>;
-              })()}
+              <DialogTitle className={dialog.type === 'error' ? 'text-red-700' : 'text-green-700'}>
+                {(() => { if (dialog.type === 'error') { return 'Error'; } else { return 'Success'; } })()}
+              </DialogTitle>
             </DialogHeader>
-            <div className="py-2">{feedback.message}</div>
+            <div className="py-2">{dialog.message}</div>
             <DialogFooter>
-              <Button className="cursor-pointer" onClick={handleFeedbackClose}>Okay</Button>
+              <Button className="cursor-pointer" onClick={() => setDialog(d => ({ ...d, open: false }))}>Okay</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

@@ -1,6 +1,5 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
 import { createCommunityEvent, addCommunityEventImage } from "../../models/community/communityEventModel.js";
-import { CommunityEventSchema } from "../../utils/validation/community.js";
 import { v4 as uuidv4 } from 'uuid';
 
 export const createEvent = async (req, res) => {
@@ -10,22 +9,18 @@ export const createEvent = async (req, res) => {
         if (!userId) {
             return res.status(400).json({ success: false, message: 'User ID is required', errors: ['User ID is required'] });
         }
-        const imageFile = req.file;
-        // Validate request body using zod schema
-        const parseResult = CommunityEventSchema.safeParse(req.body);
-        if (!parseResult.success) {
-            const errors = parseResult.error?.errors?.map(e => e.message) || ['Validation failed'];
-            return res.status(400).json({ success: false, message: 'Validation failed', errors });
-        }
         
+        const imageFile = req.file;
         // Generate unique key for S3 
         const imageKey = `community-events/${userId}/${uuidv4()}`;
         // Upload image to S3
         await uploadFile(imageFile, imageKey);
         // Create image URL (medical style)
         const imageUrl = `/api/files?key=${imageKey}`;
-        // Prepare data for model
-        let { time, ...rest } = parseResult.data;
+
+
+        // Use validated body from middleware
+        let { time, ...rest } = req.validatedBody;
         // Robustly ensure time is in HH:mm:ss format
         if (time) {
             if (/^\d{2}:\d{2}$/.test(time)) {
@@ -38,6 +33,7 @@ export const createEvent = async (req, res) => {
         } else {
             return res.status(400).json({ success: false, message: 'Time is required.' });
         }
+
         const eventData = {
             ...rest,
             time,

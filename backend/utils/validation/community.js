@@ -1,6 +1,6 @@
 import { z } from 'zod/v4';
 
-export const CommunityEventSchema = z.object({
+export const CommunityInformation = z.object({
   name: z.string().min(1, 'Event name is required'),
   location: z.string().min(1, 'Location is required'),
   category: z.enum(['sports', 'arts', 'culinary', 'learn'], { required_error: 'Category is required' }),

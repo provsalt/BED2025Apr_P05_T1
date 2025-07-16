@@ -3,10 +3,10 @@ import { dbConfig } from "../../config/db.js";
 
 // POST: Create a new community event
 export async function createCommunityEvent(eventData) {
-    let pool;
+    let connection;
     try {
-        pool = await sql.connect(dbConfig);
-        const result = await pool.request()
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
             .input('name', sql.NVarChar(100), eventData.name)
             .input('location', sql.NVarChar(100), eventData.location)
             .input('category', sql.NVarChar(50), eventData.category)
@@ -34,16 +34,18 @@ export async function createCommunityEvent(eventData) {
             error: error.message
         };
     } finally {
-        if (pool) await pool.close();
-    }
-}
+        if (connection){
+            await connection.close();
+        };
+    };
+};
 
 // POST: Add an image for a community event
 export async function addCommunityEventImage(community_event_id, image_url) {
-    let pool;
+    let connection;
     try {
-        pool = await sql.connect(dbConfig);
-        await pool.request()
+        connection = await sql.connect(dbConfig);
+        await connection.request()
             .input('community_event_id', sql.Int, community_event_id)
             .input('image_url', sql.NVarChar(sql.MAX), image_url)
             .query(`
@@ -62,7 +64,9 @@ export async function addCommunityEventImage(community_event_id, image_url) {
             error: error.message
         };
     } finally {
-        if (pool) await pool.close();
-    }
-}
+        if (connection){
+            await connection.close();
+        };
+    };
+};
 
