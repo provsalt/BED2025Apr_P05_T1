@@ -67,7 +67,7 @@ export const MedicationReminderForm = ({ userId = null }) => {
 
   const handleSubmit = async () => {
     if (!UserId) {
-      setDialog({ open: true, type: 'error', message: 'User not authenticated. Please log in.' });
+      setDialog({ open: true, type: 'error', message: 'You must be logged in to create a medication reminder' });
       return;
     }
 
