@@ -190,3 +190,23 @@ export const getAllUsers = async () => {
     const result = await request.query(query);
     return result.recordset;
 }
+
+export const requestUserDeletion = async (userId) => {
+  const db = await sql.connect(dbConfig);
+  const query = `UPDATE Users SET deletionRequested = 1, deletionRequestedAt = GETDATE() WHERE id = @id`;
+  const request = db.request();
+  request.input("id", userId);
+  const result = await request.query(query);
+  return result.rowsAffected[0] > 0;
+};
+
+export const getUsersWithDeletionRequested = async () => {
+  const db = await sql.connect(dbConfig);
+  const query = `SELECT * FROM Users WHERE deletionRequested = 1`;
+  const result = await db.request().query(query);
+  return result.recordset;
+};
+
+export const approveUserDeletionRequest = async (userId) => {
+  return await deleteUser(userId);
+};

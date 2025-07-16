@@ -5,7 +5,10 @@ import {
   getUserByEmail,
   updateUser,
   updateUserProfilePicture,
-  insertLoginHistory 
+  insertLoginHistory,
+  requestUserDeletion,
+  getUsersWithDeletionRequested,
+  approveUserDeletionRequest
 } from "../../models/user/userModel.js";
 import {randomUUID} from "crypto";
 import {User, Password} from "../../utils/validation/user.js";
@@ -545,6 +548,107 @@ export const deleteUserController = async (req, res) => {
       return res.status(404).json({error: "User not found"});
     }
     res.status(500).json({error: "Error deleting user"});
+  }
+};
+
+/**
+ * @openapi
+ * /api/users/me/request-delete:
+ *   post:
+ *     tags:
+ *       - User
+ *     summary: Request account deletion
+ *     description: Request to delete the current user's account (admin approval required).
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Deletion request submitted
+ *       400:
+ *         description: Request failed
+ *       500:
+ *         description: Server error
+ */
+export const requestUserDeletionController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const success = await requestUserDeletion(userId);
+    if (!success) {
+      return res.status(400).json({ error: "Failed to request account deletion" });
+    }
+    res.status(200).json({ message: "Account deletion request submitted" });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+/**
+ * @openapi
+ * /api/users/deletion-requests:
+ *   get:
+ *     tags:
+ *       - User
+ *     summary: Get all account deletion requests
+ *     description: Admin only. Get all users who have requested account deletion.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users with deletion requests
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Server error
+ */
+export const getDeletionRequestsController = async (req, res) => {
+  try {
+    const users = await getUsersWithDeletionRequested();
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+/**
+ * @openapi
+ * /api/users/{id}/approve-delete:
+ *   post:
+ *     tags:
+ *       - User
+ *     summary: Approve and delete user account
+ *     description: Admin only. Approve and delete a user's account after deletion request.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The user's ID.
+ *     responses:
+ *       200:
+ *         description: User deleted
+ *       400:
+ *         description: Failed to delete user
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+export const approveUserDeletionController = async (req, res) => {
+  const userId = parseInt(req.params.id);
+  if (isNaN(userId)) {
+    return res.status(400).json({ error: "Invalid user ID" });
+  }
+  try {
+    const success = await approveUserDeletionRequest(userId);
+    if (!success) {
+      return res.status(400).json({ error: "Failed to delete user" });
+    }
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
   }
 };
 

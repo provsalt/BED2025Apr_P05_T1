@@ -30,6 +30,7 @@ export function Settings() {
   const [userId, setUserId] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [profilePictureUrl, setProfilePictureUrl] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Use the custom hook for profile picture logic
   const profilePicture = useProfilePicture({
@@ -124,6 +125,19 @@ export function Settings() {
       }
       
       alert.error({ title: "Password Update Failed", description: errorMessage });
+    }
+  }
+
+  async function handleRequestAccountDeletion() {
+    setShowDeleteConfirm(false);
+    try {
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/request-delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.token}` },
+      });
+      alert.success({ title: "Request Submitted", description: "Your account deletion request has been sent for admin approval." });
+    } catch (err) {
+      alert.error({ title: "Request Failed", description: "Could not submit deletion request." });
     }
   }
 
@@ -258,17 +272,30 @@ export function Settings() {
             </Card>
           </div>
 
-          <div className="md:col-span-3 flex justify-center">
-            <Button variant="destructive"onClick={() => {
-                auth.setUser({ id: null, token: null, isAuthenticated: false });
-                localStorage.removeItem("token");
-                navigate("/");
-              }}
-            >
+          <div className="md:col-span-3 flex justify-center space-x-4">
+            <Button variant="destructive" onClick={() => {
+              auth.setUser({ id: null, token: null, isAuthenticated: false });
+              localStorage.removeItem("token");
+              navigate("/");
+            }}>
               Logout
             </Button>
+            <Button variant="destructive" onClick={() => setShowDeleteConfirm(true)}>
+              Request Account Deletion
+            </Button>
           </div>
-
+          {showDeleteConfirm && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full">
+                <h3 className="text-lg font-bold mb-4">Confirm Account Deletion</h3>
+                <p className="mb-4">Are you sure you want to request account deletion? This action requires admin approval and cannot be undone once processed.</p>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+                  <Button variant="destructive" onClick={handleRequestAccountDeletion}>Yes, Request Deletion</Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <div className="mt-8">
           <LoginHistory />
