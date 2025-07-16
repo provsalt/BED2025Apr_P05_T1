@@ -5,31 +5,58 @@ import { fetcher } from "@/lib/fetcher";
 import { DateTime } from "luxon";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 
+const TIMEZONE_OPTIONS = [
+  { label: "Local", value: "local" },
+  { label: "Singapore (SGT)", value: "Asia/Singapore" },
+  { label: "UTC", value: "utc" },
+];
+
 export const LoginHistory = () => {
   const [loginHistory, setLoginHistory] = useState([]);
+  const [timezone, setTimezone] = useState("local");
   const alert = useAlert();
-  const userZone = DateTime.local().zoneName;
-  const userZoneAbbr = DateTime.local().toFormat('ZZZZ');
 
   useEffect(() => {
     fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/login-history`)
-      .then((data) => {
-        setLoginHistory(data);
-      })
+      .then((data) => setLoginHistory(data))
       .catch(() => {
-        alert.error({
+      alert.error({
           title: "Login History Error",
           description: "Could not load login history.",
         });
       });
   }, []);
 
+  const getZoneLabel = () => {
+    if (timezone === "local") {
+      const dt = DateTime.local();
+      return `${dt.offsetNameShort} (${dt.zoneName})`;
+    }
+    if (timezone === "utc") {
+      return "UTC";
+    }
+    if (timezone === "Asia/Singapore") {
+      return "SGT (Asia/Singapore)";
+    }
+    return timezone;
+  };
+
   return (
     <Card className="mt-6">
       <CardHeader>
         <CardTitle>Recent Logins</CardTitle>
-        <div className="text-sm text-gray-500 mt-1">
-          Times are shown in your local timezone: <span className="font-semibold">{userZoneAbbr} ({userZone})</span>
+        <div className="text-sm text-gray-500 mt-1 flex items-center gap-2">
+          Times are shown in:
+          <select
+            className="border rounded px-2 py-1 ml-2"
+            value={timezone}
+            onChange={e => setTimezone(e.target.value)}
+          >
+            {TIMEZONE_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <span className="font-semibold">{getZoneLabel()}</span>
         </div>
       </CardHeader>
       <CardContent>
@@ -46,7 +73,10 @@ export const LoginHistory = () => {
             </TableHeader>
             <TableBody>
               {loginHistory.map((entry) => {
-                const dt = DateTime.fromISO(`${entry.login_time}Z`).setZone("local");
+                let dt = DateTime.fromISO(entry.login_time);
+                if (timezone !== "local") {
+                  dt = dt.setZone(timezone);
+                }
                 return (
                   <TableRow key={entry.id}>
                     <TableCell>{dt.toFormat("yyyy-MM-dd")}</TableCell>
