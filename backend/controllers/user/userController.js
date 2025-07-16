@@ -8,7 +8,8 @@ import {
   insertLoginHistory,
   requestUserDeletion,
   getUsersWithDeletionRequested,
-  approveUserDeletionRequest
+  approveUserDeletionRequest,
+  cancelUserDeletionRequest
 } from "../../models/user/userModel.js";
 import {randomUUID} from "crypto";
 import {User, Password} from "../../utils/validation/user.js";
@@ -647,6 +648,37 @@ export const approveUserDeletionController = async (req, res) => {
       return res.status(400).json({ error: "Failed to delete user" });
     }
     res.status(200).json({ message: "User deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+/**
+ * @openapi
+ * /api/users/me/cancel-delete:
+ *   post:
+ *     tags:
+ *       - User
+ *     summary: Cancel account deletion request
+ *     description: Cancel the current user's account deletion request.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Deletion request cancelled
+ *       400:
+ *         description: Cancel failed
+ *       500:
+ *         description: Server error
+ */
+export const cancelUserDeletionController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const success = await cancelUserDeletionRequest(userId);
+    if (!success) {
+      return res.status(400).json({ error: "Failed to cancel deletion request" });
+    }
+    res.status(200).json({ message: "Account deletion request cancelled" });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }

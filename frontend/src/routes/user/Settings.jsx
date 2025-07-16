@@ -12,6 +12,9 @@ import { Controller, useForm } from "react-hook-form";
 import { LoginHistory } from "@/components/settings/LoginHistory";
 import { useProfilePicture } from "@/hooks/useProfilePicture.js";
 import { ProfilePictureCard } from "@/components/avatar/ProfilePictureCard.jsx";
+import ProfileSection from "@/components/settings/ProfileSection.jsx";
+import PasswordSection from "@/components/settings/PasswordSection.jsx";
+import DeletionRequestSection from "@/components/settings/DeletionRequestSection.jsx";
 
 export function Settings() {
   const auth = useContext(UserContext);
@@ -31,6 +34,8 @@ export function Settings() {
   const [editMode, setEditMode] = useState(false);
   const [profilePictureUrl, setProfilePictureUrl] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // Add a new state for deletion request status
+  const [hasRequestedDeletion, setHasRequestedDeletion] = useState(false); // Replace with real value from backend if available
 
   // Use the custom hook for profile picture logic
   const profilePicture = useProfilePicture({
@@ -136,8 +141,22 @@ export function Settings() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.token}` },
       });
       alert.success({ title: "Request Submitted", description: "Your account deletion request has been sent for admin approval." });
+      setHasRequestedDeletion(true);
     } catch (err) {
       alert.error({ title: "Request Failed", description: "Could not submit deletion request." });
+    }
+  }
+
+  async function handleCancelAccountDeletion() {
+    try {
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/cancel-delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.token}` },
+      });
+      alert.success({ title: "Request Cancelled", description: "Your account deletion request has been cancelled." });
+      setHasRequestedDeletion(false);
+    } catch (err) {
+      alert.error({ title: "Cancel Failed", description: "Could not cancel deletion request." });
     }
   }
 
@@ -167,109 +186,33 @@ export function Settings() {
           </div>
 
           <div className="md:col-span-2">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>User Details</CardTitle>
-                  <Button onClick={() => setEditMode((prev) => !prev)} variant="outline">
-                    {editMode ? "Cancel" : "Edit Settings"}
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" {...register("name", { required: true, min: 3, maxLength: 255 })} disabled={!editMode} />
-                    {errors.name && <span className="text-red-500 text-sm">Please enter a valid name.</span>}
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email (read-only)</Label>
-                    <Input id="email" {...register("email")} disabled />
-                  </div>
-                  <div>
-                    <Label htmlFor="date_of_birth">Date of Birth</Label>
-                    <Input id="date_of_birth" type="date" {...register("date_of_birth", { required: true })} disabled={!editMode} />
-                    {errors.date_of_birth && <span className="text-red-500 text-sm">Please enter a valid date of birth.</span>}
-                  </div>
-                  <div>
-                    <Label>Gender</Label>
-                    <Controller
-                      name="gender"
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field }) => (
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          className="flex items-center space-x-4"
-                          disabled={!editMode}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="female" id="gender-female" />
-                            <Label htmlFor="gender-female">Female</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="male" id="gender-male" />
-                            <Label htmlFor="gender-male">Male</Label>
-                          </div>
-                        </RadioGroup>
-                      )}
-                    />
-                    {errors.gender && <span className="text-red-500 text-sm">Please select a gender.</span>}
-                  </div>
-                  <div>
-                    <Label htmlFor="language">Preferred Language</Label>
-                    <Input id="language" {...register("language")} disabled={!editMode} />
-                  </div>
-
-                  {editMode && <Button type="submit">Save Changes</Button>}
-                </form>
-              </CardContent>
-            </Card>
+            <ProfileSection
+              editMode={editMode}
+              errors={errors}
+              register={register}
+              control={control}
+              handleSubmit={handleSubmit}
+              onProfileSubmit={onProfileSubmit}
+              setEditMode={setEditMode}
+            />
           </div>
 
           <div className="md:col-span-3">
-            <Card>
-              <CardHeader>
-                <CardTitle>Change Password</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleChangePassword} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block font-medium">Old Password:</label>
-                    <Input
-                      type="password"
-                      name="oldPassword"
-                      value={passwordForm.oldPassword}
-                      onChange={handlePasswordChange}
-                      required />
-                  </div>
-                  <div>
-                    <label className="block font-medium">New Password:</label>
-                    <Input
-                      type="password"
-                      name="newPassword"
-                      value={passwordForm.newPassword}
-                      onChange={handlePasswordChange}
-                      required />
-                  </div>
-                  <div>
-                    <label className="block font-medium">Confirm Password:</label>
-                    <Input
-                      type="password"
-                      name="confirmPassword"
-                      value={passwordForm.confirmPassword}
-                      onChange={handlePasswordChange}
-                      required />
-                  </div>
+            <PasswordSection
+              passwordForm={passwordForm}
+              handlePasswordChange={handlePasswordChange}
+              handleChangePassword={handleChangePassword}
+            />
+          </div>
 
-                  <div className="md:col-span-3">
-                    <Button type="submit">Update Password</Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+          <div className="md:col-span-3">
+            <DeletionRequestSection
+              showDeleteConfirm={showDeleteConfirm}
+              setShowDeleteConfirm={setShowDeleteConfirm}
+              handleRequestAccountDeletion={handleRequestAccountDeletion}
+              hasRequestedDeletion={hasRequestedDeletion}
+              handleCancelAccountDeletion={handleCancelAccountDeletion}
+            />
           </div>
 
           <div className="md:col-span-3 flex justify-center space-x-4">
@@ -280,22 +223,7 @@ export function Settings() {
             }}>
               Logout
             </Button>
-            <Button variant="destructive" onClick={() => setShowDeleteConfirm(true)}>
-              Request Account Deletion
-            </Button>
           </div>
-          {showDeleteConfirm && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full">
-                <h3 className="text-lg font-bold mb-4">Confirm Account Deletion</h3>
-                <p className="mb-4">Are you sure you want to request account deletion? This action requires admin approval and cannot be undone once processed.</p>
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
-                  <Button variant="destructive" onClick={handleRequestAccountDeletion}>Yes, Request Deletion</Button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
         <div className="mt-8">
           <LoginHistory />

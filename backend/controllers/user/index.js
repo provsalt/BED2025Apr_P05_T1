@@ -13,7 +13,8 @@ import {
   getAllUsersController,
   requestUserDeletionController,
   getDeletionRequestsController,
-  approveUserDeletionController
+  approveUserDeletionController,
+  cancelUserDeletionController
 } from "./userController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import {genericUploadMiddleware} from "../../middleware/upload.js";
@@ -44,6 +45,7 @@ router.post("/me/picture", getUserMiddleware, genericUploadMiddleware.single("av
 router.delete("/me/picture", getUserMiddleware, deleteUserProfilePictureController);
 
 router.post("/me/request-delete", getUserMiddleware, requestUserDeletionController);
+router.post("/me/cancel-delete", getUserMiddleware, cancelUserDeletionController);
 router.get("/deletion-requests", getUserMiddleware, authorizeRole(["Admin"]), getDeletionRequestsController);
 router.post( "/:id/approve-delete", getUserMiddleware, authorizeRole(["Admin"]), approveUserDeletionController);
 

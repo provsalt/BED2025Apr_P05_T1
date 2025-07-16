@@ -210,3 +210,12 @@ export const getUsersWithDeletionRequested = async () => {
 export const approveUserDeletionRequest = async (userId) => {
   return await deleteUser(userId);
 };
+
+export const cancelUserDeletionRequest = async (userId) => {
+  const db = await sql.connect(dbConfig);
+  const query = `UPDATE Users SET deletionRequested = 0, deletionRequestedAt = NULL WHERE id = @id`;
+  const request = db.request();
+  request.input("id", userId);
+  const result = await request.query(query);
+  return result.rowsAffected[0] > 0;
+};
