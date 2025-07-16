@@ -1,0 +1,27 @@
+name: Backend Vitest
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+
+    - name: Install pnpm
+      run: npm install -g pnpm
+
+    - name: Install dependencies
+      run: pnpm install
+      working-directory: ./backend
+
+    - name: Run Vitest tests
+      run: pnpm test
+      working-directory: ./backend
