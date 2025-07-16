@@ -89,7 +89,7 @@ export async function getAllRemindersWithUsers() {
         const result = await connection.request().query(`
             SELECT r.*, u.email, u.name
             FROM Medication r
-            JOIN [Users] u ON r.user_id = u.id
+            LEFT JOIN [Users] u ON r.user_id = u.id
         `);
         return result.recordset;
     } catch (error) {
