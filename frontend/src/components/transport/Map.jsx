@@ -5,11 +5,10 @@ export const Map = ({ path, delay, loading }) => {
 
   return (
     <svg
-      width="1464"
-      height="800"
       viewBox="0 0 1464 1012"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className="w-full h-full"
     >
       <g id="mrt map">
         <g id="lines">

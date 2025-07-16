@@ -1,4 +1,5 @@
-// adopted from https://github.com/chloeelim/longestmrt adopted styling for svg circle.
+// adopted from https://github.com/chloeelim/longestmrt
+// fixed the circle not resetting away the path colour when resetting the state []
 import { useEffect } from "react";
 
 export const Circle = ({
@@ -23,6 +24,8 @@ export const Circle = ({
     const n = path.length;
     const selected = code_arr.length > 0;
     const index = selected ? path.indexOf(code_arr[0]) : null;
+    const circleElement = document.getElementById(id);
+
     if (selected) {
       const func = () => {
         const a = 237;
@@ -31,16 +34,22 @@ export const Circle = ({
         const d = 189;
         const e = 138;
         const f = 230;
-        document.getElementById(id).style.fill = `rgb(${
-          a + (d - a) * ((1 + index) / (n + 1))
-        },${b + (e - b) * ((1 + index) / (n + 1))},${
-          c + (f - c) * ((1 + index) / (n + 1))
-        })`;
+        if (circleElement) {
+          circleElement.style.fill = `rgb(${
+            a + (d - a) * ((1 + index) / (n + 1))
+          },${b + (e - b) * ((1 + index) / (n + 1))},${
+            c + (f - c) * ((1 + index) / (n + 1))
+          })`;
+        }
       };
       const timeout = setTimeout(func, (index + 1.5) * delay);
       return () => clearTimeout(timeout);
+    } else {
+      if (circleElement) {
+        circleElement.style.fill = fill;
+      }
     }
-  }, [path]);
+  }, [path, id, fill, delay]);
 
   return (
     <circle
