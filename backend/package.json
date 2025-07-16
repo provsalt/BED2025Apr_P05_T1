@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest",
+    "coverage": "vitest run --coverage",
     "start": "node app.js",
     "migrate": "node migrate.js"
   },
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
+    "@vitest/coverage-v8": "3.2.4",
     "vitest": "^3.2.4"
   }
 }

@@ -1,23 +1,23 @@
-import { describe, it, expect, vi } from 'vitest';
-import { getChatsController, createChatController } from '../../../controllers/chat/chatController.js';
-import * as ChatModel from '../../../models/chat/chatModel.js';
-import * as MessageModel from '../../../models/chat/messageModel.js';
-import * as Websocket from '../../../utils/websocket.js';
+import { describe, it, expect, vi } from "vitest";
+import { getChatsController, createChatController } from "../../../controllers/chat/chatController.js";
+import * as ChatModel from "../../../models/chat/chatModel.js";
+import * as MessageModel from "../../../models/chat/messageModel.js";
+import * as Websocket from "../../../utils/websocket.js";
 
-vi.mock('../../../models/chat/chatModel.js', () => ({
+vi.mock("../../../models/chat/chatModel.js", () => ({
     getChats: vi.fn(),
     createChat: vi.fn(),
     getChatBetweenUsers: vi.fn(),
 }));
-vi.mock('../../../models/chat/messageModel.js', () => ({
+vi.mock("../../../models/chat/messageModel.js", () => ({
     createMessage: vi.fn(),
 }));
-vi.mock('../../../utils/websocket.js', () => ({
+vi.mock("../../../utils/websocket.js", () => ({
     broadcastMessageCreated: vi.fn(),
 }));
 
-describe('Chat Controller', () => {
-    it('should get all chats for a user', async () => {
+describe("Chat Controller", () => {
+    it("should get all chats for a user", async () => {
         const req = { user: { id: 1 } };
         const res = {
             status: vi.fn(() => res),
@@ -31,7 +31,7 @@ describe('Chat Controller', () => {
         expect(res.json).toHaveBeenCalledWith([{ id: 1, chat_initiator: 1, chat_recipient: 2 }]);
     });
 
-    it('should return 404 if no chats are found', async () => {
+    it("should return 404 if no chats are found", async () => {
         const req = { user: { id: 1 } };
         const res = {
             status: vi.fn(() => res),
@@ -42,13 +42,13 @@ describe('Chat Controller', () => {
         await getChatsController(req, res);
 
         expect(res.status).toHaveBeenCalledWith(404);
-        expect(res.json).toHaveBeenCalledWith({ message: 'No chats yet' });
+        expect(res.json).toHaveBeenCalledWith({ message: "No chats yet" });
     });
 
-    it('should create a new chat', async () => {
+    it("should create a new chat", async () => {
         const req = {
             user: { id: 1 },
-            body: { recipientId: 2, message: 'Hello' },
+            body: { recipientId: 2, message: "Hello" },
         };
         const res = {
             status: vi.fn(() => res),
@@ -62,13 +62,13 @@ describe('Chat Controller', () => {
         await createChatController(req, res);
 
         expect(res.status).toHaveBeenCalledWith(201);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Chat created successfully', chatId: 1 });
+        expect(res.json).toHaveBeenCalledWith({ message: "Chat created successfully", chatId: 1 });
     });
 
-    it('should return 409 if chat already exists', async () => {
+    it("should return 409 if chat already exists", async () => {
         const req = {
             user: { id: 1 },
-            body: { recipientId: 2, message: 'Hello' },
+            body: { recipientId: 2, message: "Hello" },
         };
         const res = {
             status: vi.fn(() => res),
@@ -79,10 +79,10 @@ describe('Chat Controller', () => {
         await createChatController(req, res);
 
         expect(res.status).toHaveBeenCalledWith(409);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Chat already exists between these users', chatId: 1 });
+        expect(res.json).toHaveBeenCalledWith({ message: "Chat already exists between these users", chatId: 1 });
     });
 
-    it('should return 401 if user is not authenticated', async () => {
+    it("should return 401 if user is not authenticated", async () => {
         const req = { user: null };
         const res = {
             status: vi.fn(() => res),
@@ -92,10 +92,10 @@ describe('Chat Controller', () => {
         await getChatsController(req, res);
 
         expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Unauthorized' });
+        expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
     });
 
-    it('should return 400 if recipientId or message is missing', async () => {
+    it("should return 400 if recipientId or message is missing", async () => {
         const req = {
             user: { id: 1 },
             body: {},
@@ -108,23 +108,23 @@ describe('Chat Controller', () => {
         await createChatController(req, res);
 
         expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({ message: 'recipientId and message are required' });
+        expect(res.json).toHaveBeenCalledWith({ message: "recipientId and message are required" });
     });
 
-    it('should return 500 if there is a server error', async () => {
+    it("should return 500 if there is a server error", async () => {
         const req = {
             user: { id: 1 },
-            body: { recipientId: 2, message: 'Hello' },
+            body: { recipientId: 2, message: "Hello" },
         };
         const res = {
             status: vi.fn(() => res),
             json: vi.fn(),
         };
-        ChatModel.getChatBetweenUsers.mockRejectedValue(new Error('Server error'));
+        ChatModel.getChatBetweenUsers.mockRejectedValue(new Error("Server error"));
 
         await createChatController(req, res);
 
         expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Internal server error' });
+        expect(res.json).toHaveBeenCalledWith({ message: "Internal server error" });
     });
 });

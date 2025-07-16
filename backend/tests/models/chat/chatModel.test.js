@@ -1,15 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
-import { createChat, getChats, getChat, getChatBetweenUsers, updateChatTimestamp } from '../../../models/chat/chatModel.js';
-import sql from 'mssql';
+import { describe, it, expect, vi } from "vitest";
+import { createChat, getChats, getChat, getChatBetweenUsers, updateChatTimestamp } from "../../../models/chat/chatModel.js";
+import sql from "mssql";
 
-vi.mock('mssql', () => ({
+vi.mock("mssql", () => ({
   default: {
     connect: vi.fn(),
   }
 }));
 
-describe('Chat Model', () => {
-    it('should create a new chat', async () => {
+describe("Chat Model", () => {
+    it("should create a new chat", async () => {
         const mockRequest = {
             input: vi.fn(),
             query: vi.fn().mockResolvedValue({ recordset: [{ id: 1 }] }),
@@ -25,13 +25,13 @@ describe('Chat Model', () => {
 
         expect(sql.connect).toHaveBeenCalled();
         expect(mockDb.request).toHaveBeenCalled();
-        expect(mockRequest.input).toHaveBeenCalledWith('initiatorId', initiatorId);
-        expect(mockRequest.input).toHaveBeenCalledWith('recipientId', recipientId);
+        expect(mockRequest.input).toHaveBeenCalledWith("initiatorId", initiatorId);
+        expect(mockRequest.input).toHaveBeenCalledWith("recipientId", recipientId);
         expect(mockRequest.query).toHaveBeenCalled();
         expect(newChatId).toBe(1);
     });
 
-    it('should get all chats for a user', async () => {
+    it("should get all chats for a user", async () => {
         const mockRequest = {
             input: vi.fn(),
             query: vi.fn().mockResolvedValue({ recordset: [{ id: 1, chat_initiator: 1, chat_recipient: 2 }] }),
@@ -46,12 +46,12 @@ describe('Chat Model', () => {
 
         expect(sql.connect).toHaveBeenCalled();
         expect(mockDb.request).toHaveBeenCalled();
-        expect(mockRequest.input).toHaveBeenCalledWith('id', userId);
+        expect(mockRequest.input).toHaveBeenCalledWith("id", userId);
         expect(mockRequest.query).toHaveBeenCalled();
         expect(chats).toEqual([{ id: 1, chat_initiator: 1, chat_recipient: 2 }]);
     });
 
-    it('should get a single chat', async () => {
+    it("should get a single chat", async () => {
         const mockRequest = {
             input: vi.fn(),
             query: vi.fn().mockResolvedValue({ recordset: [{ id: 1, chat_initiator: 1, chat_recipient: 2 }] }),
@@ -66,12 +66,12 @@ describe('Chat Model', () => {
 
         expect(sql.connect).toHaveBeenCalled();
         expect(mockDb.request).toHaveBeenCalled();
-        expect(mockRequest.input).toHaveBeenCalledWith('id', chatId);
+        expect(mockRequest.input).toHaveBeenCalledWith("id", chatId);
         expect(mockRequest.query).toHaveBeenCalled();
         expect(chat).toEqual({ id: 1, chat_initiator: 1, chat_recipient: 2 });
     });
 
-    it('should get a chat between two users', async () => {
+    it("should get a chat between two users", async () => {
         const mockRequest = {
             input: vi.fn(),
             query: vi.fn().mockResolvedValue({ recordset: [{ id: 1, chat_initiator: 1, chat_recipient: 2 }] }),
@@ -87,13 +87,13 @@ describe('Chat Model', () => {
 
         expect(sql.connect).toHaveBeenCalled();
         expect(mockDb.request).toHaveBeenCalled();
-        expect(mockRequest.input).toHaveBeenCalledWith('userId1', userId1);
-        expect(mockRequest.input).toHaveBeenCalledWith('userId2', userId2);
+        expect(mockRequest.input).toHaveBeenCalledWith("userId1", userId1);
+        expect(mockRequest.input).toHaveBeenCalledWith("userId2", userId2);
         expect(mockRequest.query).toHaveBeenCalled();
         expect(chat).toEqual({ id: 1, chat_initiator: 1, chat_recipient: 2 });
     });
 
-    it('should update the chat timestamp', async () => {
+    it("should update the chat timestamp", async () => {
         const mockRequest = {
             input: vi.fn(),
             query: vi.fn().mockResolvedValue({ rowsAffected: [1] }),
@@ -108,12 +108,12 @@ describe('Chat Model', () => {
 
         expect(sql.connect).toHaveBeenCalled();
         expect(mockDb.request).toHaveBeenCalled();
-        expect(mockRequest.input).toHaveBeenCalledWith('chatId', chatId);
+        expect(mockRequest.input).toHaveBeenCalledWith("chatId", chatId);
         expect(mockRequest.query).toHaveBeenCalled();
         expect(result).toBe(true);
     });
 
-    it('should return null if no chats are found for a user', async () => {
+    it("should return null if no chats are found for a user", async () => {
         const mockRequest = {
             input: vi.fn(),
             query: vi.fn().mockResolvedValue({ recordset: [] }),
@@ -129,7 +129,7 @@ describe('Chat Model', () => {
         expect(chats).toBeNull();
     });
 
-    it('should return null if no chat is found', async () => {
+    it("should return null if no chat is found", async () => {
         const mockRequest = {
             input: vi.fn(),
             query: vi.fn().mockResolvedValue({ recordset: [] }),
@@ -145,7 +145,7 @@ describe('Chat Model', () => {
         expect(chat).toBeNull();
     });
 
-    it('should return null if no chat is found between two users', async () => {
+    it("should return null if no chat is found between two users", async () => {
         const mockRequest = {
             input: vi.fn(),
             query: vi.fn().mockResolvedValue({ recordset: [] }),
@@ -162,7 +162,7 @@ describe('Chat Model', () => {
         expect(chat).toBeNull();
     });
 
-    it('should return false if chat timestamp is not updated', async () => {
+    it("should return false if chat timestamp is not updated", async () => {
         const mockRequest = {
             input: vi.fn(),
             query: vi.fn().mockResolvedValue({ rowsAffected: [0] }),
@@ -178,9 +178,9 @@ describe('Chat Model', () => {
         expect(result).toBe(false);
     });
 
-    it('should throw an error if database connection fails', async () => {
-        sql.connect.mockRejectedValue(new Error('DB connection error'));
+    it("should throw an error if database connection fails", async () => {
+        sql.connect.mockRejectedValue(new Error("DB connection error"));
 
-        await expect(createChat(1, 2)).rejects.toThrow('DB connection error');
+        await expect(createChat(1, 2)).rejects.toThrow("DB connection error");
     });
 });
