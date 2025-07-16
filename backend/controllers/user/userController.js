@@ -198,8 +198,8 @@ export const updateUserController = async (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 id:
- *                   type: integer
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *                 token:
  *                   type: string
  *       400:
@@ -274,8 +274,8 @@ export const loginUserController = async (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 id:
- *                   type: integer
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *                 token:
  *                   type: string
  *       400:
