@@ -74,7 +74,7 @@ export const MedicationReminderForm = ({ userId = null }) => {
     if (!formData.medicationName || !formData.reason || 
         !formData.dosage || !formData.medicineTime || !formData.frequencyPerDay || 
         !formData.imageFile) {
-      setDialog({ open: true, type: 'error', message: 'Please fill in all required fields and upload an image' });
+      setDialog({ open: true, type: 'error', message: 'Please fill in all required fields' });
       return;
     }
 
