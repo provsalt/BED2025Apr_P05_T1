@@ -18,7 +18,9 @@ export async function fetcher(url, opts = {}) {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(url, {
+  const fullUrl = url.startsWith('http') ? url : `${import.meta.env.VITE_BACKEND_URL}/api${url}`;
+
+  const response = await fetch(fullUrl, {
     ...opts,
     headers,
   });
