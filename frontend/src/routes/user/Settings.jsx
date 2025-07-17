@@ -9,6 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.j
 import { Label } from "@radix-ui/react-label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.jsx";
 import { Controller, useForm } from "react-hook-form";
+import { LoginHistory } from "@/components/settings/LoginHistory";
+import { useProfilePicture } from "@/hooks/useProfilePicture.js";
+import { ProfilePictureCard } from "@/components/avatar/ProfilePictureCard.jsx";
 
 export function Settings() {
   const auth = useContext(UserContext);
@@ -26,8 +29,14 @@ export function Settings() {
 
   const [userId, setUserId] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
   const [profilePictureUrl, setProfilePictureUrl] = useState("");
+
+  // Use the custom hook for profile picture logic
+  const profilePicture = useProfilePicture({
+    auth,
+    setProfilePictureUrl,
+    alert,
+  });
 
   useEffect(() => {
     if (!auth) return;
@@ -50,53 +59,6 @@ export function Settings() {
   function handlePasswordChange(e) {
     const { name, value } = e.target;
     setPasswordForm((prev) => ({ ...prev, [name]: value }));
-  }
-
-  function handleProfilePictureChange(e) {
-    setSelectedFile(e.target.files[0]);
-  }
-
-  async function handleProfilePictureUpload() {
-    if (!selectedFile) return;
-    const data = new FormData();
-    data.append("avatar", selectedFile);
-
-    try {
-      const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/picture`, {
-        method: "POST",
-        body: data
-      });
-
-      setProfilePictureUrl(response.url);
-
-      auth.setUser((prev) => ({
-        ...prev,
-        profile_picture_url: response.url || "",
-        isAuthenticated: true,
-      }));
-
-      alert.success({ title: "Profile Picture Updated", description: "Image uploaded successfully." });
-    } catch (err) {
-      alert.error({ title: "Upload Failed", description: "Image upload failed." });
-    }
-  }
-
-  async function handleDeletePicture() {
-    try {
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/picture`, {
-        method: "DELETE",
-      });
-      setProfilePictureUrl("");
-
-      auth.setUser((prev) => ({
-        ...prev,
-        profile_picture_url: ""
-      }));
-
-      alert.success({ title: "Picture Deleted", description: "Profile picture removed." });
-    } catch (err) {
-      alert.error({ title: "Delete Failed", description: "Could not delete profile picture." });
-    }
   }
 
   async function onProfileSubmit(data) {
@@ -143,7 +105,25 @@ export function Settings() {
       alert.success({ title: "Password Updated", description: "Your password was changed successfully." });
       setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err) {
-      alert.error({ title: "Password Update Failed", description: "Incorrect old password or server error." });
+      let errorMessage = "Password update failed.";
+      
+      // Parse error response to get specific error message
+      try {
+        const errorMatch = err.message.match(/Error fetching: (.+)/);
+        if (errorMatch) {
+          const errorText = errorMatch[1];
+          const errorData = JSON.parse(errorText);
+          
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        }
+      } catch (parseError) {
+        // If parsing fails, use generic message
+        errorMessage = "Password update failed. Please try again.";
+      }
+      
+      alert.error({ title: "Password Update Failed", description: errorMessage });
     }
   }
 
@@ -161,29 +141,15 @@ export function Settings() {
         <h2 className="text-3xl font-bold text-gray-800 mb-8">Profile Settings</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Picture</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center space-y-4">
-                {profilePictureUrl ? (
-                  <img
-                    src={profilePictureUrl}
-                    alt="Profile"
-                    className="w-32 h-32 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center">
-                    <span className="text-gray-600">No Image</span>
-                  </div>
-                )}
-                <Input type="file" onChange={handleProfilePictureChange} className="text-sm" />
-                <div className="flex gap-2">
-                  <Button onClick={handleProfilePictureUpload} size="sm">Upload</Button>
-                  <Button variant="destructive" onClick={handleDeletePicture} size="sm">Delete</Button>
-                </div>
-              </CardContent>
-            </Card>
+            <ProfilePictureCard
+              profilePictureUrl={profilePictureUrl}
+              selectedFile={profilePicture.selectedFile}
+              uploadStatus={profilePicture.uploadStatus}
+              fileInputRef={profilePicture.fileInputRef}
+              handleProfilePictureChange={profilePicture.handleProfilePictureChange}
+              handleProfilePictureUpload={profilePicture.handleProfilePictureUpload}
+              handleDeletePicture={profilePicture.handleDeletePicture}
+            />
           </div>
 
           <div className="md:col-span-2">
@@ -263,7 +229,7 @@ export function Settings() {
                       name="oldPassword"
                       value={passwordForm.oldPassword}
                       onChange={handlePasswordChange}
-                      required/>
+                      required />
                   </div>
                   <div>
                     <label className="block font-medium">New Password:</label>
@@ -272,7 +238,7 @@ export function Settings() {
                       name="newPassword"
                       value={passwordForm.newPassword}
                       onChange={handlePasswordChange}
-                      required/>
+                      required />
                   </div>
                   <div>
                     <label className="block font-medium">Confirm Password:</label>
@@ -281,7 +247,7 @@ export function Settings() {
                       name="confirmPassword"
                       value={passwordForm.confirmPassword}
                       onChange={handlePasswordChange}
-                      required/>
+                      required />
                   </div>
 
                   <div className="md:col-span-3">
@@ -293,9 +259,7 @@ export function Settings() {
           </div>
 
           <div className="md:col-span-3 flex justify-center">
-            <Button
-              variant="destructive"
-              onClick={() => {
+            <Button variant="destructive"onClick={() => {
                 auth.setUser({ id: null, token: null, isAuthenticated: false });
                 localStorage.removeItem("token");
                 navigate("/");
@@ -304,6 +268,10 @@ export function Settings() {
               Logout
             </Button>
           </div>
+
+        </div>
+        <div className="mt-8">
+          <LoginHistory />
         </div>
       </div>
     </div>

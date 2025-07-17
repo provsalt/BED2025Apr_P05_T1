@@ -14,13 +14,14 @@ import {SelectedChat} from "@/routes/chats/SelectedChat.jsx";
 import {UserProvider} from "@/provider/UserProvider.jsx";
 import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
-import {MedicalDashboard} from '@/routes/medical/medicalHomePage.jsx';
 import {MealsList} from "@/routes/nutrition/mealsList.jsx";
 import {MealDetail} from "@/routes/nutrition/mealDetail.jsx";
 import {MedicationReminderForm} from '@/routes/medical/medicalCreateForm.jsx';
 import {MedicationRemindersList} from '@/routes/medical/MedicationRemindersList.jsx';
 import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
+import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
+import {Transport} from "@/routes/transport/Transport.jsx";
 
 
 createRoot(document.getElementById('root')).render(
@@ -52,6 +53,7 @@ createRoot(document.getElementById('root')).render(
                       <AdminDashboard />
                     </AdminProtectedRoute>
                   } />
+                  <Route path="/transport" element={<Transport />} />
                 </Routes>
 
               </div>

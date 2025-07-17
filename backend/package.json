@@ -1,10 +1,11 @@
 {
   "name": "backend",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
     "start": "node app.js",
     "migrate": "node migrate.js"
   },
@@ -34,6 +35,8 @@
     "zod": "^3.25.46"
   },
   "devDependencies": {
-    "@types/express": "^5.0.3"
+    "@types/express": "^5.0.3",
+    "@vitest/coverage-v8": "3.2.4",
+    "vitest": "^3.2.4"
   }
 }

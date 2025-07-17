@@ -63,9 +63,9 @@ export const Navbar = () => {
                     className="rounded-full w-10 h-10 object-cover z-10"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 z-10">
-                    <User className="w-5 h-5" />
-                  </div>
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground z-10">
+                  <User className="w-5 h-5" />
+                </div>
                 )}
               </div>
             </DropdownMenuTrigger>

@@ -74,7 +74,14 @@ export const Signup = () => {
       auth.setUser({
         id: resp.id,
         token: resp.token,
-        isAuthenticated: true
+        isAuthenticated: true,
+        role: resp.role,
+        data: {
+          name: resp.name || "",
+          email: resp.email || "",
+          language: resp.language || "",
+          profile_picture_url: resp.profile_picture_url || "",
+        }
       });
       setTimeout(() => navigate("/medicine"), 3000);
     } else {
