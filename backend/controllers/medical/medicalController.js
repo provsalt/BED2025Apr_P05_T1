@@ -51,14 +51,6 @@ export const createMedication = async (req, res) => {
         const imageFile = req.file;
         const { medicine_name, reason, dosage, medicine_time, frequency_per_day } = req.validatedBody;
 
-        // validate image
-        if (!imageFile) {
-            return res.status(400).json({
-                success: false,
-                message: 'Image is required'
-            });
-        }
-
         // Generate unique key for S3
         const imageKey = `medications/${userId}/${uuidv4()}`;
 
