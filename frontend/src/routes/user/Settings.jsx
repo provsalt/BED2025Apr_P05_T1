@@ -34,10 +34,8 @@ export function Settings() {
   const [editMode, setEditMode] = useState(false);
   const [profilePictureUrl, setProfilePictureUrl] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  // Add a new state for deletion request status
-  const [hasRequestedDeletion, setHasRequestedDeletion] = useState(false); // Replace with real value from backend if available
+  const [hasRequestedDeletion, setHasRequestedDeletion] = useState(false);
 
-  // Use the custom hook for profile picture logic
   const profilePicture = useProfilePicture({
     auth,
     setProfilePictureUrl,
@@ -56,6 +54,7 @@ export function Settings() {
         setValue("language", user.language || "");
         setProfilePictureUrl(user.profile_picture_url || "");
         setUserId(user.id);
+        setHasRequestedDeletion(!!user.deletionRequested);
       })
       .catch(() => {
         alert.error({ title: "Error", description: "Failed to load user info." });
@@ -113,7 +112,6 @@ export function Settings() {
     } catch (err) {
       let errorMessage = "Password update failed.";
       
-      // Parse error response to get specific error message
       try {
         const errorMatch = err.message.match(/Error fetching: (.+)/);
         if (errorMatch) {
@@ -125,10 +123,8 @@ export function Settings() {
           }
         }
       } catch (parseError) {
-        // If parsing fails, use generic message
         errorMessage = "Password update failed. Please try again.";
       }
-      
       alert.error({ title: "Password Update Failed", description: errorMessage });
     }
   }

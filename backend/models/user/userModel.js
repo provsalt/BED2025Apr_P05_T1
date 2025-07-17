@@ -144,7 +144,7 @@ export const getLoginHistoryByUserId = async (userId, limit = 10) => {
   const result = await db.request()
     .input("userId", sql.Int, userId)
     .input("limit", sql.Int, limit)
-    .query("SELECT TOP (@limit) id, FORMAT(login_time AT TIME ZONE 'UTC', 'yyyy-MM-ddTHH:mm:ss.fffZ') as login_time FROM UserLoginHistory WHERE user_id = @userId ORDER BY login_time DESC");
+    .query("SELECT TOP (@limit) id, CONVERT(VARCHAR(30), login_time, 126) as login_time FROM UserLoginHistory WHERE user_id = @userId ORDER BY login_time DESC");
   return result.recordset;
 };
 
@@ -154,7 +154,7 @@ export const insertLoginHistory = async (userId) => {
   await db.request()
     .input("userId", sql.Int, userId)
     .input("loginTime", utcNow)
-    .query("INSERT INTO UserLoginHistory (user_id, login_time) VALUES (@userId, @loginTime)");
+    .query("INSERT INTO UserLoginHistory (user_id) VALUES (@userId)");
 };
 
 export const changeUserRole = async (id, role) => {
@@ -195,19 +195,18 @@ export const getAllUsers = async () => {
 
 export const requestUserDeletion = async (userId) => {
   const db = await sql.connect(dbConfig);
-  const query = `UPDATE Users SET deletionRequested = 1, deletionRequestedAt = GETDATE() WHERE id = @id`;
+  const utcNow = new Date().toISOString(); 
+  const query = `
+    UPDATE Users 
+    SET deletionRequested = 1, deletionRequestedAt = @deletionRequestedAt 
+    WHERE id = @id`;
   const request = db.request();
   request.input("id", userId);
+  request.input("deletionRequestedAt", utcNow); 
   const result = await request.query(query);
   return result.rowsAffected[0] > 0;
 };
 
-export const getUsersWithDeletionRequested = async () => {
-  const db = await sql.connect(dbConfig);
-  const query = `SELECT * FROM Users WHERE deletionRequested = 1`;
-  const result = await db.request().query(query);
-  return result.recordset;
-};
 
 export const approveUserDeletionRequest = async (userId) => {
   return await deleteUser(userId);
@@ -220,4 +219,11 @@ export const cancelUserDeletionRequest = async (userId) => {
   request.input("id", userId);
   const result = await request.query(query);
   return result.rowsAffected[0] > 0;
+};
+
+export const getUsersWithDeletionRequested = async () => {
+  const db = await sql.connect(dbConfig);
+  const query = `SELECT * FROM Users WHERE deletionRequested = 1`;
+  const result = await db.request().query(query);
+  return result.recordset;
 };

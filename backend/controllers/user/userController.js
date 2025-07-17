@@ -59,7 +59,9 @@ export const getCurrentUserController = async (req, res) => {
       profile_picture_url: fullUser.profile_picture_url,
       gender: fullUser.gender,
       date_of_birth: fullUser.date_of_birth,
-      language: fullUser.language
+      language: fullUser.language,
+      deletionRequested: fullUser.deletionRequested,
+      deletionRequestedAt: fullUser.deletionRequestedAt
     });
   } catch (err) {
     console.error("Fetch current user failed:", err);
