@@ -1,5 +1,6 @@
 // adopted from https://github.com/chloeelim/longestmrt + added new stations
-import {Circle} from "./circle";
+
+import {Circle} from "@/components/transport/Circle.jsx";
 
 export const Map = ({ path, delay, loading }) => {
 
@@ -113,7 +114,7 @@ export const Map = ({ path, delay, loading }) => {
               stroke="#FA9E0D"
               strokeWidth="9"
               strokeLinecap="round"
-              stroke-dasharray="10 10"
+              strokeDasharray="10 10"
             />
           </g>
           <g id="ewl">
