@@ -1,9 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { createEvent } from '../../../controllers/community/communityEventController.js';
 
-vi.mock('../../../backend/services/s3Service.js', () => ({
-  uploadFile: vi.fn(),
-  deleteFile: vi.fn(),
+// Ensure S3_BUCKET_NAME is set for all tests
+beforeAll(() => {
+  process.env.S3_BUCKET_NAME = 'test-bucket';
+});
+
+// Mock S3 service
+vi.mock('../../../services/s3Service.js', () => ({
+  uploadFile: vi.fn().mockResolvedValue(),
+  deleteFile: vi.fn().mockResolvedValue(),
 }));
 vi.mock('../../../backend/models/community/communityEventModel.js', () => ({
   createCommunityEvent: vi.fn().mockResolvedValue({ success: true, eventId: 1 }),
