@@ -1,4 +1,4 @@
-export function validateMedical(schema) {
+export function validateSchema(schema) {
   return (req, res, next) => {
     const result = schema.safeParse(req.body);
     if (!result.success) {
