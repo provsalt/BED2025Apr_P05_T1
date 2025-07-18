@@ -11,7 +11,7 @@ vi.mock('../../../services/s3Service.js', () => ({
   uploadFile: vi.fn().mockResolvedValue(),
   deleteFile: vi.fn().mockResolvedValue(),
 }));
-vi.mock('../../../backend/models/community/communityEventModel.js', () => ({
+vi.mock('../../../models/community/communityEventModel.js', () => ({
   createCommunityEvent: vi.fn().mockResolvedValue({ success: true, eventId: 1 }),
   addCommunityEventImage: vi.fn().mockResolvedValue({ success: true }),
 }));
