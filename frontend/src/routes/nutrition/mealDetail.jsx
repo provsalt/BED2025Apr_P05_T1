@@ -37,11 +37,13 @@ export const MealDetail = () => {
         setEditForm({
           name: res.meal.name || "",
           category: res.meal.category || "",
-          carbohydrates: res.meal.carbohydrates || "",
-          protein: res.meal.protein || "",
-          fat: res.meal.fat || "",
-          calories: res.meal.calories || "",
-          ingredients: res.meal.ingredients || ""
+          carbohydrates: res.meal.carbohydrates ?? "",
+          protein: res.meal.protein ?? "",
+          fat: res.meal.fat ?? "",
+          calories: res.meal.calories ?? "",
+          ingredients: Array.isArray(res.meal.ingredients)
+            ? res.meal.ingredients.join(", ")
+            : res.meal.ingredients || ""
         });
       } catch (err) {
         setError(err.message || "Failed to fetch meal");
@@ -81,14 +83,23 @@ export const MealDetail = () => {
   const handleUpdate = async () => {
     setIsUpdating(true);
     try {
+      // Prepare the payload
+      const payload = {
+        ...editForm,
+        ingredients: editForm.ingredients
+          .split(",")
+          .map(s => s.trim())
+          .filter(Boolean), // remove empty strings
+      };
+
       await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(editForm)
+        body: JSON.stringify(payload)
       });
-      
+
       // Refresh the meal data
       const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/${id}`);
       setMeal(res.meal);
@@ -108,10 +119,24 @@ export const MealDetail = () => {
   };
 
   const handleInputChange = (field, value) => {
-    setEditForm(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // For numeric fields, convert to number (allow empty string for controlled input)
+    if (["calories", "carbohydrates", "protein", "fat"].includes(field)) {
+      setEditForm(prev => ({
+        ...prev,
+        [field]: value === "" ? "" : Number(value)
+      }));
+    } else if (field === "ingredients") {
+      // Store as a comma-separated string for editing, but convert to array on submit
+      setEditForm(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    } else {
+      setEditForm(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   if (loading) return <div>Loading meal...</div>;
