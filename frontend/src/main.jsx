@@ -22,6 +22,7 @@ import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 import {Transport} from "@/routes/transport/Transport.jsx";
+import { MedicationEditForm } from '@/routes/medical/medicalEditForm.jsx';
 
 
 createRoot(document.getElementById('root')).render(
@@ -48,6 +49,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/nutrition/:id" element={<MealDetail/>} />
                   <Route path="/medical/create" element={<MedicationReminderForm />} />
                   <Route path="/medical/reminders" element={<MedicationRemindersList />} />
+                  <Route path="/medical/edit/:id" element={<MedicationEditForm />} />
                   <Route path="/admin" element={
                     <AdminProtectedRoute>
                       <AdminDashboard />
