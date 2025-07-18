@@ -59,6 +59,7 @@ import { v4 as uuidv4 } from 'uuid';
  *                   type: integer
  *                 imageUrl:
  *                   type: string
+ *                   description: URL to access the uploaded image (e.g. /api/s3?key=community-events/{userId}/{uuid})
  *       400:
  *         description: Bad request (validation or missing fields)
  *       500:
@@ -74,15 +75,6 @@ export const createEvent = async (req, res) => {
         if (!userId) {
             return res.status(400).json({ success: false, message: 'User ID is required', errors: ['User ID is required'] });
         }
-        
-        const imageFile = req.file;
-        // Generate unique key for S3 
-        const imageKey = `community-events/${userId}/${uuidv4()}`;
-        // Upload image to S3
-        await uploadFile(imageFile, imageKey);
-        // Create image URL (medical style)
-        const imageUrl = `/api/files?key=${imageKey}`;
-
 
         // Use validated body from middleware
         let { time, ...rest } = req.validatedBody;
@@ -98,6 +90,14 @@ export const createEvent = async (req, res) => {
         } else {
             return res.status(400).json({ success: false, message: 'Time is required.' });
         }
+
+        const imageFile = req.file;
+        // Generate unique key for S3 
+        const imageKey = `community-events/${userId}/${uuidv4()}`;
+        // Upload image to S3
+        await uploadFile(imageFile, imageKey);
+        // Create image URL (medical style)
+        const imageUrl = `/api/s3?key=${imageKey}`;
 
         const eventData = {
             ...rest,
