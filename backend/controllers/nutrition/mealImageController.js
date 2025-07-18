@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
-import { uploadFile } from "../../models/services/s3Service.js";
-import { analyzeFoodImage } from "../../models/services/openaiService.js";
+import { uploadFile } from "../../services/s3Service.js";
+import { analyzeFoodImage } from "../../services/openaiService.js";
 import { createMeal, getMealById, getAllMeals, deleteMeal, updateMeal } from "../../models/nutrition/nutritionModel.js";
 
 /**
@@ -298,6 +298,8 @@ export const removeMeal = async (req, res) => {
  *       500:
  *         description: Failed to update meal
  */
+
+
 export const amendMeal = async (req, res) => {
   try {
     const { id } = req.params;
@@ -319,10 +321,17 @@ export const amendMeal = async (req, res) => {
       return res.status(403).json({ error: "Access denied" });
     }
 
-    await updateMeal(id, mealData);
+    const updatedMeal = {
+      ...req.validatedBody,
+      ingredients: Array.isArray(req.validatedBody.ingredients)
+        ? req.validatedBody.ingredients.join(", ")
+        : req.validatedBody.ingredients
+    };
+
+    await updateMeal(id, updatedMeal);
     res.status(200).json({ message: "Meal updated successfully" });
   } catch (error) {
     console.error("Error updating meal:", error);
-    res.status(500).json({ error: "Failed to update meal" });
+    res.status(400).json({ error: "Failed to update meal" });
   }
 }

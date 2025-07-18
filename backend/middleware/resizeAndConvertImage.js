@@ -11,11 +11,6 @@ export const resizeAndConvertImage = async (req, res, next) => {
     return next();
   }
 
-  const allowedTypes = ['image/webp', 'image/png', 'image/jpeg', 'image/jpg'];
-  if (!allowedTypes.includes(req.file.mimetype)) {
-    return next(); // Not a supported type, skip conversion
-  }
-
   try {
     const processedBuffer = await sharp(req.file.buffer)
       .resize({

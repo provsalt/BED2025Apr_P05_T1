@@ -4,6 +4,7 @@ import {Card} from "@/components/ui/card.jsx";
 import {fetcher} from "@/lib/fetcher.js";
 import {useAlert} from "@/provider/AlertProvider.jsx";
 import {X} from "lucide-react";
+import {Link} from "react-router";
 
 export const MealImageUpload = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -120,11 +121,10 @@ export const MealImageUpload = () => {
             }} className="px-6 py-2 text-base font-semibold cursor-pointer">
               Upload Image
             </Button>
-            <Button 
-              onClick={() => {window.location.href = "/nutrition";}} 
-              className="px-6 py-2 text-base font-semibold cursor-pointer"
-            >
-              View All Meals
+            <Button asChild className="px-6 py-2 text-base font-semibold cursor-pointer">
+              <Link to="/nutrition">
+                  View All Meals
+              </Link>
             </Button>
           </div>
         </Card>
@@ -138,11 +138,10 @@ export const MealImageUpload = () => {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8 pl-30 pr-30">
           <h1 className="text-2xl font-bold text-left">Nutrition</h1>
-            <Button 
-              onClick={() => {window.location.href = "/nutrition";}} 
+            <Button asChild
               className="ml-4 px-4 py-2 text-sm cursor-pointer"
             >
-              View All Meals
+              <Link to="/nutrition">Back to Nutrition</Link>
             </Button>
         </div>
         <Card className="p-8 max-w-2xl mx-auto bg-white space-y-6">

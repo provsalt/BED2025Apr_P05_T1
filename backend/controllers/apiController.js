@@ -2,6 +2,7 @@ import userRouter from "./user/index.js";
 import chatRouter from "./chat/index.js";
 import nutritionRouter from "./nutrition/index.js";
 import s3Router from "./s3/index.js";
+import transportRouter from "./transport/index.js";
 import medicalRouter from "./medical/index.js";
 import {Router} from "express";
 import announcementsRouter from "./announcements/index.js";
@@ -20,5 +21,6 @@ export const ApiController = () => {
   router.use("/medications", medicalRouter);
   router.use("/announcements", announcementsRouter); // Add public announcements route
   router.use("/community", communityRouter);
+  router.use("/transport", transportRouter);
   return router;
 }
