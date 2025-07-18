@@ -57,4 +57,5 @@ router.put("/:id/role", getUserMiddleware, authorizeRole(["Admin"]), updateUserR
 router.get("/role/:role", getUserMiddleware, authorizeRole(["Admin"]), getUsersByRoleController);
 router.put("/role/bulk", getUserMiddleware, authorizeRole(["Admin"]), bulkUpdateUserRolesController);
 
+
 export default router;

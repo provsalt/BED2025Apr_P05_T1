@@ -3,6 +3,7 @@ import { createMedication, getMedicationReminders } from "./medicalController.js
 import {genericUploadMiddleware} from "../../middleware/upload.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import { validateMedical } from "../../middleware/validateMedical.js";
+import { validateImageType } from "../../middleware/validateImage.js";
 import { medicationSchema } from "../../utils/validation/medical.js";
 
 const router = Router();
