@@ -1,5 +1,6 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createMedicationReminder, getMedicationRemindersByUser, updateMedicationReminder } from "../../models/medical/medicalModel.js";
+import { createMedicationReminder, getMedicationRemindersByUser, updateMedicationReminder, deleteMedicationReminder } from "../../models/medical/medicalModel.js";
+
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -217,6 +218,33 @@ export const updateMedication = async (req, res) => {
         }
     } catch (error) {
         console.error('Error in updateMedication controller:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+        });
+    }
+};
+
+
+export const deleteMedication = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const reminderId = parseInt(req.params.id, 10);
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'User ID is required' });
+        }
+        if (!reminderId || isNaN(reminderId) || reminderId <= 0) {
+            return res.status(400).json({ success: false, message: 'Valid reminder ID is required' });
+        }
+        const result = await deleteMedicationReminder(reminderId, userId);
+        if (result.success) {
+            res.status(200).json(result);
+        } else {
+            res.status(404).json(result);
+        }
+    } catch (error) {
+        console.error('Error deleting medication reminder:', error);
         res.status(500).json({
             success: false,
             message: 'Internal server error',
