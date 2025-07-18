@@ -34,9 +34,9 @@ export async function createCommunityEvent(eventData) {
             error: error.message
         };
     } finally {
-        if (connection){
+        if (connection && typeof connection.close === 'function') {
             await connection.close();
-        };
+        }
     };
 };
 
