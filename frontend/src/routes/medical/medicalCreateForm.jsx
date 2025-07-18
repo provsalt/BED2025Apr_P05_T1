@@ -9,9 +9,8 @@ import { fetcher } from '@/lib/fetcher.js';
 import { Link } from 'react-router';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
-export const MedicationReminderForm = ({ userId = null }) => {
-  const userContext = useContext(UserContext);
-  const UserId = userId || userContext?.id;
+export const MedicationReminderForm = () => {
+  const user = useContext(UserContext);
   const [formData, setFormData] = useState({
     medicationName: '',
     reason: '',
@@ -66,7 +65,7 @@ export const MedicationReminderForm = ({ userId = null }) => {
   };
 
   const handleSubmit = async () => {
-    if (!UserId) {
+    if (!user) {
       setDialog({ open: true, type: 'error', message: 'You must be logged in to create a medication reminder' });
       return;
     }
