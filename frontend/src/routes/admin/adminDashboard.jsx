@@ -87,7 +87,7 @@ const AdminDashboard = () => {
 
   const fetchDeletionRequests = async () => {
     try {
-      const data = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/deletion-requests`);
+      const data = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/deletion-requests`);
       setDeletionRequests(data);
     } catch (error) {
       alert.error({ title: "Error", description: `Failed to fetch deletion requests: ${error.message}` });
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
   const approveDeletion = async (userId) => {
     if (!confirm('Are you sure you want to approve and delete this user?')) return;
     try {
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/${userId}/approve-delete`, {
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/${userId}/approve-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });

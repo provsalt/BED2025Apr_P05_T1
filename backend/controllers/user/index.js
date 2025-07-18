@@ -12,8 +12,6 @@ import {
   deleteUserController,
   getAllUsersController,
   requestUserDeletionController,
-  getDeletionRequestsController,
-  approveUserDeletionController,
   cancelUserDeletionController
 } from "./userController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
@@ -46,8 +44,6 @@ router.delete("/me/picture", getUserMiddleware, deleteUserProfilePictureControll
 
 router.post("/me/request-delete", getUserMiddleware, requestUserDeletionController);
 router.post("/me/cancel-delete", getUserMiddleware, cancelUserDeletionController);
-router.get("/deletion-requests", getUserMiddleware, authorizeRole(["Admin"]), getDeletionRequestsController);
-router.post( "/:id/approve-delete", getUserMiddleware, authorizeRole(["Admin"]), approveUserDeletionController);
 
 // Shun Xiang get by id, update user
 router.get("/:id", getUserController);
