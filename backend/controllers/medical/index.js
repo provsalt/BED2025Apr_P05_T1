@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createMedication, getMedicationReminders } from "./medicalController.js";
+import { createMedication, getMedicationReminders, deleteMedication } from "./medicalController.js";
 import {genericUploadMiddleware} from "../../middleware/upload.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import { validateMedical } from "../../middleware/validateMedical.js";
@@ -13,5 +13,8 @@ router.post("/", getUserMiddleware, genericUploadMiddleware.single("image"), val
 
 // GET /api/medications - get medication reminders for the user
 router.get("/", getUserMiddleware, getMedicationReminders);
+
+// DELETE /api/medications/:id - Delete a medication reminder by ID for user
+router.delete('/:id', getUserMiddleware, deleteMedication);
 
 export default router; 

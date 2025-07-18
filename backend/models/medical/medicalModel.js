@@ -101,3 +101,30 @@ export async function getAllRemindersWithUsers() {
         }
     }
 } 
+
+// DELETE
+export async function deleteMedicationReminder(reminderId, userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
+            .input('reminderId', sql.Int, reminderId)
+            .input('userId', sql.Int, userId)
+            .query(`
+                DELETE FROM Medication
+                WHERE id = @reminderId AND user_id = @userId;
+            `);
+        if (result.rowsAffected[0] > 0) {
+            return { success: true, message: 'Medication reminder deleted successfully' };
+        } else {
+            return { success: false, message: 'Medication reminder not found or not authorized' };
+        }
+    } catch (error) {
+        console.error('Error deleting medication reminder:', error);
+        return { success: false, message: 'Failed to delete medication reminder', error: error.message };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+} 
