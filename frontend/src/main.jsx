@@ -16,13 +16,13 @@ import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
 import {MealsList} from "@/routes/nutrition/mealsList.jsx";
 import {MealDetail} from "@/routes/nutrition/mealDetail.jsx";
-import {MedicationReminderForm} from '@/routes/medical/medicalCreateForm.jsx';
+import { MedicalCreateForm } from '@/routes/medical/medicalCreateForm.jsx';
 import {MedicationRemindersList} from '@/routes/medical/MedicationRemindersList.jsx';
 import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 import {Transport} from "@/routes/transport/Transport.jsx";
-import { MedicationEditForm } from '@/routes/medical/medicalEditForm.jsx';
+import { MedicationEditForm }  from '@/routes/medical/medicalEditForm.jsx';
 
 
 createRoot(document.getElementById('root')).render(
@@ -47,7 +47,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/nutrition/upload" element={<MealImageUpload/>} />
                   <Route path="/nutrition" element={<MealsList/>} />
                   <Route path="/nutrition/:id" element={<MealDetail/>} />
-                  <Route path="/medical/create" element={<MedicationReminderForm />} />
+                  <Route path="/medical/create" element={<MedicalCreateForm />} />
                   <Route path="/medical/reminders" element={<MedicationRemindersList />} />
                   <Route path="/medical/edit/:id" element={<MedicationEditForm />} />
                   <Route path="/admin" element={
