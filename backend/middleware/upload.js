@@ -17,6 +17,6 @@ export const createUploadMiddleware = (options) => {
 };
 
 export const genericUploadMiddleware = createUploadMiddleware({
-  allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
+  allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
   fileSize: 30 * 1024 * 1024,
 });
