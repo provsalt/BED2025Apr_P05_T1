@@ -2,12 +2,18 @@ import React, { useState } from "react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { DateTime } from "luxon";
-
-const TIMEZONE_OPTIONS = [
-  { label: "Local", value: "local" },
-  { label: "Singapore (SGT)", value: "Asia/Singapore" },
-  { label: "UTC", value: "utc" },
-];
+import { TIMEZONE_OPTIONS } from "@/lib/constants";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel
+} from "@/components/ui/alert-dialog";
 
 const DeletionRequestsSection = ({
   deletionRequests,
@@ -85,41 +91,33 @@ const formatDeletionTime = (isoTime) => {
                   {user.deletionRequestedAt ? formatDeletionTime(user.deletionRequestedAt) : ""}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setConfirmDeleteUser(user.id)}
-                  >
-                    Approve & Delete
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                      >
+                        Approve & Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to approve and delete this user account? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel asChild><Button variant="outline">Cancel</Button></AlertDialogCancel>
+                        <AlertDialogAction asChild><Button variant="destructive">Yes, Delete</Button></AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      )}
-
-      {typeof confirmDeleteUser === "number" && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full">
-            <h3 className="text-lg font-bold mb-4">Confirm Deletion</h3>
-            <p className="mb-4">
-              Are you sure you want to approve and delete this user account? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setConfirmDeleteUser(null)}>Cancel</Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  approveDeletion(confirmDeleteUser);
-                  setConfirmDeleteUser(null);
-                }}
-              >
-                Yes, Delete
-              </Button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

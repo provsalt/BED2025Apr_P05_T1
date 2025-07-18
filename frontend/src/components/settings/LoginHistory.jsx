@@ -4,12 +4,7 @@ import { useAlert } from "@/provider/AlertProvider";
 import { fetcher } from "@/lib/fetcher";
 import { DateTime } from "luxon";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-
-const TIMEZONE_OPTIONS = [
-  { label: "Local", value: "local" },
-  { label: "Singapore (SGT)", value: "Asia/Singapore" },
-  { label: "UTC", value: "utc" },
-];
+import { TIMEZONE_OPTIONS } from "@/lib/constants";
 
 export const LoginHistory = () => {
   const [loginHistory, setLoginHistory] = useState([]);

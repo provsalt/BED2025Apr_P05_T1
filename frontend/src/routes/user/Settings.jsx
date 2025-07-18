@@ -133,8 +133,7 @@ export function Settings() {
     setShowDeleteConfirm(false);
     try {
       await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/request-delete`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.token}` },
+        method: "POST"
       });
       alert.success({ title: "Request Submitted", description: "Your account deletion request has been sent for admin approval." });
       setHasRequestedDeletion(true);
@@ -146,8 +145,7 @@ export function Settings() {
   async function handleCancelAccountDeletion() {
     try {
       await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/cancel-delete`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.token}` },
+        method: "POST"
       });
       alert.success({ title: "Request Cancelled", description: "Your account deletion request has been cancelled." });
       setHasRequestedDeletion(false);
