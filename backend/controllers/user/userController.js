@@ -245,6 +245,8 @@ export const loginUserController = async (req, res) => {
 
   if (!isPasswordValid) {
     return res.status(401).json({ error: "Invalid email or password" });
+
+    
   }                       
   await insertLoginHistory(user.id);
 
@@ -260,7 +262,7 @@ export const loginUserController = async (req, res) => {
   });
   
   // Increment Prometheus metrics
-  userLoginAttempts.labels('success', loginData.deviceType).inc();
+  userLoginAttempts.labels('success', loginData.deviceType, user.id).inc();
 
   const secret = new TextEncoder().encode(process.env.SECRET || "");
   const tok = await new SignJWT({

@@ -193,3 +193,122 @@ const metrics = await response.json();
 3. **Export Functionality**: CSV/Excel export of metrics data
 4. **Alerting**: Automated alerts for unusual login patterns or security events
 5. **Data Visualization**: Charts and graphs for better data interpretation 
+
+# Prometheus-Only Analytics
+
+## Metrics Exposed
+- All user engagement, login attempts, and page visits are tracked using Prometheus metrics via `prom-client`.
+- The backend exposes `/metrics` for Prometheus scraping.
+
+## Example PromQL Queries
+
+### Total HTTP Requests
+```
+sum(http_requests_total)
+```
+
+### HTTP Requests by Method and Status
+```
+sum by (method, status) (http_requests_total)
+```
+
+### Login Attempts (Success vs Fail)
+```
+sum by (status) (user_login_attempts_total)
+```
+
+### Login Attempts Over Time (Last 24h)
+```
+sum by (status) (increase(user_login_attempts_total[24h]))
+```
+
+### Page Visits by URL
+```
+sum by (page_url) (user_page_visits_total)
+```
+
+## Grafana Dashboard Setup
+1. Add Prometheus as a data source in Grafana (URL: `http://localhost:9090`).
+2. Create a new dashboard and add panels for the queries above.
+3. Choose visualization types (e.g., time series, bar chart).
+
+## No SQL Analytics
+- All analytics are now handled by Prometheus. No data is written to or read from MSSQL for analytics.
+- For long-term retention, configure Prometheus accordingly or use remote storage integrations. 
+
+---
+
+## **1. Where to Use PromQL**
+
+- **Prometheus UI:**  
+  Go to [http://localhost:9090](http://localhost:9090) (or your Prometheus server’s address).  
+  Use the “Expression” input box at the top to enter PromQL queries and click “Execute” to see results.
+
+- **Grafana:**  
+  When you add a panel, set the data source to Prometheus and enter your PromQL query in the query editor.
+
+---
+
+## **2. Basic PromQL Query Examples**
+
+Assuming you have metrics like `user_login_attempts_total`, `user_page_visits_total`, etc.
+
+### **A. Total Login Attempts**
+```promql
+sum(user_login_attempts_total)
+```
+
+### **B. Login Attempts by Status (success/fail)**
+```promql
+sum by (status) (user_login_attempts_total)
+```
+
+### **C. Login Attempts Over Time (last 24h)**
+```promql
+sum by (status) (increase(user_login_attempts_total[24h]))
+```
+
+### **D. Page Visits by URL**
+```promql
+sum by (page_url) (user_page_visits_total)
+```
+
+### **E. HTTP Requests by Method and Status**
+```promql
+sum by (method, status) (http_requests_total)
+```
+
+### **F. Rate of Login Attempts per Minute**
+```promql
+rate(user_login_attempts_total[1m])
+```
+
+---
+
+## **3. How to Use in Grafana**
+
+1. **Create a new dashboard panel.**
+2. **Set the data source to Prometheus.**
+3. **Enter your PromQL query** in the query editor.
+4. **Choose a visualization** (e.g., time series, bar chart).
+5. **Save the panel.**
+
+---
+
+## **4. Tips**
+
+- Use `sum`, `avg`, `max`, `min`, `rate`, and `increase` for aggregations and trends.
+- Use `by (label)` to group results (e.g., by status, page_url, device_type).
+- Use time ranges like `[5m]`, `[1h]`, `[24h]` for rate/increase functions.
+
+---
+
+## **5. Resources**
+
+- [Prometheus Querying Basics](https://prometheus.io/docs/prometheus/latest/querying/basics/)
+- [PromQL Cheat Sheet](https://promlabs.com/promql-cheat-sheet/)
+- [Grafana Prometheus Docs](https://grafana.com/docs/grafana/latest/datasources/prometheus/)
+
+---
+
+If you want a specific query for a metric or a dashboard example, just ask! 

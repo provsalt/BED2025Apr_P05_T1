@@ -20,8 +20,8 @@ export const httpRequestDuration = new Histogram({
 // User analytics metrics
 export const userLoginAttempts = new Counter({
   name: 'user_login_attempts_total',
-  help: 'Total number of login attempts',
-  labelNames: ['status', 'device_type']
+  help: 'Total number of user login attempts',
+  labelNames: ['status', 'device_type', 'user_id'],
 });
 
 export const userPageVisits = new Counter({
@@ -56,6 +56,12 @@ export const adminActionsTotal = new Counter({
   name: 'eldercare_admin_actions_total',
   help: 'Total number of admin actions performed',
   labelNames: ['action_type', 'admin_id']
+});
+
+export const pageVisitsByUser = new Counter({
+  name: 'page_visits_by_user',
+  help: 'Page visits by user and page',
+  labelNames: ['user_id', 'page_url', 'device_type'],
 });
 
 // Metrics endpoint

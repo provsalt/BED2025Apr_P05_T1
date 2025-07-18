@@ -551,3 +551,31 @@ export const storePrometheusSnapshot = async (snapshot) => {
     request.input("rawJson", sql.NVarChar(sql.MAX), JSON.stringify(snapshot.raw));
     await request.query(query);
 };
+
+export const storePageVisitSnapshot = async ({ timestamp, user_id, page_url, device_type, visit_count }) => {
+  const db = await sql.connect(dbConfig);
+  await db.request()
+    .input('timestamp', sql.DateTime, timestamp)
+    .input('user_id', sql.Int, user_id)
+    .input('page_url', sql.NVarChar(255), page_url)
+    .input('device_type', sql.NVarChar(50), device_type)
+    .input('visit_count', sql.Int, visit_count)
+    .query(`
+      INSERT INTO PageVisitAnalytics (timestamp, user_id, page_url, device_type, visit_count)
+      VALUES (@timestamp, @user_id, @page_url, @device_type, @visit_count)
+    `);
+};
+
+export const storeLoginAttemptSnapshot = async ({ timestamp, user_id, device_type, status, attempt_count }) => {
+  const db = await sql.connect(dbConfig);
+  await db.request()
+    .input('timestamp', sql.DateTime, timestamp)
+    .input('user_id', sql.Int, user_id)
+    .input('device_type', sql.NVarChar(50), device_type)
+    .input('status', sql.NVarChar(10), status)
+    .input('attempt_count', sql.Int, attempt_count)
+    .query(`
+      INSERT INTO LoginAttemptAnalytics (timestamp, user_id, device_type, status, attempt_count)
+      VALUES (@timestamp, @user_id, @device_type, @status, @attempt_count)
+    `);
+};

@@ -7,14 +7,14 @@ scrape_configs:
   # Monitor your backend Node.js application
   - job_name: 'eldercare-backend'
     static_configs:
-      - targets: ['localhost:3001']
+      - targets: ['backend:3001']
     metrics_path: '/metrics'
     scrape_interval: 10s
     
   # Monitor your frontend (if you add metrics)
   - job_name: 'eldercare-frontend'
     static_configs:
-      - targets: ['localhost:5174']
+      - targets: ['frontend:4173']
     metrics_path: '/metrics'
     scrape_interval: 10s
     
