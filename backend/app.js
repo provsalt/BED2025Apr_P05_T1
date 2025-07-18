@@ -8,6 +8,7 @@ import cors from "cors";
 import { defaultRateLimit } from "./middleware/rateLimit.js";
 import {initSwagger} from "./swagger/swagger.js";
 import {metricsHandler} from "./config/metrics.js";
+import { checkAndSendReminders } from './controllers/medical/reminderController.js';
 
 const app = express();
 const server = createServer(app);
@@ -53,10 +54,13 @@ io.on('connection', (socket) => {
     });
 });
 
+// Start the medication reminder loop
+setInterval(checkAndSendReminders, 60 * 1000); // Check every minute
 
 server.listen(3001, (err) => {
     if (err) {
         throw err;
     }
     console.log("Server started on port 3001");
-})
+});
+

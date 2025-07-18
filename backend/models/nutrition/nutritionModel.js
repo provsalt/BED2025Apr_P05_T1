@@ -14,10 +14,10 @@ export const createMeal = async (mealData) => {
     const request = connection.request();
     request.input("name", mssql.NVarChar, mealData.name);
     request.input("category", mssql.NVarChar, mealData.category);
-    request.input("carbohydrates", mssql.Decimal(5,2), Number(mealData.carbohydrates));
-    request.input("protein", mssql.Decimal(5,2), Number(mealData.protein));
-    request.input("fat", mssql.Decimal(5,2), Number(mealData.fat));
-    request.input("calories", mssql.Decimal(6,2), Number(mealData.calories));
+    request.input("carbohydrates", mssql.Decimal(7,2), Number(mealData.carbohydrates));
+    request.input("protein", mssql.Decimal(7,2), Number(mealData.protein));
+    request.input("fat", mssql.Decimal(7,2), Number(mealData.fat));
+    request.input("calories", mssql.Decimal(7,2), Number(mealData.calories));
     request.input("ingredients", mssql.NVarChar, mealData.ingredients);
     request.input("image_url", mssql.NVarChar, mealData.image_url);
     request.input("user_id", mssql.Int, mealData.user_id);
@@ -127,10 +127,10 @@ export const updateMeal = async(id, mealData) => {
     request.input("id", id);
     request.input("name", mssql.NVarChar, mealData.name);
     request.input("category", mssql.NVarChar, mealData.category);
-    request.input("carbohydrates", mssql.Decimal(5,2), Number(mealData.carbohydrates));
-    request.input("protein", mssql.Decimal(5,2), Number(mealData.protein));
-    request.input("fat", mssql.Decimal(5,2), Number(mealData.fat));
-    request.input("calories", mssql.Decimal(6,2), Number(mealData.calories));
+    request.input("carbohydrates", mssql.Decimal(7,2), Number(mealData.carbohydrates));
+    request.input("protein", mssql.Decimal(7,2), Number(mealData.protein));
+    request.input("fat", mssql.Decimal(7,2), Number(mealData.fat));
+    request.input("calories", mssql.Decimal(7,2), Number(mealData.calories));
     request.input("ingredients", mssql.NVarChar, mealData.ingredients);
     await request.query(query);
 
