@@ -299,27 +299,6 @@ export const removeMeal = async (req, res) => {
  *         description: Failed to update meal
  */
 
-export function validateMealDecimals(req, res, next) {
-  try {
-    const mealData = req.body;
-    const fields = ["carbohydrates", "protein", "fat", "calories"];
-    for (const field of fields) {
-      const value = mealData[field];
-      const numValue = Number(value);
-      if (
-        isNaN(numValue) ||
-        numValue < 0 ||
-        numValue > 999.99 ||
-        !/^\d+(\.\d{1,2})?$/.test(String(value))
-      ) {
-        return res.status(400).json({ error: "Invalid decimal values for meal fields." });
-      }
-    }
-    next();
-  } catch (err) {
-    return res.status(400).json({ error: "Validation error: " + err.message });
-  }
-}
 
 export const amendMeal = async (req, res) => {
   try {
@@ -342,16 +321,17 @@ export const amendMeal = async (req, res) => {
       return res.status(403).json({ error: "Access denied" });
     }
 
-    await updateMeal(id, mealData);
+    const updatedMeal = {
+      ...req.validatedBody,
+      ingredients: Array.isArray(req.validatedBody.ingredients)
+        ? req.validatedBody.ingredients.join(", ")
+        : req.validatedBody.ingredients
+    };
+
+    await updateMeal(id, updatedMeal);
     res.status(200).json({ message: "Meal updated successfully" });
   } catch (error) {
     console.error("Error updating meal:", error);
-    if (
-      error?.message &&
-      error.message.includes("Invalid decimal values for meal fields")
-    ) {
-      return res.status(400).json({ error: "Failed to update meal: Invalid decimal values for meal fields. Please ensure all nutritional values are numbers between 0 and 999.99 with up to two decimal places." });
-    }
     res.status(400).json({ error: "Failed to update meal" });
   }
 }

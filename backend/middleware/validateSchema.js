@@ -1,9 +1,7 @@
 export function validateSchema(schema) {
   return (req, res, next) => {
-    console.log("Incoming body:", req.body); // Log the incoming data
     const result = schema.safeParse(req.body);
     if (!result.success) {
-      console.log("Validation error:", result.error); // Log the validation error
       const message =
         result.error?.errors && result.error.errors.length > 0
           ? result.error.errors[0].message

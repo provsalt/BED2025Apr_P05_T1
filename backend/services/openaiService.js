@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import {z} from "zod/v4";
-import {nutritionInformation} from "../utils/validation/nutrition.js";
+import {nutritionSchema} from "../utils/validation/nutrition.js";
 
 dotenv.config();
 
@@ -16,7 +16,7 @@ const openai = new OpenAI({
  */
 export const analyzeFoodImage = async (imageBuffer) => {
   try {
-    const res = nutritionInformation.extend({
+    const res = nutritionSchema.extend({
       error: z.string().describe("Error message if no food is detected")
     });
 
