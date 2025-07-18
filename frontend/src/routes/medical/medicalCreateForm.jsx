@@ -7,10 +7,10 @@ import { Upload, X } from 'lucide-react';
 import { UserContext } from '@/provider/UserContext.js';
 import { fetcher } from '@/lib/fetcher.js';
 import { Link } from 'react-router';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
-export const MedicationReminderForm = ({ userId = null }) => {
-  const userContext = useContext(UserContext);
-  const effectiveUserId = userId || userContext?.id;
+export const MedicationReminderForm = () => {
+  const user = useContext(UserContext);
   const [formData, setFormData] = useState({
     medicationName: '',
     reason: '',
@@ -22,6 +22,7 @@ export const MedicationReminderForm = ({ userId = null }) => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dialog, setDialog] = useState({ open: false, type: '', message: '' });
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -34,12 +35,12 @@ export const MedicationReminderForm = ({ userId = null }) => {
     const file = event.target.files[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
-        alert('Please select a valid image file');
+        setDialog({ open: true, type: 'error', message: 'Please select a valid image file' });
         return;
       }
       
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image size should be less than 5MB');
+      if (file.size > 30 * 1024 * 1024) {
+        setDialog({ open: true, type: 'error', message: 'Image size should be less than 30MB' });
         return;
       }
 
@@ -64,20 +65,20 @@ export const MedicationReminderForm = ({ userId = null }) => {
   };
 
   const handleSubmit = async () => {
-    if (!effectiveUserId) {
-      alert('User not authenticated. Please log in.');
+    if (!user) {
+      setDialog({ open: true, type: 'error', message: 'You must be logged in to create a medication reminder' });
       return;
     }
 
     if (!formData.medicationName || !formData.reason || 
         !formData.dosage || !formData.medicineTime || !formData.frequencyPerDay || 
         !formData.imageFile) {
-      alert('Please fill in all required fields and upload an image');
+      setDialog({ open: true, type: 'error', message: 'Please fill in all required fields' });
       return;
     }
 
     if (isNaN(formData.frequencyPerDay) || parseInt(formData.frequencyPerDay) <= 0) {
-        alert('Frequency per day must be a positive number');
+        setDialog({ open: true, type: 'error', message: 'Frequency per day must be a positive number' });
         return;
     }
 
@@ -115,16 +116,15 @@ export const MedicationReminderForm = ({ userId = null }) => {
           imagePreview: null
         });
         
-        alert('Medication reminder created successfully!');
+        setDialog({ open: true, type: 'success', message: 'Medication reminder created successfully!' });
       } else {
         const errorMessage = result.errors 
           ? result.errors.join(', ') 
           : result.message || 'Failed to create reminder';
-        alert(`Error: ${errorMessage}`);
+        setDialog({ open: true, type: 'error', message: errorMessage });
       }
     } catch (error) {
-      console.error('Network error:', error);
-      alert('Network error. Please check if the server is running and try again.');
+      setDialog({ open: true, type: 'error', message: 'Network error. Please check if the server is running and try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -290,6 +290,20 @@ export const MedicationReminderForm = ({ userId = null }) => {
               Cancel
             </Button>
           </div>
+
+          <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className={dialog.type === 'error' ? 'text-red-700' : 'text-green-700'}>
+              {dialog.type === 'error' ? 'Error' : 'Success'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-2">{dialog.message}</div>
+          <DialogFooter>
+            <Button onClick={() => setDialog(d => ({ ...d, open: false }))}>Okay</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
         </div>
       </div>
     </div>

@@ -23,6 +23,7 @@ import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 import {Transport} from "@/routes/transport/Transport.jsx";
 
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AlertProvider position="bottom-center">
@@ -54,6 +55,7 @@ createRoot(document.getElementById('root')).render(
                   } />
                   <Route path="/transport" element={<Transport />} />
                 </Routes>
+
               </div>
             </div>
           </BrowserRouter>
