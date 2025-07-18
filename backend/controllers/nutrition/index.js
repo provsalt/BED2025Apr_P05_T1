@@ -2,9 +2,11 @@ import { Router } from "express";
 import {genericUploadMiddleware} from "../../middleware/upload.js";
 import { resizeAndConvertImage } from "../../middleware/resizeAndConvertImage.js";
 import { compressImage } from "../../middleware/compression.js";
-import { uploadNutritionImage, retrieveMeals, retrieveMealsById, removeMeal, amendMeal, validateMealDecimals } from "./mealImageController.js";
+import { uploadNutritionImage, retrieveMeals, retrieveMealsById, removeMeal, amendMeal } from "./mealImageController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import {openaiRateLimit} from "../../middleware/rateLimit.js";
+import { nutritionSchema } from "../../utils/validation/nutrition.js";
+import { validateSchema } from "../../middleware/validateSchema.js";
 
 const router = Router();
 
@@ -28,6 +30,6 @@ router.get("/:id", getUserMiddleware, retrieveMealsById);
 router.delete("/:id", getUserMiddleware, removeMeal);
 
 // Update route for updating a meal by ID
-router.put("/:id", getUserMiddleware, validateMealDecimals, amendMeal);
+router.put("/:id", getUserMiddleware, validateSchema(nutritionSchema), amendMeal);
 
 export default router;
