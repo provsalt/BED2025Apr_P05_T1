@@ -4,6 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
     "start": "node app.js",
     "migrate": "node migrate.js"
   },
