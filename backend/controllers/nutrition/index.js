@@ -1,6 +1,5 @@
 import { Router } from "express";
 import {genericUploadMiddleware} from "../../middleware/upload.js";
-import { validateImageType } from "../../middleware/validateImage.js";
 import { resizeAndConvertImage } from "../../middleware/resizeAndConvertImage.js";
 import { compressImage } from "../../middleware/compression.js";
 import { uploadNutritionImage, retrieveMeals, retrieveMealsById, removeMeal, amendMeal, validateMealDecimals } from "./mealImageController.js";
@@ -11,8 +10,13 @@ const router = Router();
 
 //Post route for uploading food images
 router.post(
-"/upload", openaiRateLimit, getUserMiddleware, genericUploadMiddleware.single("image"),
-validateImageType,resizeAndConvertImage,compressImage,uploadNutritionImage
+"/upload", 
+openaiRateLimit, 
+getUserMiddleware, 
+genericUploadMiddleware.single('image'),
+resizeAndConvertImage,
+compressImage,
+uploadNutritionImage
 );
 // Get route for fetching all meals for the user
 router.get("/", getUserMiddleware, retrieveMeals);
