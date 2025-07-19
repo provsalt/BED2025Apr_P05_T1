@@ -1,9 +1,9 @@
-import { getAllRemindersWithUsers } from '../../models/medical/medicalModel.js';
-import { sendEmail } from '../../services/emailService.js';
-import { render } from '@react-email/render';
+import {getAllRemindersWithUsers} from '../../models/medical/medicalModel.js';
+import {sendEmail} from '../../services/emailService.js';
 import MedicationReminderEmail from '../../emails/MedicationReminder.js';
-import React from 'react';
-import { DateTime } from 'luxon';
+import {DateTime} from 'luxon';
+import {render} from "@react-email/render";
+import {createElement} from "react";
 
 const sentReminders = {}; // { [date]: { [reminderId]: [array of sent times as 'HH:MM'] } }
 
@@ -63,21 +63,20 @@ function timeToHHMM(dt) {
 //send medication reminder email
 async function sendReminderEmail(reminder) {
   const subject = `Medication Reminder: ${reminder.medicine_name}`;
-  const html = await render(
-    React.createElement(MedicationReminderEmail, {
-      name: reminder.name,
-      medicine_name: reminder.medicine_name,
-      dosage: reminder.dosage,
-      reason: reminder.reason
-    })
-  );
   try {
-    const result = await sendEmail({
+    const html = await render(
+      createElement(MedicationReminderEmail, {
+        name: reminder.name,
+        medicine_name: reminder.medicine_name,
+        dosage: reminder.dosage,
+        reason: reminder.reason
+      })
+    );
+    return await sendEmail({
       to: reminder.email,
       subject,
       html
     });
-    return result;
   } catch (err) {
     console.error('Error sending email:', err);
     throw err;
