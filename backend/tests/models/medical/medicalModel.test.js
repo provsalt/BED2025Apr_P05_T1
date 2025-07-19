@@ -44,91 +44,101 @@ describe('medicalModel', () => {
     }
   });
 
-  it('should create a medication reminder', async () => {
-    mockConnection.query.mockResolvedValueOnce({ recordset: [{ id: 1 }] });
-    const result = await model.createMedicationReminder({
-      userId: 1,
-      medicationName: 'Test',
-      reason: 'Test',
-      dosage: '1 pill',
-      timeToTake: '08:00',
-      frequencyPerDay: 1,
-      imageUrl: 'url'
+  describe('createMedicationReminder', () => {
+    it('should create a medication reminder', async () => {
+      mockConnection.query.mockResolvedValueOnce({ recordset: [{ id: 1 }] });
+      const result = await model.createMedicationReminder({
+        userId: 1,
+        medicationName: 'Test',
+        reason: 'Test',
+        dosage: '1 pill',
+        timeToTake: '08:00',
+        frequencyPerDay: 1,
+        imageUrl: 'url'
+      });
+      expect(result.success).toBe(true);
+      expect(result.medicationId).toBe(1);
     });
-    expect(result.success).toBe(true);
-    expect(result.medicationId).toBe(1);
-  });
 
-  it('should handle DB error in createMedicationReminder', async () => {
-    mockConnection.query.mockRejectedValueOnce(new Error('DB fail'));
-    const result = await model.createMedicationReminder({
-      userId: 1, medicationName: '', reason: '', dosage: '', timeToTake: '', frequencyPerDay: 1, imageUrl: ''
+    it('should handle DB error', async () => {
+      mockConnection.query.mockRejectedValueOnce(new Error('DB fail'));
+      const result = await model.createMedicationReminder({
+        userId: 1, medicationName: '', reason: '', dosage: '', timeToTake: '', frequencyPerDay: 1, imageUrl: ''
+      });
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/Failed/);
     });
-    expect(result.success).toBe(false);
-    expect(result.message).toMatch(/Failed/);
   });
 
-  it('should create a medication questionnaire', async () => {
-    mockConnection.query.mockResolvedValueOnce({ rowsAffected: [1] });
-    const result = await model.createMedicationQuestion(1, {
-      difficulty_walking: 'No',
-      assistive_device: 'None',
-      symptoms_or_pain: 'None',
-      allergies: 'None',
-      medical_conditions: 'None',
-      exercise_frequency: 'Daily'
+  describe('createMedicationQuestion', () => {
+    it('should create a medication questionnaire', async () => {
+      mockConnection.query.mockResolvedValueOnce({ rowsAffected: [1] });
+      const result = await model.createMedicationQuestion(1, {
+        difficulty_walking: 'No',
+        assistive_device: 'None',
+        symptoms_or_pain: 'None',
+        allergies: 'None',
+        medical_conditions: 'None',
+        exercise_frequency: 'Daily'
+      });
+      expect(result.success).toBe(true);
     });
-    expect(result.success).toBe(true);
   });
 
-  it('should get medication reminders by user (success)', async () => {
-    mockConnection.query.mockResolvedValueOnce({ recordset: [{ id: 1, medicine_name: 'Test' }] });
-    const result = await model.getMedicationRemindersByUser(1);
-    expect(result.success).toBe(true);
-    expect(result.reminders.length).toBeGreaterThanOrEqual(0);
-  });
-
-  it('should handle DB error in getMedicationRemindersByUser', async () => {
-    mockConnection.query.mockRejectedValueOnce(new Error('DB fail'));
-    const result = await model.getMedicationRemindersByUser(1);
-    expect(result.success).toBe(false);
-    expect(result.message).toMatch(/Failed/);
-  });
-
-  it('should update a medication reminder (success)', async () => {
-    mockConnection.query.mockResolvedValueOnce({ rowsAffected: [1] });
-    const result = await model.updateMedicationReminder(1, {
-      medicationName: 'Test', reason: 'Test', dosage: '1 pill', timeToTake: '08:00', frequencyPerDay: 1, imageUrl: 'url'
+  describe('getMedicationRemindersByUser', () => {
+    it('should get medication reminders by user (success)', async () => {
+      mockConnection.query.mockResolvedValueOnce({ recordset: [{ id: 1, medicine_name: 'Test' }] });
+      const result = await model.getMedicationRemindersByUser(1);
+      expect(result.success).toBe(true);
+      expect(result.reminders.length).toBeGreaterThanOrEqual(0);
     });
-    expect(result.success).toBe(true);
-  });
 
-  it('should handle DB error in updateMedicationReminder', async () => {
-    mockConnection.query.mockRejectedValueOnce(new Error('DB fail'));
-    const result = await model.updateMedicationReminder(1, {
-      medicationName: '', reason: '', dosage: '', timeToTake: '', frequencyPerDay: 1, imageUrl: ''
+    it('should handle DB error', async () => {
+      mockConnection.query.mockRejectedValueOnce(new Error('DB fail'));
+      const result = await model.getMedicationRemindersByUser(1);
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/Failed/);
     });
-    expect(result.success).toBe(false);
-    expect(result.message).toMatch(/Failed/);
   });
 
-  it('should delete a medication reminder (success)', async () => {
-    mockConnection.query.mockResolvedValueOnce({ rowsAffected: [1] });
-    const result = await model.deleteMedicationReminder(1, 1);
-    expect(result.success).toBe(true);
+  describe('updateMedicationReminder', () => {
+    it('should update a medication reminder (success)', async () => {
+      mockConnection.query.mockResolvedValueOnce({ rowsAffected: [1] });
+      const result = await model.updateMedicationReminder(1, {
+        medicationName: 'Test', reason: 'Test', dosage: '1 pill', timeToTake: '08:00', frequencyPerDay: 1, imageUrl: 'url'
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle DB error', async () => {
+      mockConnection.query.mockRejectedValueOnce(new Error('DB fail'));
+      const result = await model.updateMedicationReminder(1, {
+        medicationName: '', reason: '', dosage: '', timeToTake: '', frequencyPerDay: 1, imageUrl: ''
+      });
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/Failed/);
+    });
   });
 
-  it('should return not found for deleteMedicationReminder', async () => {
-    mockConnection.query.mockResolvedValueOnce({ rowsAffected: [0] });
-    const result = await model.deleteMedicationReminder(1, 1);
-    expect(result.success).toBe(false);
-    expect(result.message).toMatch(/not found/);
-  });
+  describe('deleteMedicationReminder', () => {
+    it('should delete a medication reminder (success)', async () => {
+      mockConnection.query.mockResolvedValueOnce({ rowsAffected: [1] });
+      const result = await model.deleteMedicationReminder(1, 1);
+      expect(result.success).toBe(true);
+    });
 
-  it('should handle DB error in deleteMedicationReminder', async () => {
-    mockConnection.query.mockRejectedValueOnce(new Error('DB fail'));
-    const result = await model.deleteMedicationReminder(1, 1);
-    expect(result.success).toBe(false);
-    expect(result.message).toMatch(/Failed/);
+    it('should return not found', async () => {
+      mockConnection.query.mockResolvedValueOnce({ rowsAffected: [0] });
+      const result = await model.deleteMedicationReminder(1, 1);
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/not found/);
+    });
+
+    it('should handle DB error', async () => {
+      mockConnection.query.mockRejectedValueOnce(new Error('DB fail'));
+      const result = await model.deleteMedicationReminder(1, 1);
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/Failed/);
+    });
   });
 }); 
