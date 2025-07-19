@@ -85,7 +85,7 @@ export const MealImageUpload = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h4 className="font-medium text-gray-800">Food Name</h4>
-                <p className="text-gray-600">{analysisResult.foodName || "-"}</p>
+                <p className="text-gray-600">{analysisResult.name || "-"}</p>
               </div>
               <div>
                 <h4 className="font-medium text-gray-800">Category</h4>
@@ -141,7 +141,7 @@ export const MealImageUpload = () => {
             <Button asChild
               className="ml-4 px-4 py-2 text-sm cursor-pointer"
             >
-              <Link to="/nutrition">Back to Nutrition</Link>
+              <Link to="/nutrition">View All Meals</Link>
             </Button>
         </div>
         <Card className="p-8 max-w-2xl mx-auto bg-white space-y-6">

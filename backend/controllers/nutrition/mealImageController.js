@@ -66,7 +66,7 @@ export const uploadNutritionImage = async (req, res) => {
     }
 
     const mealData = {
-      name: analysisResult.foodName || "Unknown Food",
+      name: analysisResult.name || "Unknown Food",
       category: analysisResult.category || "Unknown",
       carbohydrates: Number(analysisResult.carbohydrates) || 0,
       protein: Number(analysisResult.protein) || 0,

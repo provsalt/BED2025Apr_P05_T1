@@ -96,7 +96,7 @@ export const MedicationRemindersList = () => {
                 </div>
               </CardContent>
               <div className="flex gap-2 px-6 pb-4 md:pb-0">
-                <Button variant="secondary" className="bg-yellow-400 hover:bg-yellow-500 text-white cursor-pointer">Edit</Button>
+                <Button variant="secondary" className="bg-yellow-400 hover:bg-yellow-500 text-white cursor-pointer" onClick={() => navigate(`/medical/edit/${reminder.id}`)}>Edit</Button>
                 <Button
                   variant="destructive"
                   className="bg-red-500 hover:bg-red-600 text-white cursor-pointer"

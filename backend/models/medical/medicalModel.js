@@ -102,6 +102,47 @@ export async function getAllRemindersWithUsers() {
     }
 } 
 
+// UPDATE
+export async function updateMedicationReminder(reminderId, updateData) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
+            .input('reminderId', sql.Int, reminderId)
+            .input('medicationName', sql.VarChar(255), updateData.medicationName)
+            .input('reason', sql.VarChar(255), updateData.reason)
+            .input('dosage', sql.VarChar(100), updateData.dosage)
+            .input('medicineTime', sql.VarChar(8), updateData.timeToTake)
+            .input('frequencyPerDay', sql.Int, updateData.frequencyPerDay)
+            .input('imageUrl', sql.VarChar(255), updateData.imageUrl)
+            .query(`
+                UPDATE Medication
+                SET medicine_name = @medicationName,
+                    reason = @reason,
+                    dosage = @dosage,
+                    medicine_time = @medicineTime,
+                    frequency_per_day = @frequencyPerDay,
+                    image_url = @imageUrl
+                WHERE id = @reminderId;
+            `);
+        return {
+            success: true,
+            message: 'Medication reminder updated successfully'
+        };
+    } catch (error) {
+        console.error('Error updating medication reminder:', error);
+        return {
+            success: false,
+            message: 'Failed to update medication reminder',
+            error: error.message
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
 // DELETE
 export async function deleteMedicationReminder(reminderId, userId) {
     let connection;

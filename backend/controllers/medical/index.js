@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { createMedication, getMedicationReminders, deleteMedication } from "./medicalController.js";
-import {genericUploadMiddleware} from "../../middleware/upload.js";
+import { createMedication, getMedicationReminders, updateMedication, deleteMedication  } from "./medicalController.js";
+import { genericUploadMiddleware } from "../../middleware/upload.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import { validateSchema } from "../../middleware/validateSchema.js";
 import { medicationSchema } from "../../utils/validation/medical.js";
@@ -12,6 +12,9 @@ router.post("/", getUserMiddleware, genericUploadMiddleware.single("image"), val
 
 // GET /api/medications - get medication reminders for the user
 router.get("/", getUserMiddleware, getMedicationReminders);
+
+// PUT /api/medications/:id - Update medication reminder
+router.put("/:id", getUserMiddleware, genericUploadMiddleware.single("image"), validateSchema(medicationSchema), updateMedication);
 
 // DELETE /api/medications/:id - Delete a medication reminder by ID for user
 router.delete('/:id', getUserMiddleware, deleteMedication);
