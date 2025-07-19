@@ -9,20 +9,21 @@ import sql from "mssql";
  * @param {string} endStation - The ending station code.
  * @returns {Promise<object>} The newly created route object.
  */
-export const createRoute = async (userId, startStation, endStation) => {
+export const createRoute = async (userId, name, startStation, endStation) => {
     const db = await sql.connect(dbConfig);
     const query = `
-        INSERT INTO UserRoutes (user_id, start_station, end_station)
-        VALUES (@userId, @startStation, @endStation);
+        INSERT INTO UserRoutes (user_id, name, start_station, end_station)
+        VALUES (@userId, @name, @startStation, @endStation);
         SELECT SCOPE_IDENTITY() AS id;
     `;
     const request = db.request();
     request.input("userId", sql.Int, userId);
+    request.input("name", sql.VarChar, name);
     request.input("startStation", sql.VarChar, startStation);
     request.input("endStation", sql.VarChar, endStation);
     const result = await request.query(query);
     const id = result.recordset[0].id;
-    return { id, user_id: userId, start_station: startStation, end_station: endStation };
+    return { id, user_id: userId, name, start_station: startStation, end_station: endStation };
 };
 
 /**
@@ -60,15 +61,16 @@ export const getRoutesByUserId = async (userId) => {
  * @param {string} endStation - The new ending station code.
  * @returns {Promise<boolean>} True if the update was successful, false otherwise.
  */
-export const updateRoute = async (routeId, startStation, endStation) => {
+export const updateRoute = async (routeId, name, startStation, endStation) => {
     const db = await sql.connect(dbConfig);
     const query = `
         UPDATE UserRoutes
-        SET start_station = @startStation, end_station = @endStation
+        SET name = @name, start_station = @startStation, end_station = @endStation
         WHERE id = @routeId;
     `;
     const request = db.request();
     request.input("routeId", sql.Int, routeId);
+    request.input("name", sql.VarChar, name);
     request.input("startStation", sql.VarChar, startStation);
     request.input("endStation", sql.VarChar, endStation);
     const result = await request.query(query);

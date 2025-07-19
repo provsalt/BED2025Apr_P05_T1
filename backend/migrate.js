@@ -9,9 +9,9 @@ async function runMigrations() {
     try {
         const pool = await db;
 
-        // Create migrations table if it doesn't exist
+        // Create migrations table if it doesn"t exist
         await pool.request().query(`
-            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Migrations' and xtype='U')
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name="Migrations" and xtype="U")
             CREATE TABLE Migrations (
                 id INT IDENTITY(1,1) PRIMARY KEY,
                 name VARCHAR(255) NOT NULL UNIQUE,
@@ -29,11 +29,11 @@ async function runMigrations() {
             }
 
             const migrationName = file;
-            const rowsAffected = (await pool.request().query(
-                `SELECT COUNT(*) FROM Migrations WHERE name = '${migrationName}'`
-            )).rowsAffected;
+            const result = await pool.request().query(
+                `SELECT COUNT(*) as count FROM Migrations WHERE name = "${migrationName}"`
+            );
 
-            if (rowsAffected[0][""] > 0) {
+            if (result.recordset[0].count > 0) {
                 console.log(`Migration ${migrationName} already applied. Skipping.`);
                 continue;
             }
@@ -44,7 +44,7 @@ async function runMigrations() {
             try {
                 await pool.request().query(sqlQuery);
                 await pool.request().query(
-                    `INSERT INTO Migrations (name) VALUES ('${migrationName}')`
+                    `INSERT INTO Migrations (name) VALUES ("${migrationName}")`
                 );
                 console.log(`Migration ${migrationName} executed successfully.`);
             } catch (error) {

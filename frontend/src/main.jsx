@@ -21,7 +21,10 @@ import {MedicationRemindersList} from '@/routes/medical/MedicationRemindersList.
 import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
-import {Transport} from "@/routes/transport/Transport.jsx";
+import {TransportHomePage} from "@/routes/transport/TransportHomePage.jsx";
+import {TransportMap} from "@/routes/transport/TransportMap.jsx";
+import RouteList from "@/routes/transport/RouteList.jsx";
+import CreateRoute from "@/routes/transport/CreateRoute.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -52,7 +55,12 @@ createRoot(document.getElementById('root')).render(
                       <AdminDashboard />
                     </AdminProtectedRoute>
                   } />
-                  <Route path="/transport" element={<Transport />} />
+                  <Route path="/transport">
+                    <Route index element={<TransportHomePage/>} />
+                    <Route path="map" element={<TransportMap />} />
+                    <Route path="routes" element={<RouteList />} />
+                    <Route path="routes/create" element={<CreateRoute />} />
+                  </Route>
                 </Routes>
               </div>
             </div>

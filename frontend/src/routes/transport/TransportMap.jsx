@@ -3,8 +3,16 @@ import {useEffect, useState} from "react";
 import {fetcher} from "@/lib/fetcher.js";
 import TransportDirectionForm from "@/components/transport/TransportDirectionForm.jsx";
 import TransitPlan from "@/components/transport/TransitPlan.jsx";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb.jsx";
 
-export const Transport = () => {
+export const TransportMap = () => {
 
   const [path, setPath] = useState([]);
   const [stations, setStations] = useState(null);
@@ -26,7 +34,18 @@ export const Transport = () => {
 
   return (
     <div className="flex h-[calc(100vh-theme(spacing.16))]">
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1">
+        <Breadcrumb className="p-4">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/transport">Transport</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Map</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <Map path={path} setPath={setPath} delay={300} />
       </div>
       <div className="m-4 max-w-1/4">

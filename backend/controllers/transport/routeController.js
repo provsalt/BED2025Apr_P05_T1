@@ -1,3 +1,4 @@
+import transportModel from '../../models/transport/transportModel.js';
 import {
     createRoute,
     getRouteById,
@@ -22,6 +23,8 @@ import {
  *           schema:
  *             type: object
  *             properties:
+ *               name:
+ *                 type: string
  *               start_station: 
  *                 type: string
  *               end_station:
@@ -35,15 +38,20 @@ import {
  *         description: Internal server error.
  */
 export const createRouteController = async (req, res) => {
-    const { start_station, end_station } = req.body;
+  const { name, start_station, end_station } = req.body;
     const userId = req.user.id;
 
-    if (!start_station || !end_station) {
-        return res.status(400).json({ error: 'Both start and end stations are required.' });
+    if (!name || !start_station || !end_station) {
+        return res.status(400).json({ error: 'Name, start and end stations are required.' });
+    }
+
+    const stationCodes = transportModel.getStationCodes();
+    if (!stationCodes.includes(start_station) || !stationCodes.includes(end_station)) {
+        return res.status(400).json({ error: 'Invalid station code.' });
     }
 
     try {
-        const newRoute = await createRoute(userId, start_station, end_station);
+        const newRoute = await createRoute(userId, name, start_station, end_station);
         res.status(201).json(newRoute);
     } catch (error) {
         console.error('Error creating route:', error);
@@ -137,6 +145,8 @@ export const getUserRoutesController = async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
+ *               name:
+ *                 type: string
  *               start_station:
  *                 type: string
  *               end_station:
@@ -153,14 +163,19 @@ export const getUserRoutesController = async (req, res) => {
  */
 export const updateRouteController = async (req, res) => {
     const routeId = parseInt(req.params.id);
-    const { start_station, end_station } = req.body;
+    const { name, start_station, end_station } = req.body;
 
-    if (!start_station || !end_station) {
-        return res.status(400).json({ error: 'Both start and end stations are required.' });
+    if (!name || !start_station || !end_station) {
+        return res.status(400).json({ error: 'Name, start and end stations are required.' });
+    }
+
+    const stationCodes = transportModel.getStationCodes();
+    if (!stationCodes.includes(start_station) || !stationCodes.includes(end_station)) {
+        return res.status(400).json({ error: 'Invalid station code.' });
     }
 
     try {
-        const success = await updateRoute(routeId, start_station, end_station);
+        const success = await updateRoute(routeId, name, start_station, end_station);
         if (!success) {
             return res.status(404).json({ error: 'Route not found or not updated.' });
         }
