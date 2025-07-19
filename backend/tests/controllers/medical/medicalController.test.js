@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as controller from '../../../controllers/medical/medicalController.js';
 import * as model from '../../../models/medical/medicalModel.js';
 
+// Mock S3 service before importing controller
+vi.mock('../../../services/s3Service.js', () => ({
+  uploadFile: vi.fn().mockResolvedValue(),
+  deleteFile: vi.fn().mockResolvedValue()
+}));
+
 vi.mock('../../../models/medical/medicalModel.js', () => ({
   createMedicationReminder: vi.fn(),
   getMedicationRemindersByUser: vi.fn(),
@@ -93,6 +99,7 @@ describe('medicalController', () => {
     req.validatedBody = {
       medicine_name: 'Test', reason: 'Test', dosage: '1 pill', medicine_time: '08:00', frequency_per_day: 1
     };
+    req.file = undefined;
     await controller.updateMedication(req, res);
     expect(res.status).toHaveBeenCalledWith(200);
   });
