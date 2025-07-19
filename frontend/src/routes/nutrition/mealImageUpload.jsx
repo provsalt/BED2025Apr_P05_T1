@@ -141,7 +141,7 @@ export const MealImageUpload = () => {
             <Button asChild
               className="ml-4 px-4 py-2 text-sm cursor-pointer"
             >
-              <Link to="/nutrition">Back to Nutrition</Link>
+              <Link to="/nutrition">View All Meals</Link>
             </Button>
         </div>
         <Card className="p-8 max-w-2xl mx-auto bg-white space-y-6">
