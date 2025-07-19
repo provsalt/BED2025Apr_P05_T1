@@ -33,15 +33,17 @@ describe("Route Model", () => {
 
     it("should create a new route", async () => {
         const userId = 1;
+        const routeName = "School";
         const startStation = "stationA";
         const endStation = "stationB";
-        const expectedRoute = { id: 1, user_id: userId, start_station: startStation, end_station: endStation };
+        const expectedRoute = { id: 1, user_id: userId, name: routeName, start_station: startStation, end_station: endStation };
         mockRequest.query.mockResolvedValue({ recordset: [{ id: 1 }] });
 
-        const newRoute = await createRoute(userId, startStation, endStation);
+        const newRoute = await createRoute(userId, routeName, startStation, endStation);
 
         expect(sql.connect).toHaveBeenCalled();
         expect(mockRequest.input).toHaveBeenCalledWith("userId", sql.Int, userId);
+        expect(mockRequest.input).toHaveBeenCalledWith("name", sql.Varchar, routeName);
         expect(mockRequest.input).toHaveBeenCalledWith("startStation", sql.VarChar, startStation);
         expect(mockRequest.input).toHaveBeenCalledWith("endStation", sql.VarChar, endStation);
         expect(mockRequest.query).toHaveBeenCalled();
@@ -76,14 +78,16 @@ describe("Route Model", () => {
 
     it("should update a route", async () => {
         const routeId = 1;
+        const routeName = "work";
         const startStation = "newA";
         const endStation = "newB";
         mockRequest.query.mockResolvedValue({ rowsAffected: [1] });
 
-        const success = await updateRoute(routeId, startStation, endStation);
+        const success = await updateRoute(routeId, routeName, startStation, endStation);
 
         expect(sql.connect).toHaveBeenCalled();
         expect(mockRequest.input).toHaveBeenCalledWith("routeId", sql.Int, routeId);
+        expect(mockRequest.input).toHaveBeenCalledWith("name", sql.Varchar, routeName);
         expect(mockRequest.input).toHaveBeenCalledWith("startStation", sql.VarChar, startStation);
         expect(mockRequest.input).toHaveBeenCalledWith("endStation", sql.VarChar, endStation);
         expect(mockRequest.query).toHaveBeenCalled();
