@@ -109,7 +109,7 @@ const formatDeletionTime = (isoTime) => {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel asChild><Button variant="outline">Cancel</Button></AlertDialogCancel>
-                        <AlertDialogAction asChild><Button variant="destructive">Yes, Delete</Button></AlertDialogAction>
+                        <AlertDialogAction asChild><Button variant="destructive" onClick={() => approveDeletion(user.id)}>Yes, Delete</Button></AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
