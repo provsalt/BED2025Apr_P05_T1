@@ -85,7 +85,7 @@ export const MealImageUpload = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h4 className="font-medium text-gray-800">Food Name</h4>
-                <p className="text-gray-600">{analysisResult.foodName || "-"}</p>
+                <p className="text-gray-600">{analysisResult.name || "-"}</p>
               </div>
               <div>
                 <h4 className="font-medium text-gray-800">Category</h4>
