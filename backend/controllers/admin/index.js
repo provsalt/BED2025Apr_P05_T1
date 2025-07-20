@@ -5,7 +5,10 @@ import { getDeletionRequestsController, approveUserDeletionController } from "./
 
 const router = Router();
 
-router.get("/deletion-requests", getUserMiddleware, authorizeRole(["Admin"]), getDeletionRequestsController);
-router.post("/:id/approve-delete", getUserMiddleware, authorizeRole(["Admin"]), approveUserDeletionController);
+router.use(getUserMiddleware);
+router.use(authorizeRole(["Admin"]))
+
+router.get("/deletion-requests", getDeletionRequestsController);
+router.post("/:id/approve-delete", approveUserDeletionController);
 
 export default router; 

@@ -648,5 +648,3 @@ export const getAllUsersController = async (req, res) => {
   }
 };
 
-export { getUserLoginHistoryController } from './loginHistoryController.js';
-
