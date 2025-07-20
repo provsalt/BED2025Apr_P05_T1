@@ -25,6 +25,9 @@ import { getLoginHistoryByUserId } from "../../models/user/userModel.js";
  *         description: Failed to retrieve login history
  */
 export const getUserLoginHistoryController = async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
   const userId = req.user.id;
   const limit = req.query.limit ? parseInt(req.query.limit, 10) : 10;
 
