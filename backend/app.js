@@ -100,8 +100,6 @@ setIO(io);
 
 io.use(socketAuthMiddleware);
 
-
-
 // Start the medication reminder loop
 setInterval(checkAndSendReminders, 60 * 1000); // Check every minute
 
