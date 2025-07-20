@@ -7,6 +7,7 @@ import medicalRouter from "./medical/index.js";
 import {Router} from "express";
 import announcementsRouter from "./announcements/index.js";
 import communityRouter from "./community/index.js";
+import adminRouter from "./admin/index.js";
 
 /**
  * ApiController function setup api related routes for the application.
@@ -22,5 +23,6 @@ export const ApiController = () => {
   router.use("/announcements", announcementsRouter); // Add public announcements route
   router.use("/community", communityRouter);
   router.use("/transport", transportRouter);
+  router.use("/admin", adminRouter);
   return router;
 }

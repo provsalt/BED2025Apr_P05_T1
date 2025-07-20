@@ -9,18 +9,26 @@ import {
   uploadUserProfilePictureController,
   deleteUserProfilePictureController,
   deleteUserController,
-  getAllUsersController
+  getAllUsersController,
+  requestUserDeletionController,
+  cancelUserDeletionController,
+  getUserLoginHistoryController
 } from '../../../controllers/user/userController.js';
 
 // Mock dependencies
 vi.mock('../../../models/user/userModel.js', () => ({
-  createUser: vi.fn(),
-  getAllUsers: vi.fn(),
-  getUser: vi.fn(),
-  getUserByEmail: vi.fn(),
-  updateUser: vi.fn(),
-  updateUserProfilePicture: vi.fn(),
-  insertLoginHistory: vi.fn()
+    createUser: vi.fn(),
+    getAllUsers: vi.fn(),
+    getUser: vi.fn(),
+    getUserByEmail: vi.fn(),
+    updateUser: vi.fn(),
+    updateUserProfilePicture: vi.fn(),
+    insertLoginHistory: vi.fn(),
+    insertLoginHistory: vi.fn(),
+    requestUserDeletion: vi.fn(),
+    cancelUserDeletionRequest: vi.fn(),
+    getLoginHistoryByUserId: vi.fn(),
+    deleteUser: vi.fn(),
 }));
 
 vi.mock('../../../models/admin/adminModel.js', () => ({
@@ -615,5 +623,108 @@ describe('User Controller', () => {
       
       consoleSpy.mockRestore();
     });
+  });
+});
+
+describe('requestUserDeletionController', () => {
+  let req, res, requestUserDeletion;
+  beforeEach(async () => {
+    req = { user: { id: 1 } };
+    res = { status: vi.fn().mockReturnThis(), json: vi.fn().mockReturnThis() };
+    vi.clearAllMocks();
+    requestUserDeletion = (await import('../../../models/user/userModel.js')).requestUserDeletion;
+  });
+
+  it('should return 200 if deletion request is successful', async () => {
+    requestUserDeletion.mockResolvedValue(true);
+    const { requestUserDeletionController } = await import('../../../controllers/user/userController.js');
+    await requestUserDeletionController(req, res);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Account deletion request submitted' });
+  });
+
+  it('should return 400 if deletion request fails', async () => {
+    requestUserDeletion.mockResolvedValue(false);
+    const { requestUserDeletionController } = await import('../../../controllers/user/userController.js');
+    await requestUserDeletionController(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Failed to request account deletion' });
+  });
+
+  it('should return 500 on server error', async () => {
+    requestUserDeletion.mockRejectedValue(new Error('DB error'));
+    const { requestUserDeletionController } = await import('../../../controllers/user/userController.js');
+    await requestUserDeletionController(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Server error' });
+  });
+});
+
+describe('cancelUserDeletionController', () => {
+  let req, res, cancelUserDeletionRequest;
+  beforeEach(async () => {
+    req = { user: { id: 1 } };
+    res = { status: vi.fn().mockReturnThis(), json: vi.fn().mockReturnThis() };
+    vi.clearAllMocks();
+    cancelUserDeletionRequest = (await import('../../../models/user/userModel.js')).cancelUserDeletionRequest;
+  });
+
+  it('should return 200 if cancellation is successful', async () => {
+    cancelUserDeletionRequest.mockResolvedValue(true);
+    const { cancelUserDeletionController } = await import('../../../controllers/user/userController.js');
+    await cancelUserDeletionController(req, res);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Account deletion request cancelled' });
+  });
+
+  it('should return 400 if cancellation fails', async () => {
+    cancelUserDeletionRequest.mockResolvedValue(false);
+    const { cancelUserDeletionController } = await import('../../../controllers/user/userController.js');
+    await cancelUserDeletionController(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Failed to cancel deletion request' });
+  });
+
+  it('should return 500 on server error', async () => {
+    cancelUserDeletionRequest.mockRejectedValue(new Error('DB error'));
+    const { cancelUserDeletionController } = await import('../../../controllers/user/userController.js');
+    await cancelUserDeletionController(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Server error' });
+  });
+});
+
+describe('getUserLoginHistoryController', () => {
+  let req, res, getLoginHistoryByUserId;
+  beforeEach(async () => {
+    req = { user: { id: 1 }, query: {} };
+    res = { status: vi.fn().mockReturnThis(), json: vi.fn().mockReturnThis() };
+    vi.clearAllMocks();
+    getLoginHistoryByUserId = (await import('../../../models/user/userModel.js')).getLoginHistoryByUserId;
+  });
+
+  it('should return 200 and login history on success', async () => {
+    const mockHistory = [{ id: 1, login_time: '2023-01-01T10:00:00' }];
+    getLoginHistoryByUserId.mockResolvedValue(mockHistory);
+    await getUserLoginHistoryController(req, res);
+    expect(getLoginHistoryByUserId).toHaveBeenCalledWith(1, 10);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(mockHistory);
+  });
+
+  it('should return 401 if user is not authenticated', async () => {
+    req.user = null;
+    req.query = {};
+    await getUserLoginHistoryController(req, res);
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Unauthorized' });
+  });
+
+  it('should return 500 on server error', async () => {
+    getLoginHistoryByUserId.mockRejectedValue(new Error('DB error'));
+    await getUserLoginHistoryController(req, res);
+    expect(getLoginHistoryByUserId).toHaveBeenCalledWith(1, 10);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Failed to retrieve login history' });
   });
 });
