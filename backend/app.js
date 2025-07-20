@@ -9,6 +9,8 @@ import {defaultRateLimit} from "./middleware/rateLimit.js";
 import {initSwagger} from "./swagger/swagger.js";
 import {checkAndSendReminders} from './controllers/medical/reminderController.js';
 import promBundle from "express-prom-bundle";
+import { connectedUsersGauge } from "./services/prometheusService.js";
+import client from "prom-client";
 
 const app = express();
 const server = createServer(app);
@@ -88,6 +90,7 @@ const metricsMiddleware = promBundle({
   }
 });
 app.use(metricsMiddleware);
+client.register.registerMetric(connectedUsersGauge);
 
 app.use("/api", ApiController())
 
@@ -97,15 +100,7 @@ setIO(io);
 
 io.use(socketAuthMiddleware);
 
-io.on('connection', (socket) => {
-    console.log(`User ${socket.userId} connected via WebSocket`);
-    
-    socket.join(`user_${socket.userId}`);
-    
-    socket.on('disconnect', () => {
-        console.log(`User ${socket.userId} disconnected from WebSocket`);
-    });
-});
+
 
 // Start the medication reminder loop
 setInterval(checkAndSendReminders, 60 * 1000); // Check every minute
