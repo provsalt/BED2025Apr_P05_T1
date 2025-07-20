@@ -11,9 +11,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb.jsx";
+import {useSearchParams} from "react-router";
 
 export const TransportMap = () => {
-
+  const [searchParams] = useSearchParams();
   const [path, setPath] = useState([]);
   const [stations, setStations] = useState(null);
 
@@ -22,6 +23,10 @@ export const TransportMap = () => {
       setStations(d.codeNameMap);
     })
   }, [])
+
+  useEffect(() => {
+    handleSearch(searchParams.get("start"), searchParams.get("end"));
+  }, [searchParams]);
 
   const handleSearch = (start, end) => {
     setPath([]);

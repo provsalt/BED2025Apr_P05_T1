@@ -100,8 +100,8 @@ const RouteList = () => {
                   <TableCell>{stations[route["start_station"]]}</TableCell>
                   <TableCell>{stations[route["end_station"]]}</TableCell>
                   <TableCell className="flex gap-4">
-                    <Button>
-                      View
+                    <Button asChild>
+                      <Link to={`/transport/map?start=${route["start_station"]}&end=${route["end_station"]}`}>View</Link>
                     </Button>
                     <Button variant="secondary">
                       Edit
