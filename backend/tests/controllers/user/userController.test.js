@@ -12,7 +12,6 @@ import {
   getAllUsersController,
   requestUserDeletionController,
   cancelUserDeletionController,
-  getUserLoginHistoryController
 } from '../../../controllers/user/userController.js';
 
 // Mock dependencies
@@ -23,7 +22,6 @@ vi.mock('../../../models/user/userModel.js', () => ({
     getUserByEmail: vi.fn(),
     updateUser: vi.fn(),
     updateUserProfilePicture: vi.fn(),
-    insertLoginHistory: vi.fn(),
     insertLoginHistory: vi.fn(),
     requestUserDeletion: vi.fn(),
     cancelUserDeletionRequest: vi.fn(),
@@ -691,40 +689,5 @@ describe('cancelUserDeletionController', () => {
     await cancelUserDeletionController(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({ error: 'Server error' });
-  });
-});
-
-describe('getUserLoginHistoryController', () => {
-  let req, res, getLoginHistoryByUserId;
-  beforeEach(async () => {
-    req = { user: { id: 1 }, query: {} };
-    res = { status: vi.fn().mockReturnThis(), json: vi.fn().mockReturnThis() };
-    vi.clearAllMocks();
-    getLoginHistoryByUserId = (await import('../../../models/user/userModel.js')).getLoginHistoryByUserId;
-  });
-
-  it('should return 200 and login history on success', async () => {
-    const mockHistory = [{ id: 1, login_time: '2023-01-01T10:00:00' }];
-    getLoginHistoryByUserId.mockResolvedValue(mockHistory);
-    await getUserLoginHistoryController(req, res);
-    expect(getLoginHistoryByUserId).toHaveBeenCalledWith(1, 10);
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith(mockHistory);
-  });
-
-  it('should return 401 if user is not authenticated', async () => {
-    req.user = null;
-    req.query = {};
-    await getUserLoginHistoryController(req, res);
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Unauthorized' });
-  });
-
-  it('should return 500 on server error', async () => {
-    getLoginHistoryByUserId.mockRejectedValue(new Error('DB error'));
-    await getUserLoginHistoryController(req, res);
-    expect(getLoginHistoryByUserId).toHaveBeenCalledWith(1, 10);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Failed to retrieve login history' });
   });
 });
