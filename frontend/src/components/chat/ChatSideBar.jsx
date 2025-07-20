@@ -15,14 +15,31 @@ export const ChatSideBar = () => {
     const fetchChats = async () => {
       try {
         const chats = await fetcher(import.meta.env.VITE_BACKEND_URL + "/api/chats");
-        setConversations(
-          chats.map((chat) => ({
-            id: chat.id,
-            username: chat.chat_initiator === user.id ? chat.chat_recipient : chat.chat_initiator,
-            lastMessage: chat.last_message,
-            lastMessageTime: chat.last_message_time
-          }))
+        // Fetch user details for each chat
+        const chatsWithUserDetails = await Promise.all(
+          chats.map(async (chat) => {
+            const otherUserId = chat.chat_initiator === user.id ? chat.chat_recipient : chat.chat_initiator;
+            try {
+              const otherUser = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/users/${otherUserId}`);
+              return {
+                id: chat.id,
+                name: otherUser.name ? otherUser.name : `User ${otherUserId}`,
+                profile_picture_url: otherUser.profile_picture_url || null,
+                lastMessage: chat.last_message,
+                lastMessageTime: chat.last_message_time
+              };
+            } catch (err) {
+              return {
+                id: chat.id,
+                name: `User ${otherUserId}`,
+                profile_picture_url: null,
+                lastMessage: chat.last_message,
+                lastMessageTime: chat.last_message_time
+              };
+            }
+          })
         );
+        setConversations(chatsWithUserDetails);
       } catch (err) {
         setError(err.message);
       }
