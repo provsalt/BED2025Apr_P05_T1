@@ -45,17 +45,17 @@ export const TransportMap = () => {
             <BreadcrumbItem>
               <BreadcrumbLink href="/transport">Transport</BreadcrumbLink>
             </BreadcrumbItem>
-            <BreadcrumbSeparator />
+            <BreadcrumbSeparator/>
             <BreadcrumbItem>
               <BreadcrumbPage>Map</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        <Map path={path} setPath={setPath} delay={300} />
+        <Map path={path} setPath={setPath} delay={300}/>
       </div>
       <div className="m-4 max-w-1/4">
-        <TransportDirectionForm stations={stations} onSearch={handleSearch} />
-        <TransitPlan path={path} stations={stations} />
+        <TransportDirectionForm stations={stations} onSearch={handleSearch}/>
+        <TransitPlan path={path} stations={stations}/>
       </div>
     </div>
   )

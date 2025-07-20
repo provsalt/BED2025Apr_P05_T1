@@ -23,8 +23,9 @@ import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 import {TransportHomePage} from "@/routes/transport/TransportHomePage.jsx";
 import {TransportMap} from "@/routes/transport/TransportMap.jsx";
-import RouteList from "@/routes/transport/RouteList.jsx";
-import CreateRoute from "@/routes/transport/CreateRoute.jsx";
+import {RouteList} from "@/routes/transport/RouteList.jsx";
+import {CreateRoute} from "@/routes/transport/CreateRoute.jsx";
+import {EditRoute} from "@/routes/transport/EditRoute.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -60,6 +61,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path="map" element={<TransportMap />} />
                     <Route path="routes" element={<RouteList />} />
                     <Route path="routes/create" element={<CreateRoute />} />
+                    <Route path="routes/edit/:id" element={<EditRoute />} />
                   </Route>
                 </Routes>
               </div>

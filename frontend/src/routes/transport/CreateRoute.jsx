@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router";
-import { useAlert } from "@/provider/AlertProvider";
-import { fetcher } from "@/lib/fetcher.js";
+import React, {useState} from "react";
+import {Link, useNavigate} from "react-router";
+import {useAlert} from "@/provider/AlertProvider";
+import {fetcher} from "@/lib/fetcher.js";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,10 +10,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Link } from "react-router";
 import RouteForm from "@/components/transport/RouteForm";
 
-const CreateRoute = () => {
+export const CreateRoute = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const alert = useAlert();
@@ -54,13 +53,13 @@ const CreateRoute = () => {
               <Link to="/transport">Transport</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
-          <BreadcrumbSeparator />
+          <BreadcrumbSeparator/>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
               <Link to="/transport/routes">Routes</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
-          <BreadcrumbSeparator />
+          <BreadcrumbSeparator/>
           <BreadcrumbItem>
             <BreadcrumbPage>Create</BreadcrumbPage>
           </BreadcrumbItem>
@@ -75,5 +74,3 @@ const CreateRoute = () => {
     </div>
   );
 };
-
-export default CreateRoute;
