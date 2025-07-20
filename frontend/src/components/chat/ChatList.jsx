@@ -1,5 +1,5 @@
-import {Avatar} from "@/components/avatar/avatar.jsx";
-import {Link} from "react-router";
+import { Avatar } from "@/components/avatar/avatar.jsx";
+import { Link } from "react-router";
 import { formatDistanceToNow } from 'date-fns';
 
 export const ChatList = ({ conversations, selectedChatId, onSelectChat }) => {
@@ -14,9 +14,17 @@ export const ChatList = ({ conversations, selectedChatId, onSelectChat }) => {
                 selectedChatId === chat.id ? "bg-gray-200" : "hover:bg-gray-100"
               }`}
             >
-              <Avatar username={chat.username} size={48} />
+              {chat.profile_picture_url ? (
+                <img
+                  src={chat.profile_picture_url}
+                  alt={chat.name}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+              ) : (
+                <Avatar username={chat.name} size={48} />
+              )}
               <div className="min-w-0">
-                <div className="font-semibold truncate">@{chat.username}</div>
+                <div className="font-semibold truncate">{chat.name}</div>
                 <div className="text-gray-500 text-sm truncate">
                   {chat.lastMessage}
                 </div>
