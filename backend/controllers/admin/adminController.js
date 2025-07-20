@@ -32,7 +32,7 @@ export const getDeletionRequestsController = async (req, res) => {
 
 /**
  * @openapi
- * /api/admin/{id}/approve-delete:
+ * /api/admin/approve-delete:
  *   post:
  *     tags:
  *       - Admin
@@ -40,13 +40,15 @@ export const getDeletionRequestsController = async (req, res) => {
  *     description: Admin only. Approve and delete a user's account after deletion request.
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: The user's ID.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: integer
  *     responses:
  *       200:
  *         description: User deleted
@@ -58,7 +60,7 @@ export const getDeletionRequestsController = async (req, res) => {
  *         description: Server error
  */
 export const approveUserDeletionController = async (req, res) => {
-  const userId = parseInt(req.params.id);
+  const {userId} = req.body;
   if (isNaN(userId)) {
     return res.status(400).json({ error: "Invalid user ID" });
   }
@@ -71,4 +73,4 @@ export const approveUserDeletionController = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }
-}; 
+};

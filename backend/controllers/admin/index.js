@@ -9,6 +9,6 @@ router.use(getUserMiddleware);
 router.use(authorizeRole(["Admin"]))
 
 router.get("/deletion-requests", getDeletionRequestsController);
-router.post("/:id/approve-delete", approveUserDeletionController);
+router.post("/approve-delete", approveUserDeletionController);
 
 export default router; 

@@ -97,8 +97,11 @@ const AdminDashboard = () => {
   const approveDeletion = async (userId) => {
     if (!confirm('Are you sure you want to approve and delete this user?')) return;
     try {
-      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/${userId}/approve-delete`, {
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/approve-delete`, {
         method: 'POST',
+        body: JSON.stringify({
+          userId: userId,
+        }),
         headers: { 'Content-Type': 'application/json' }
       });
       alert.success({ title: "Success", description: "User account deleted." });

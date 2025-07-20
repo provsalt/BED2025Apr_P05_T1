@@ -11,7 +11,7 @@ describe('Admin Controller', () => {
   let req, res;
 
   beforeEach(() => {
-    req = { params: { id: '1' } };
+    req = { body: { userId: '1' } };
     res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
     vi.clearAllMocks();
   });
@@ -49,7 +49,7 @@ describe('Admin Controller', () => {
     });
 
     it('should return 400 for invalid user ID', async () => {
-      req.params.id = 'not-a-number';
+      req.body.userId = 'not-a-number';
       await approveUserDeletionController(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ error: 'Invalid user ID' });
