@@ -43,7 +43,7 @@ const RouteForm = ({ initialData = null, onSubmit, isLoading = false, submitButt
   const [openEnd, setOpenEnd] = useState(false);
   const [stations, setStations] = useState(null);
   const navigate = useNavigate();
-  const { showAlert } = useAlert();
+  const alert = useAlert();
 
   const {
     control,
@@ -71,12 +71,15 @@ const RouteForm = ({ initialData = null, onSubmit, isLoading = false, submitButt
         setStations(stationsData.codeNameMap);
       } catch (error) {
         console.error("Error loading stations:", error);
-        showAlert("Failed to load stations.", "error");
+        alert.error({
+          title: "Error",
+          description: error.message,
+        })
       }
     };
 
     loadStations();
-  }, [showAlert]);
+  }, []);
 
   useEffect(() => {
     if (initialData && stations) {

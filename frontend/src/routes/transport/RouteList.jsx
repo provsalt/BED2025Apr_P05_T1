@@ -24,7 +24,7 @@ const RouteList = () => {
   const [routes, setRoutes] = useState([]);
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { showAlert } = useAlert();
+  const alert = useAlert();
 
   useEffect(() => {
     const fetchRoutes = async () => {
@@ -33,7 +33,10 @@ const RouteList = () => {
         setRoutes(response);
       } catch (error) {
         console.error("Error fetching routes:", error);
-        showAlert("Failed to fetch routes.", "error");
+        alert.error({
+          title: "Error",
+          description: "Error fetching routes",
+        })
       } finally {
         setLoading(false);
       }
@@ -45,13 +48,16 @@ const RouteList = () => {
         setStations(stationsData.codeNameMap);
       } catch (error) {
         console.error("Error loading stations:", error);
-        showAlert("Failed to load stations.", "error");
+        alert.error({
+          title: "Error",
+          description: "Error fetching stations",
+        });
       }
     };
 
     loadStations().then();
     fetchRoutes().then();
-  }, [showAlert]);
+  }, []);
 
   if (loading) {
     return <div className="container mx-auto p-4">Loading routes...</div>;

@@ -16,17 +16,11 @@ import RouteForm from "@/components/transport/RouteForm";
 const CreateRoute = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { showAlert } = useAlert();
+  const alert = useAlert();
 
   const handleSubmit = async (data) => {
     setIsLoading(true);
     try {
-      const payload = {
-        name: data.name,
-        startLocation: data.startStation.value,
-        endLocation: data.endStation.value,
-      };
-
       await fetcher("/transport/routes", {
         method: "POST",
         body: JSON.stringify({
@@ -38,12 +32,14 @@ const CreateRoute = () => {
           "Content-Type": "application/json",
         }
       });
-      
-      showAlert("Route created successfully!", "success");
+      alert.success("Route created successfully.");
       navigate("/transport/routes");
     } catch (error) {
       console.error("Error creating route:", error);
-      showAlert("Failed to create route.", "error");
+      alert.error({
+        title: "Error",
+        content: error.message,
+      });
     } finally {
       setIsLoading(false);
     }
