@@ -20,6 +20,7 @@ import { MedicalCreateForm } from '@/routes/medical/medicalCreateForm.jsx';
 import {MedicationRemindersList} from '@/routes/medical/MedicationRemindersList.jsx';
 import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
+import {CreateEventPage} from "@/routes/community/CreateEvent.jsx";
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 import {Transport} from "@/routes/transport/Transport.jsx";
 import { MedicationEditForm }  from '@/routes/medical/medicalEditForm.jsx';
@@ -55,6 +56,7 @@ createRoot(document.getElementById('root')).render(
                       <AdminDashboard />
                     </AdminProtectedRoute>
                   } />
+                  <Route path="/community/create" element={<CreateEventPage />} />
                   <Route path="/transport" element={<Transport />} />
                 </Routes>
 
