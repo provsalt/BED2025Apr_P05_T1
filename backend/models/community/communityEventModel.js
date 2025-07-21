@@ -70,3 +70,31 @@ export async function addCommunityEventImage(community_event_id, image_url) {
     };
 };
 
+// GET: Get upcoming events for a user
+export async function getUpcomingEventsByUser(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const today = new Date().toISOString().split('T')[0];
+        const result = await connection.request()
+            .input('userId', sql.Int, userId)
+            .input('today', sql.Date, today)
+            .input('limit', sql.Int, 3)
+            .query(`
+                SELECT TOP (@limit) e.*, img.image_url
+                FROM CommunityEvent e
+                LEFT JOIN CommunityEventImage img ON img.community_event_id = e.id
+                WHERE e.user_id = @userId AND e.date >= @today
+                ORDER BY e.date ASC, e.time ASC;
+            `);
+        return result.recordset;
+    } catch (error) {
+        console.error('Error fetching upcoming events:', error);
+        return [];
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+

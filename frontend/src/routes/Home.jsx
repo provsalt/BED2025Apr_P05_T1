@@ -11,7 +11,7 @@ export const Home = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      fetcher("/api/user/summary")
+      fetcher("/home/user/summary")
         .then((data) => setSummary(data))
         .catch((err) => console.error("Failed to load summary", err));
     }
