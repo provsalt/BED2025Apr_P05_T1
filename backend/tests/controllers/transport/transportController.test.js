@@ -22,32 +22,6 @@ describe("Transport Controller", () => {
     expect(mockRes.json).toHaveBeenCalledWith({ codeNameMap: mockCodeNameMap });
   });
 
-  it("should return 400 if start or end stations are missing", () => {
-    const mockReq = { query: {} };
-    const mockRes = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn()
-    };
-
-    getShortestPath(mockReq, mockRes);
-
-    expect(mockRes.status).toHaveBeenCalledWith(400);
-    expect(mockRes.json).toHaveBeenCalledWith({ error: "Both start and end stations are required." });
-  });
-
-  it("should return 400 if start and end stations are the same", () => {
-    const mockReq = { query: { start: testStationCode1, end: testStationCode1 } };
-    const mockRes = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn()
-    };
-
-    getShortestPath(mockReq, mockRes);
-
-    expect(mockRes.status).toHaveBeenCalledWith(400);
-    expect(mockRes.json).toHaveBeenCalledWith({ error: "Both start and end stations are the same." });
-  });
-
   it("should return 404 if no path is found", () => {
     vi.spyOn(transportModel, "findShortestPath").mockReturnValue({ path: [], distance: Infinity });
 

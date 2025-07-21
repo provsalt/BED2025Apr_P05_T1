@@ -37,6 +37,8 @@ export const getStationCodeNameMap = (req, res) => {
  *     summary: Find the shortest path between two stations.
  *     tags:
  *       - Transport
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: start
@@ -96,14 +98,6 @@ export const getStationCodeNameMap = (req, res) => {
  */
 export const getShortestPath = (req, res) => {
     const { start, end } = req.query;
-
-    if (!start || !end) {
-        return res.status(400).json({ error: "Both start and end stations are required." });
-    }
-
-    if (start === end) {
-      return res.status(400).json({ error: "Both start and end stations are the same." });
-    }
 
     const pathInfo = transportModel.findShortestPath(start, end);
 
