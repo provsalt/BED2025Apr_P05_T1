@@ -1,9 +1,10 @@
-SELECT name
-FROM sys.key_constraints
-WHERE parent_object_id = OBJECT_ID('MedicationQuestion') AND type = 'PK';
+DECLARE @pk NVARCHAR(128) = (SELECT name FROM sys.key_constraints WHERE parent_object_id = OBJECT_ID('MedicationQuestion') AND type = 'PK')
 
-ALTER TABLE MedicationQuestion
-DROP CONSTRAINT PK__Medicati__B9BE370F71ECE7A9;
+IF @pk IS NOT NULL
+    EXEC('ALTER TABLE MedicationQuestion DROP CONSTRAINT ' + @pk)
 
-ALTER TABLE MedicationQuestion
-ADD id INT IDENTITY(1,1) PRIMARY KEY;
+ALTER TABLE MedicationQuestion ADD id INT IDENTITY(1,1) PRIMARY KEY
+
+
+
+
