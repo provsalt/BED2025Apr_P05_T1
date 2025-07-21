@@ -24,6 +24,7 @@ import {CreateEventPage} from "@/routes/community/CreateEvent.jsx";
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 import {Transport} from "@/routes/transport/Transport.jsx";
 import { MedicationEditForm }  from '@/routes/medical/medicalEditForm.jsx';
+import { MedicationQuestionnaire } from '@/routes/medical/MedicationQuestionnaire.jsx';
 
 
 createRoot(document.getElementById('root')).render(
@@ -51,6 +52,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/medical/create" element={<MedicalCreateForm />} />
                   <Route path="/medical/reminders" element={<MedicationRemindersList />} />
                   <Route path="/medical/edit/:id" element={<MedicationEditForm />} />
+                  <Route path="/medical/questionnaire" element={<MedicationQuestionnaire />} />
                   <Route path="/admin" element={
                     <AdminProtectedRoute>
                       <AdminDashboard />

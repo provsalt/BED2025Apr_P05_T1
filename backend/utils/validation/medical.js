@@ -9,4 +9,13 @@ export const medicationSchema = z.object({
     (val) => typeof val === 'string' ? parseInt(val, 10) : val,
     z.number().int().min(1, 'Frequency must be at least 1')
   ),
+});
+
+export const medicationQuestionnaireSchema = z.object({
+  difficulty_walking: z.enum(['Yes', 'No'], { required_error: 'Difficulty walking is required' }),
+  assistive_device: z.string().min(1, 'Assistive device is required'),
+  symptoms_or_pain: z.string().min(1, 'Symptoms or pain is required'),
+  allergies: z.string().min(1, 'Allergies is required'),
+  medical_conditions: z.string().min(1, 'Medical conditions is required'),
+  exercise_frequency: z.string().min(1, 'Exercise frequency is required'),
 }); 

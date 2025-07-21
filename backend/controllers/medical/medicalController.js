@@ -1,5 +1,5 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createMedicationReminder, getMedicationRemindersByUser, updateMedicationReminder, deleteMedicationReminder } from "../../models/medical/medicalModel.js";
+import { createMedicationReminder, getMedicationRemindersByUser, updateMedicationReminder, deleteMedicationReminder, createMedicationQuestion } from "../../models/medical/medicalModel.js";
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -77,7 +77,7 @@ export const createMedication = async (req, res) => {
         const result = await createMedicationReminder(medicationData);
 
         if (result.success) {
-            res.status(201).json(result);
+            res.status(200).json(result);
         } else {
             // If database fails, cleanup uploaded image
             await deleteFile(imageKey);
@@ -226,7 +226,71 @@ export const updateMedication = async (req, res) => {
     }
 };
 
-
+/**
+ * @openapi
+ * /api/medications/{id}:
+ *   delete:
+ *     tags:
+ *       - Medical
+ *     summary: Delete a medication reminder
+ *     description: Deletes a medication reminder by ID for the authenticated user.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the medication reminder to delete
+ *     responses:
+ *       200:
+ *         description: Medication reminder deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: User ID or reminder ID is missing or invalid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: Medication reminder not found or not authorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 error:
+ *                   type: string
+ */
 export const deleteMedication = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -251,4 +315,95 @@ export const deleteMedication = async (req, res) => {
             error: error.message
         });
     }
+};
+
+/**
+ * @openapi
+ * /api/medications/questionnaire:
+ *   post:
+ *     tags:
+ *       - Medical
+ *     summary: Submit medication questionnaire
+ *     description: Submits a medication questionnaire for the authenticated user. 
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               difficulty_walking:
+ *                 type: string
+ *                 description: Difficulty walking
+ *               assistive_device:
+ *                 type: string
+ *                 description: Assistive device used
+ *               symptoms_or_pain:
+ *                 type: string
+ *                 description: Symptoms or pain
+ *               allergies:
+ *                 type: string
+ *                 description: Allergies
+ *               medical_conditions:
+ *                 type: string
+ *                 description: Medical conditions
+ *               exercise_frequency:
+ *                 type: string
+ *                 description: Exercise frequency
+ *     responses:
+ *       200:
+ *         description: Questionnaire submitted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Missing required fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 error:
+ *                   type: string
+ */
+export const submitMedicationQuestionnaire = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    if (!userId) {
+        return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+    const data = req.validatedBody;
+    const result = await createMedicationQuestion(userId, data);
+    if (result.success) {
+      res.status(200).json({ success: true, message: "Questionnaire submitted" });
+    } else {
+      res.status(500).json({ success: false, message: result.message, error: result.error });
+    }
+  } catch (err) {
+    console.error('Error in submitMedicationQuestionnaire controller:', err);
+    res.status(500).json({ success: false, message: "Server error", error: err.message });
+  }
 };
