@@ -95,6 +95,10 @@ export const Login = () => {
 
             <Button type="submit" className="w-full cursor-pointer">Log in</Button>
 
+            <Button type="button" className="w-full cursor-pointer" onClick={() => window.location.href = 'http://localhost:3001/auth/google'}>
+              Log in with Google
+            </Button>
+
           </form>
 
         </CardContent>
