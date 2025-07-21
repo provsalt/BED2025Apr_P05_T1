@@ -59,4 +59,4 @@ async function runMigrations() {
   }
 }
 
-runMigrations();
+runMigrations().then(() => {sql.close()});
