@@ -22,7 +22,6 @@ import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
 import {CreateEventPage} from "@/routes/community/CreateEvent.jsx";
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
-import {Transport} from "@/routes/transport/Transport.jsx";
 import { MedicationEditForm }  from '@/routes/medical/medicalEditForm.jsx';
 import { MedicationQuestionnaire } from '@/routes/medical/MedicationQuestionnaire.jsx';
 import {TransportHomePage} from "@/routes/transport/TransportHomePage.jsx";
