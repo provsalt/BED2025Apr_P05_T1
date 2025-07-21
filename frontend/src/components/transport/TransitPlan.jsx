@@ -1,26 +1,70 @@
-import React from 'react';
-import {Button} from "@/components/ui/button.jsx";
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button.jsx";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog.jsx";
+import { Input } from "@/components/ui/input.jsx";
+import { fetcher } from "@/lib/fetcher.js";
+import {useAlert} from "@/provider/AlertProvider.jsx";
 
 const TransitPlan = ({ path, stations }) => {
+  const [routeName, setRouteName] = useState("");
+  const alert = useAlert();
+
+  const handleSaveRoute = async () => {
+    try {
+      await fetcher("/transport/routes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: routeName,
+          start_station: path[0],
+          end_station: path[path.length - 1],
+        }),
+      });
+      alert.success({
+        title: "Route Saved",
+        description: `The route "${routeName}" has been saved successfully.`,
+      });
+    } catch (error) {
+      alert.error({
+        title: "Error",
+        description: "Failed to save the route.",
+      });
+    }
+  };
+
   if (!path || path.length === 0 || !stations) {
     return null;
   }
 
-  // TODO: refactor this
   const getLineFromStationCode = (code) => {
-    if (code.startsWith("NS")) return "North-South Line";
-    if (code.startsWith("EW")) return "East-West Line";
-    if (code.startsWith("NE")) return "North-East Line";
-    if (code.startsWith("CC")) return "Circle Line";
-    if (code.startsWith("DT")) return "Downtown Line";
-    if (code.startsWith("TE")) return "Thomson-East Coast Line";
-    if (code.startsWith("BP")) return "Bukit Panjang LRT";
-    if (code.startsWith("SE")) return "Sengkang LRT (East)";
-    if (code.startsWith("SW")) return "Sengkang LRT (West)";
-    if (code.startsWith("PE")) return "Punggol LRT (East)";
-    if (code.startsWith("PW")) return "Punggol LRT (West)";
-    if (code.startsWith("CG")) return "Changi Airport Branch Line";
-    if (code.startsWith("CE")) return "Circle Line Extension";
+    const lineCodes = {
+      NS: "North-South Line",
+      EW: "East-West Line",
+      NE: "North-East Line",
+      CC: "Circle Line",
+      DT: "Downtown Line",
+      TE: "Thomson-East Coast Line",
+      BP: "Bukit Panjang LRT",
+      SE: "Sengkang LRT (East)",
+      SW: "Sengkang LRT (West)",
+      PE: "Punggol LRT (East)",
+      PW: "Punggol LRT (West)",
+      CG: "Changi Airport Branch Line",
+      CE: "Circle Line Extension",
+    };
+
+    for (const prefix in lineCodes) {
+      if (code.startsWith(prefix)) {
+        return lineCodes[prefix];
+      }
+    }
     return "Unknown Line";
   };
 
@@ -83,7 +127,32 @@ const TransitPlan = ({ path, stations }) => {
   return (
     <div className="flex flex-col gap-4 p-4 border rounded-md mt-4">
       <h3 className="text-lg font-semibold mb-2">Transit Plan</h3>
-      <Button className="w-full">Save this route</Button>
+      <AlertDialog>
+        <Button asChild>
+          <AlertDialogTrigger className="w-full">
+            Save this route
+          </AlertDialogTrigger>
+        </Button>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save route</AlertDialogTitle>
+            <AlertDialogDescription>
+              <p>Please enter a name for this route</p>
+              <Input
+                type="text"
+                value={routeName}
+                onChange={(e) => setRouteName(e.target.value)}
+                placeholder="Route name"
+                className="mt-2"
+              />
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSaveRoute}>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <ol className="list-decimal list-inside">
         {plan.map((step, index) => (
           <li key={index} className="mb-1">

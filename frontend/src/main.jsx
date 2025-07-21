@@ -25,7 +25,11 @@ import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 import {Transport} from "@/routes/transport/Transport.jsx";
 import { MedicationEditForm }  from '@/routes/medical/medicalEditForm.jsx';
 import { MedicationQuestionnaire } from '@/routes/medical/MedicationQuestionnaire.jsx';
-
+import {TransportHomePage} from "@/routes/transport/TransportHomePage.jsx";
+import {TransportMap} from "@/routes/transport/TransportMap.jsx";
+import {RouteList} from "@/routes/transport/RouteList.jsx";
+import {CreateRoute} from "@/routes/transport/CreateRoute.jsx";
+import {EditRoute} from "@/routes/transport/EditRoute.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -59,9 +63,14 @@ createRoot(document.getElementById('root')).render(
                     </AdminProtectedRoute>
                   } />
                   <Route path="/community/create" element={<CreateEventPage />} />
-                  <Route path="/transport" element={<Transport />} />
+                  <Route path="/transport">
+                    <Route index element={<TransportHomePage/>} />
+                    <Route path="map" element={<TransportMap />} />
+                    <Route path="routes" element={<RouteList />} />
+                    <Route path="routes/create" element={<CreateRoute />} />
+                    <Route path="routes/edit/:id" element={<EditRoute />} />
+                  </Route>
                 </Routes>
-
               </div>
             </div>
           </BrowserRouter>
