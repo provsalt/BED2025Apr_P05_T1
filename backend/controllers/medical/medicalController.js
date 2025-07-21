@@ -1,6 +1,6 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
 import { createMedicationReminder, getMedicationRemindersByUser, updateMedicationReminder, deleteMedicationReminder, createMedicationQuestion } from "../../models/medical/medicalModel.js";
-
+import { MAX_REMINDERS_PER_USER } from "../../utils/validation/medical.js";
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -10,7 +10,10 @@ import { v4 as uuidv4 } from 'uuid';
  *     tags:
  *       - Medical
  *     summary: Create a new medication reminder
- *     description: Creates a new medication reminder for a user, including an image of the medication.
+ *     description: 
+ *       Creates a new medication reminder for a user, including an image of the medication.
+ *       - You may have up to 3 medication reminders per user.
+ *       - Each reminder can have a frequency per day of up to 3. (every 4 hours)
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -31,6 +34,9 @@ import { v4 as uuidv4 } from 'uuid';
  *                 format: time
  *               frequency_per_day:
  *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 3
+ *                 description: Maximum frequency of 3 per reminder (every 4 hours)
  *               image:
  *                 type: string
  *                 format: binary
@@ -38,7 +44,10 @@ import { v4 as uuidv4 } from 'uuid';
  *       201:
  *         description: Medication reminder created successfully
  *       400:
- *         description: All fields including image are required
+ *         description: 
+ *           - All fields including image are required
+ *           - You can only have up to 3 medication reminders
+ *           - Frequency per day cannot exceed 3
  *       500:
  *         description: Internal server error
  */
@@ -49,9 +58,15 @@ export const createMedication = async (req, res) => {
         if (!userId) {
             return res.status(400).json({ success: false, message: 'User ID is required' });
         }
+        //checks max reminders per user
+        const remindersResult = await getMedicationRemindersByUser(userId);
+        if (remindersResult.success && remindersResult.reminders.length >= MAX_REMINDERS_PER_USER) {
+            return res.status(400).json({ success: false, message: `You can only have up to ${MAX_REMINDERS_PER_USER} medication reminders.` });
+        }
+        
         const imageFile = req.file;
-        // Using validated body from middleware
-        const { medicine_name, reason, dosage, medicine_time, frequency_per_day } = req.validatedBody;
+        
+        const { medicine_name, reason, dosage, medicine_time, frequency_per_day } = req.body;
 
         // Generate unique key for S3
         const imageKey = `medications/${userId}/${uuidv4()}`;
@@ -140,7 +155,9 @@ export const getMedicationReminders = async (req, res) => {
  *     tags:
  *       - Medical
  *     summary: Update a medication reminder
- *     description: Updates an existing medication reminder for an authenticated user.
+ *     description: 
+ *       Updates an existing medication reminder for an authenticated user.
+ *       - Each reminder can have a frequency per day of up to 3 (every 4 hours).
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -167,6 +184,9 @@ export const getMedicationReminders = async (req, res) => {
  *                 format: time
  *               frequency_per_day:
  *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 3
+ *                 description: Maximum frequency of 3 per reminder (every 4 hours)
  *               image:
  *                 type: string
  *                 format: binary
@@ -174,7 +194,9 @@ export const getMedicationReminders = async (req, res) => {
  *       200:
  *         description: Medication reminder updated successfully
  *       400:
- *         description: Bad request
+ *         description: 
+ *           - Bad request
+ *           - Frequency per day cannot exceed 3
  *       404:
  *         description: Reminder not found
  *       500:
@@ -200,8 +222,8 @@ export const updateMedication = async (req, res) => {
             await uploadFile(req.file, imageKey);
             imageUrl = `/api/s3?key=${imageKey}`;
         }
-        // Using validated body from middleware
-        const { medicine_name, reason, dosage, medicine_time, frequency_per_day } = req.validatedBody;
+        
+        const { medicine_name, reason, dosage, medicine_time, frequency_per_day } = req.body;
         const updateData = {
             medicationName: medicine_name,
             reason,
@@ -395,7 +417,7 @@ export const submitMedicationQuestionnaire = async (req, res) => {
     if (!userId) {
         return res.status(400).json({ success: false, message: "User ID is required" });
     }
-    const data = req.validatedBody;
+    const data = req.body;
     const result = await createMedicationQuestion(userId, data);
     if (result.success) {
       res.status(200).json({ success: true, message: "Questionnaire submitted" });

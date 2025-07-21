@@ -22,7 +22,7 @@ describe('createEvent', () => {
     req = {
       user: { id: 1 },
       file: { mimetype: 'image/jpeg', buffer: Buffer.from('test') },
-      validatedBody: {
+      body: {
         name: 'Test Event',
         location: 'Test Location',
         category: 'sports',
@@ -45,7 +45,7 @@ describe('createEvent', () => {
   });
 
   it('should return 400 if time is missing', async () => {
-    req.validatedBody.time = undefined;
+    req.body.time = undefined;
     await createEvent(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
