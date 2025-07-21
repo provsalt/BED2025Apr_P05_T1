@@ -249,6 +249,13 @@ export const getDashboardSummary = async (req, res) => {
     });
   } catch (err) {
     console.error("Dashboard summary error:", err);
-    res.status(500).json({ error: "Failed to fetch dashboard summary" });
+    res.status(500).json({
+      meals: [],
+      events: [],
+      medications: [],
+      nutrition: { calories: 0, protein: 0, carbs: 0 },
+      transport: [],
+      error: "Failed to fetch dashboard summary"
+    });
   }
 }; 

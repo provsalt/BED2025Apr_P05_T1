@@ -87,7 +87,15 @@ export const Dashboard = ({ summary }) => {
                 {summary.medications.map((med, i) => (
                   <Link to="/medical/reminders" key={med.id || i} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50 transition cursor-pointer">
                     {med.image_url && (
-                      <img src={med.image_url} alt={med.medicine_name} className="w-16 h-16 object-cover rounded-lg border" />
+                      <img
+                        src={
+                          med.image_url.startsWith("/api/")
+                            ? (import.meta.env.VITE_BACKEND_URL || "http://localhost:3001") + med.image_url
+                            : med.image_url
+                        }
+                        alt={med.medicine_name}
+                        className="w-16 h-16 object-cover rounded-lg border"
+                      />
                     )}
                     <div className="flex-1">
                       <div className="font-semibold text-lg">{med.medicine_name}</div>
