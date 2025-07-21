@@ -76,8 +76,8 @@ export const createEvent = async (req, res) => {
             return res.status(400).json({ success: false, message: 'User ID is required', errors: ['User ID is required'] });
         }
 
-        // Use validated body from middleware
-        let { time, ...rest } = req.validatedBody;
+        
+        let { time, ...rest } = req.body;
         // Robustly ensure time is in HH:mm:ss format
         if (time) {
             if (/^\d{2}:\d{2}$/.test(time)) {

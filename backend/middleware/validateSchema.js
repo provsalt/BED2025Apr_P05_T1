@@ -11,8 +11,7 @@ export function validateSchema(schema) {
         message,
       });
     }
-    // Deprecated: DO NOT USE req.validatedBody.
-    req.validatedBody = result.data;
+    
     next();
   };
 }
