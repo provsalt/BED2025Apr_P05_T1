@@ -229,10 +229,6 @@ export const loginUserController = async (req, res) => {
   if (!user) {
     return res.status(401).json({error: "Invalid email or password"});
   }
-  // Prevent password login for Google users that uses passkey or with no password
-  if (!user.password) {
-    return res.status(401).json({ error: "Please log in with Google." });
-  }
   const isPasswordValid = await bcrypt.compare(validate.data.password, user.password);
 
   if (!isPasswordValid) {

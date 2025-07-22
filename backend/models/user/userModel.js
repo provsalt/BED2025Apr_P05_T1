@@ -62,28 +62,6 @@ export const createUser = async (userData) => {
 }
 
 /**
- * Creates a new user in the database for OAuth (no password).
- * @param userData {object}
- * @returns {Promise<*>}
- */
-export const createOAuthUser = async (userData) => {
-    const db = await sql.connect(dbConfig);
-    const query = `
-        INSERT INTO Users (name, email, password, date_of_birth, gender, profile_picture_url)
-        VALUES (@name, @email, '', @dob, @gender, @profile_picture_url);
-        SELECT SCOPE_IDENTITY() AS id;
-    `;
-    const request = db.request();
-    request.input("name", userData.name);
-    request.input("email", userData.email);
-    request.input("dob", userData.date_of_birth ? new Date(userData.date_of_birth) : new Date());
-    request.input("gender", userData.gender || null);
-    request.input("profile_picture_url", userData.profile_picture_url || null);
-    const res = await request.query(query);
-    return res.recordset[0];
-}
-
-/**
  * Updates an existing user in the database.
  * @param id {number}
  * @param userData {{
