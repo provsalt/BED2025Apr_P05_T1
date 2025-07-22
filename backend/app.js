@@ -8,9 +8,10 @@ import cors from "cors";
 import { defaultRateLimit } from "./middleware/rateLimit.js";
 import {initSwagger} from "./swagger/swagger.js";
 import { checkAndSendReminders } from './controllers/medical/reminderController.js';
-import session from "express-session";
+import passport from "passport";
 import dotenv from "dotenv";
-
+import "./config/passport.js";
+import { AuthController } from "./controllers/authController.js";
 dotenv.config();
 
 const app = express();
@@ -36,11 +37,11 @@ app.use(express.json())
 // Apply rate limiting globally
 app.use(defaultRateLimit)
 
-// Remove Google OAuth and passport initialization
-// import passport from "passport";
-// import "./config/passport.js";
+// Google OAuth 
+app.use(passport.initialize()); //initialize Passport so it can handle the authentication flow and attach user info to requests.
 
 app.use("/api", ApiController())
+app.use("/auth", AuthController());
 
 initSwagger(app);
 
