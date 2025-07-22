@@ -38,15 +38,8 @@ app.use(express.json())
 // Apply rate limiting globally
 app.use(defaultRateLimit)
 
-// --- Google OAuth session and passport setup ---
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'your_secret',
-    resave: false,
-    saveUninitialized: true
-}));
+// Google OAuth 
 app.use(passport.initialize());
-app.use(passport.session());
-// --- End Google OAuth session and passport setup ---
 
 app.use("/api", ApiController())
 app.use("/auth", AuthController());

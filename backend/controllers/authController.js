@@ -33,11 +33,11 @@ import { SignJWT } from "jose";
 export const AuthController = () => {
   const router = express.Router();
 
-  router.get("/google", passport.authenticate("google", { scope: ["profile", "email"], prompt: "select_account" }));
+  router.get("/google", passport.authenticate("google", { scope: ["profile", "email"], prompt: "select_account", session: false }));
 
   router.get(
     "/google/callback",
-    passport.authenticate("google", { failureRedirect: "/auth/google/failure" }),
+    passport.authenticate("google", { failureRedirect: "/auth/google/failure", session: false }),
     async (req, res) => {
       const user = req.user;
       const secret = new TextEncoder().encode(process.env.SECRET || "");
