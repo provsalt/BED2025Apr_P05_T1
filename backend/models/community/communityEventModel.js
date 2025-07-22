@@ -70,3 +70,35 @@ export async function addCommunityEventImage(community_event_id, image_url) {
     };
 };
 
+// GET: Get all approved community events
+export async function getAllApprovedEvents() {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
+            .query(`
+                SELECT CommunityEvent.*, Users.name as created_by_name 
+                FROM CommunityEvent 
+                JOIN Users ON CommunityEvent.user_id = Users.id
+                WHERE CommunityEvent.approved_by_admin_id IS NOT NULL
+                ORDER BY CommunityEvent.date ASC, CommunityEvent.time ASC
+            `);
+        
+        return {
+            success: true,
+            events: result.recordset
+        };
+    } catch (error) {
+        console.error('Error getting approved events:', error);
+        return {
+            success: false,
+            message: 'Failed to get approved events',
+            error: error.message
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
