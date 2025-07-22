@@ -57,6 +57,7 @@ import { v4 as uuidv4 } from 'uuid';
  *                   type: string
  *                 eventId:
  *                   type: integer
+ *                   description: ID of the created event
  *                 imageUrl:
  *                   type: string
  *                   description: URL to access the uploaded image (e.g. /api/s3?key=community-events/{userId}/{uuid})
@@ -148,14 +149,31 @@ export const createEvent = async (req, res) => {
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 events:
- *                   type: array
- *                   items:
- *                     type: object
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   name:
+ *                     type: string
+ *                   location:
+ *                     type: string
+ *                   category:
+ *                     type: string
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   time:
+ *                     type: string
+ *                     description: ISO string (e.g., 1970-01-01T18:00:00.000Z)
+ *                   description:
+ *                     type: string
+ *                   image_url:
+ *                     type: string
+ *                     description: URL to the event image (may be relative or absolute)
+ *                   created_by_name:
+ *                     type: string
  *       500:
  *         description: Internal server error
  */
