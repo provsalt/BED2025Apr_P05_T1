@@ -77,8 +77,9 @@ export async function getAllApprovedEvents() {
         connection = await sql.connect(dbConfig);
         const result = await connection.request()
             .query(`
-                SELECT CommunityEvent.*, Users.name as created_by_name 
-                FROM CommunityEvent 
+                SELECT CommunityEvent.*, Users.name as created_by_name,
+                  (SELECT TOP 1 image_url FROM CommunityEventImage WHERE community_event_id = CommunityEvent.id ORDER BY uploaded_at DESC) as image_url
+                FROM CommunityEvent
                 JOIN Users ON CommunityEvent.user_id = Users.id
                 WHERE CommunityEvent.approved_by_admin_id IS NOT NULL
                 ORDER BY CommunityEvent.date ASC, CommunityEvent.time ASC

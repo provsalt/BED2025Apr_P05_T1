@@ -1,5 +1,5 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -132,4 +132,42 @@ export const createEvent = async (req, res) => {
             error: error.message
         });
     }
+}; 
+
+/**
+ * @openapi
+ * /api/community:
+ *   get:
+ *     tags:
+ *       - Community
+ *     summary: Get all approved community events
+ *     description: Returns all community events that have been approved by an admin.
+ *     responses:
+ *       200:
+ *         description: List of approved community events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Internal server error
+ */
+export const getApprovedEvents = async (req, res) => {
+  try {
+    const result = await getAllApprovedEvents();
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      res.status(500).json(result);
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
 }; 
