@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router';
 import { fetcher } from '@/lib/fetcher';
+import { MapPin, Tag, Clock } from 'lucide-react';
 
 export function CommunityEvents() {
   const [events, setEvents] = useState([]);
@@ -77,15 +78,16 @@ export function CommunityEvents() {
           }
           // Date/time formatting logic
           let dateTimeStr = '';
+          let timeStr = '';
           if (event.date) {
             dateTimeStr = new Date(event.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
           }
           if (event.time) {
             // Parse ISO string and extract HH:MM
-            const d = new Date(event.time);
-            const hours = d.getUTCHours().toString().padStart(2, '0');
-            const minutes = d.getUTCMinutes().toString().padStart(2, '0');
-            dateTimeStr += ' • ' + hours + ':' + minutes;
+            const match = event.time.match(/T(\d{2}:\d{2}:\d{2})/);
+            if (match) {
+              timeStr = match[1].slice(0, 5);
+            }
           }
 
           return (
@@ -99,14 +101,23 @@ export function CommunityEvents() {
                 />
               )}
               <CardContent className="pb-6">
-                <div className="font-semibold text-base mb-1 truncate" title={event.name}>{event.name}</div>
-                <div className="text-gray-600 text-sm mb-1">{dateTimeStr}</div>
-                <div className="text-gray-500 text-xs mb-1">
-                  {event.location || ''}{event.category ? ` • ${event.category}` : ''}
+                <div className="font-semibold text-base mb-1 truncate capitalize" title={event.name}>{event.name}</div>
+                <div className="flex items-center text-gray-600 text-sm mb-1 gap-2">
+                  <Clock className="size-4 text-gray-400" />
+                  <span>{dateTimeStr}{timeStr ? ` • ${timeStr}` : ''}</span>
                 </div>
-                <div className="text-gray-500 text-xs mb-1 truncate" title={event.description}>{event.description}</div>
+                <div className="flex items-center text-gray-500 text-xs mb-1 gap-2">
+                  <MapPin className="size-4 text-gray-400" />
+                  <span className="capitalize">{event.location || ''}</span>
+                </div>
+                {event.category && (
+                  <div className="flex items-center text-gray-500 text-xs mb-1 gap-2">
+                    <Tag className="size-4 text-gray-400" />
+                    <span className="capitalize">{event.category}</span>
+                  </div>
+                )}
                 {event.created_by_name && (
-                  <div className="text-gray-400 text-xs mt-2 mb-4">By {event.created_by_name}</div>
+                  <div className="text-gray-400 text-xs mt-2 mb-4 capitalize">By {event.created_by_name}</div>
                 )}
               </CardContent>
             </Card>
