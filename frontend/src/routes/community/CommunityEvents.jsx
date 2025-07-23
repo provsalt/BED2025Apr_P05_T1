@@ -33,17 +33,40 @@ export function CommunityEvents() {
     fetchEvents();
   }, []); 
 
+  //filter out past events
+  const getUpcomingEvents = (events) => {
+    const now = new Date();
+    return events.filter(event => {
+      if (!event.date) return false;
+      // Extract date (YYYY-MM-DD) from event.date
+      const datePart = event.date.split('T')[0];
+      let timePart = '23:59:59';
+      if (event.time) {
+        // Extract time part (HH:mm:ss) from event.time ISO string
+        const match = event.time.match(/T(\d{2}:\d{2}:\d{2})/);
+        if (match) {
+          timePart = match[1];
+        }
+      }
+      // Combine date and time
+      const eventDateTimeStr = `${datePart}T${timePart}`;
+      const eventDateTime = new Date(eventDateTimeStr);
+      return eventDateTime >= now;
+    });
+  };
+
   let content = null;
+  const upcomingEvents = getUpcomingEvents(events);
   if (loading) {
     content = <div className="text-center py-8 text-gray-500">Loading events...</div>;
   } else if (error) {
     content = <div className="text-center py-8 text-red-500">{error}</div>;
-  } else if (events.length === 0) {
+  } else if (upcomingEvents.length === 0) {
     content = <div className="text-center py-8 text-gray-500">No community events available.</div>;
   } else {
     content = (
       <div className="flex flex-wrap gap-6">
-        {events.map(event => {
+        {upcomingEvents.map(event => {
           let imageSrc = '';
           if (event.image_url) {
             if (event.image_url.startsWith('http')) {
