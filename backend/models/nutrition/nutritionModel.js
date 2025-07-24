@@ -149,7 +149,7 @@ export const updateMeal = async(id, mealData) => {
   }
 }
 
-// Search meals for a user by name, category, or ingredients
+// Search meals for a user by name
 export const searchMeals = async (userId, searchTerm) => {
   let connection;
   try {
@@ -157,18 +157,15 @@ export const searchMeals = async (userId, searchTerm) => {
     const query = `
       SELECT * FROM Meal 
       WHERE user_id = @userId 
-      AND (
-        name LIKE @searchTerm 
-        OR category LIKE @searchTerm 
-        OR ingredients LIKE @searchTerm
-      )
+      AND name LIKE @searchTerm
       ORDER BY scanned_at DESC
     `;
     const request = connection.request();
     request.input("userId", userId);
-    request.input("searchTerm", `%${searchTerm}%`); // Use LIKE with wildcards for partial matching
+    request.input("searchTerm", `%${searchTerm}%`); 
+    // wildcards search to match any part of the name searched, 
+    // e.g. hainanese chicken rice will be fetched if chicken is searched
     const result = await request.query(query);
-
     return result.recordset;
   } catch (error) {
     console.error("Database error:", error);
