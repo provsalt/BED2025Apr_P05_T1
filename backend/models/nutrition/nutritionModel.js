@@ -148,3 +148,38 @@ export const updateMeal = async(id, mealData) => {
     }
   }
 }
+
+// Search meals for a user by name, category, or ingredients
+export const searchMeals = async (userId, searchTerm) => {
+  let connection;
+  try {
+    connection = await mssql.connect(dbConfig);
+    const query = `
+      SELECT * FROM Meal 
+      WHERE user_id = @userId 
+      AND (
+        name LIKE @searchTerm 
+        OR category LIKE @searchTerm 
+        OR ingredients LIKE @searchTerm
+      )
+      ORDER BY scanned_at DESC
+    `;
+    const request = connection.request();
+    request.input("userId", userId);
+    request.input("searchTerm", `%${searchTerm}%`); // Use LIKE with wildcards for partial matching
+    const result = await request.query(query);
+
+    return result.recordset;
+  } catch (error) {
+    console.error("Database error:", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
