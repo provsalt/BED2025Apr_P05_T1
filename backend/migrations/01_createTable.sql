@@ -97,7 +97,8 @@ ALTER COLUMN medicine_time TIME NOT NULL;
 
 
 CREATE TABLE MedicationQuestion (
-    user_id INT PRIMARY KEY,
+    id INT PRIMARY KEY IDENTITY(1,1),
+    user_id INT NOT NULL,
     difficulty_walking VARCHAR(255) NOT NULL,
     assistive_device VARCHAR(255) NOT NULL,
     symptoms_or_pain VARCHAR(500) NOT NULL,

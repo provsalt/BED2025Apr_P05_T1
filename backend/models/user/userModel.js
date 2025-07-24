@@ -150,8 +150,10 @@ export const getLoginHistoryByUserId = async (userId, limit = 10) => {
 
 export const insertLoginHistory = async (userId) => {
   const db = await sql.connect(dbConfig);
+  const utcNow = new Date().toISOString();
   await db.request()
     .input("userId", sql.Int, userId)
+    .input("loginTime", utcNow)
     .query("INSERT INTO UserLoginHistory (user_id) VALUES (@userId)");
 };
 
@@ -190,3 +192,38 @@ export const getAllUsers = async () => {
     const result = await request.query(query);
     return result.recordset;
 }
+
+export const requestUserDeletion = async (userId) => {
+  const db = await sql.connect(dbConfig);
+  const utcNow = new Date().toISOString(); 
+  const query = `
+    UPDATE Users 
+    SET deletionRequested = 1, deletionRequestedAt = @deletionRequestedAt 
+    WHERE id = @id`;
+  const request = db.request();
+  request.input("id", userId);
+  request.input("deletionRequestedAt", utcNow); 
+  const result = await request.query(query);
+  return result.rowsAffected[0] > 0;
+};
+
+
+export const approveUserDeletionRequest = async (userId) => {
+  return await deleteUser(userId);
+};
+
+export const cancelUserDeletionRequest = async (userId) => {
+  const db = await sql.connect(dbConfig);
+  const query = `UPDATE Users SET deletionRequested = 0, deletionRequestedAt = NULL WHERE id = @id`;
+  const request = db.request();
+  request.input("id", userId);
+  const result = await request.query(query);
+  return result.rowsAffected[0] > 0;
+};
+
+export const getUsersWithDeletionRequested = async () => {
+  const db = await sql.connect(dbConfig);
+  const query = `SELECT * FROM Users WHERE deletionRequested = 1`;
+  const result = await db.request().query(query);
+  return result.recordset;
+};

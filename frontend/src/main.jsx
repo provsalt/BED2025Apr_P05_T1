@@ -16,13 +16,19 @@ import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
 import {MealsList} from "@/routes/nutrition/mealsList.jsx";
 import {MealDetail} from "@/routes/nutrition/mealDetail.jsx";
-import {MedicationReminderForm} from '@/routes/medical/medicalCreateForm.jsx';
+import { MedicalCreateForm } from '@/routes/medical/medicalCreateForm.jsx';
 import {MedicationRemindersList} from '@/routes/medical/MedicationRemindersList.jsx';
 import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
+import {CreateEventPage} from "@/routes/community/CreateEvent.jsx";
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
-import {Transport} from "@/routes/transport/Transport.jsx";
-
+import { MedicationEditForm }  from '@/routes/medical/medicalEditForm.jsx';
+import { MedicationQuestionnaire } from '@/routes/medical/MedicationQuestionnaire.jsx';
+import {TransportHomePage} from "@/routes/transport/TransportHomePage.jsx";
+import {TransportMap} from "@/routes/transport/TransportMap.jsx";
+import {RouteList} from "@/routes/transport/RouteList.jsx";
+import {CreateRoute} from "@/routes/transport/CreateRoute.jsx";
+import {EditRoute} from "@/routes/transport/EditRoute.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -46,16 +52,24 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/nutrition/upload" element={<MealImageUpload/>} />
                   <Route path="/nutrition" element={<MealsList/>} />
                   <Route path="/nutrition/:id" element={<MealDetail/>} />
-                  <Route path="/medical/create" element={<MedicationReminderForm />} />
+                  <Route path="/medical/create" element={<MedicalCreateForm />} />
                   <Route path="/medical/reminders" element={<MedicationRemindersList />} />
+                  <Route path="/medical/edit/:id" element={<MedicationEditForm />} />
+                  <Route path="/medical/questionnaire" element={<MedicationQuestionnaire />} />
                   <Route path="/admin" element={
                     <AdminProtectedRoute>
                       <AdminDashboard />
                     </AdminProtectedRoute>
                   } />
-                  <Route path="/transport" element={<Transport />} />
+                  <Route path="/community/create" element={<CreateEventPage />} />
+                  <Route path="/transport">
+                    <Route index element={<TransportHomePage/>} />
+                    <Route path="map" element={<TransportMap />} />
+                    <Route path="routes" element={<RouteList />} />
+                    <Route path="routes/create" element={<CreateRoute />} />
+                    <Route path="routes/edit/:id" element={<EditRoute />} />
+                  </Route>
                 </Routes>
-
               </div>
             </div>
           </BrowserRouter>

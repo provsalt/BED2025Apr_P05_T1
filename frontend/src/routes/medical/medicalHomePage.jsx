@@ -47,7 +47,7 @@ export const MedicalDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/medical/questionnaire')}>
             <CardContent className="flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
                 <HelpCircle className="w-8 h-8 text-white" />

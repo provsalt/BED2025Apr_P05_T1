@@ -102,6 +102,47 @@ export async function getAllRemindersWithUsers() {
     }
 } 
 
+// UPDATE
+export async function updateMedicationReminder(reminderId, updateData) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        await connection.request()
+            .input('reminderId', sql.Int, reminderId)
+            .input('medicationName', sql.VarChar(255), updateData.medicationName)
+            .input('reason', sql.VarChar(255), updateData.reason)
+            .input('dosage', sql.VarChar(100), updateData.dosage)
+            .input('medicineTime', sql.VarChar(8), updateData.timeToTake)
+            .input('frequencyPerDay', sql.Int, updateData.frequencyPerDay)
+            .input('imageUrl', sql.VarChar(255), updateData.imageUrl)
+            .query(`
+                UPDATE Medication
+                SET medicine_name = @medicationName,
+                    reason = @reason,
+                    dosage = @dosage,
+                    medicine_time = @medicineTime,
+                    frequency_per_day = @frequencyPerDay,
+                    image_url = @imageUrl
+                WHERE id = @reminderId;
+            `);
+        return {
+            success: true,
+            message: 'Medication reminder updated successfully'
+        };
+    } catch (error) {
+        console.error('Error updating medication reminder:', error);
+        return {
+            success: false,
+            message: 'Failed to update medication reminder',
+            error: error.message
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
 // DELETE
 export async function deleteMedicationReminder(reminderId, userId) {
     let connection;
@@ -122,6 +163,36 @@ export async function deleteMedicationReminder(reminderId, userId) {
     } catch (error) {
         console.error('Error deleting medication reminder:', error);
         return { success: false, message: 'Failed to delete medication reminder', error: error.message };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+} 
+
+// POST (Medication Questionnaire)
+export async function createMedicationQuestion(userId, data) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        await connection.request()
+            .input("user_id", sql.Int, userId)
+            .input("difficulty_walking", sql.VarChar(255), data.difficulty_walking)
+            .input("assistive_device", sql.VarChar(255), data.assistive_device)
+            .input("symptoms_or_pain", sql.VarChar(500), data.symptoms_or_pain)
+            .input("allergies", sql.VarChar(500), data.allergies)
+            .input("medical_conditions", sql.VarChar(500), data.medical_conditions)
+            .input("exercise_frequency", sql.VarChar(100), data.exercise_frequency)
+            .query(`
+                INSERT INTO MedicationQuestion
+                  (user_id, difficulty_walking, assistive_device, symptoms_or_pain, allergies, medical_conditions, exercise_frequency)
+                VALUES
+                  (@user_id, @difficulty_walking, @assistive_device, @symptoms_or_pain, @allergies, @medical_conditions, @exercise_frequency)
+            `);
+        return { success: true, message: "Medication questionnaire submitted successfully" };
+    } catch (error) {
+        console.error('Error creating medication questionnaire:', error);
+        return { success: false, message: "Failed to submit medication questionnaire", error: error.message };
     } finally {
         if (connection) {
             await connection.close();

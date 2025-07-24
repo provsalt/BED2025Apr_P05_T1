@@ -5,7 +5,11 @@ import {
   getUserByEmail,
   updateUser,
   updateUserProfilePicture,
-  insertLoginHistory 
+  insertLoginHistory,
+  requestUserDeletion,
+  getUsersWithDeletionRequested,
+  approveUserDeletionRequest,
+  cancelUserDeletionRequest
 } from "../../models/user/userModel.js";
 import {randomUUID} from "crypto";
 import {User, Password} from "../../utils/validation/user.js";
@@ -55,7 +59,9 @@ export const getCurrentUserController = async (req, res) => {
       profile_picture_url: fullUser.profile_picture_url,
       gender: fullUser.gender,
       date_of_birth: fullUser.date_of_birth,
-      language: fullUser.language
+      language: fullUser.language,
+      deletionRequested: fullUser.deletionRequested,
+      deletionRequestedAt: fullUser.deletionRequestedAt
     });
   } catch (err) {
     console.error("Fetch current user failed:", err);
@@ -545,6 +551,68 @@ export const deleteUserController = async (req, res) => {
       return res.status(404).json({error: "User not found"});
     }
     res.status(500).json({error: "Error deleting user"});
+  }
+};
+
+/**
+ * @openapi
+ * /api/users/me/request-delete:
+ *   post:
+ *     tags:
+ *       - User
+ *     summary: Request account deletion
+ *     description: Request to delete the current user's account (admin approval required).
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Deletion request submitted
+ *       400:
+ *         description: Request failed
+ *       500:
+ *         description: Server error
+ */
+export const requestUserDeletionController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const success = await requestUserDeletion(userId);
+    if (!success) {
+      return res.status(400).json({ error: "Failed to request account deletion" });
+    }
+    res.status(200).json({ message: "Account deletion request submitted" });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+/**
+ * @openapi
+ * /api/users/me/cancel-delete:
+ *   post:
+ *     tags:
+ *       - User
+ *     summary: Cancel account deletion request
+ *     description: Cancel the current user's account deletion request.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Deletion request cancelled
+ *       400:
+ *         description: Cancel failed
+ *       500:
+ *         description: Server error
+ */
+export const cancelUserDeletionController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const success = await cancelUserDeletionRequest(userId);
+    if (!success) {
+      return res.status(400).json({ error: "Failed to cancel deletion request" });
+    }
+    res.status(200).json({ message: "Account deletion request cancelled" });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
   }
 };
 

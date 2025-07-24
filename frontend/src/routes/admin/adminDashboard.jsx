@@ -4,11 +4,14 @@ import { UserContext } from '@/provider/UserContext.js';
 import { useAlert } from '@/provider/AlertProvider.jsx';
 import { fetcher } from '@/lib/fetcher';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
 import OverviewSection from '@/components/admin/OverviewSection.jsx';
 import UserManagementSection from '@/components/admin/UserManagementSection.jsx';
 import AnnouncementManagementSection from '@/components/admin/AnnouncementManagementSection.jsx';
 import DebugSection from '@/components/admin/DebugSection.jsx';
+import DeletionRequestSection from "@/components/admin/DeletionRequestSection.jsx";
 
 // Admin Dashboard Component
 const AdminDashboard = () => {
@@ -20,15 +23,18 @@ const AdminDashboard = () => {
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [deletionRequests, setDeletionRequests] = useState([]);
 
   // Announcement form state
   const [announcementTitle, setAnnouncementTitle] = useState("");
   const [announcementContent, setAnnouncementContent] = useState("");
   const [announcementsKey, setAnnouncementsKey] = useState(0); // for force refresh
+  const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
 
   // Fetch data when component mounts
   useEffect(() => {
     fetchAllData();
+    fetchDeletionRequests();
   }, []);
 
   const fetchAllData = async () => {
@@ -76,6 +82,33 @@ const AdminDashboard = () => {
         title: "Error", 
         description: `Failed to fetch admins: ${error.message}`
       });
+    }
+  };
+
+  const fetchDeletionRequests = async () => {
+    try {
+      const data = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/deletion-requests`);
+      setDeletionRequests(data);
+    } catch (error) {
+      alert.error({ title: "Error", description: `Failed to fetch deletion requests: ${error.message}` });
+    }
+  };
+
+  const approveDeletion = async (userId) => {
+    if (!confirm('Are you sure you want to approve and delete this user?')) return;
+    try {
+      await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/admin/approve-delete`, {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: userId,
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      alert.success({ title: "Success", description: "User account deleted." });
+      fetchDeletionRequests();
+      fetchAllData();
+    } catch (error) {
+      alert.error({ title: "Error", description: error.message });
     }
   };
 
@@ -188,10 +221,11 @@ const AdminDashboard = () => {
       )}
 
       <Tabs defaultValue="overview" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="users">User Management</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
+          <TabsTrigger value="deletion">Deletion Requests</TabsTrigger>
           <TabsTrigger value="debug">Debug</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
@@ -210,6 +244,14 @@ const AdminDashboard = () => {
             announcementsKey={announcementsKey}
             handleDeleteAnnouncement={handleDeleteAnnouncement}
             backendUrl={import.meta.env.VITE_BACKEND_URL}
+          />
+        </TabsContent>
+        <TabsContent value="deletion">
+          <DeletionRequestSection
+            deletionRequests={deletionRequests}
+            confirmDeleteUser={confirmDeleteUser}
+            setConfirmDeleteUser={setConfirmDeleteUser}
+            approveDeletion={approveDeletion}
           />
         </TabsContent>
         <TabsContent value="debug">
