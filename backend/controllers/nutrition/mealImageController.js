@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { uploadFile } from "../../services/s3Service.js";
 import { analyzeFoodImage } from "../../services/openaiService.js";
-import { createMeal, getMealById, getAllMeals, deleteMeal, updateMeal } from "../../models/nutrition/nutritionModel.js";
+import { createMeal, getMealById, getAllMeals, deleteMeal, updateMeal, searchMeals } from "../../models/nutrition/nutritionModel.js";
 
 /**
  * @openapi
@@ -335,3 +335,31 @@ export const amendMeal = async (req, res) => {
     res.status(400).json({ error: "Failed to update meal" });
   }
 }
+
+export const searchMealsController = async (req, res) => {
+  try {
+    const { q: searchTerm } = req.query;
+
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    // Check if search term is provided
+    if (!searchTerm || searchTerm.trim() === "") {
+      return res.status(400).json({ error: "Search term is required" });
+    }
+
+    const meals = await searchMeals(req.user.id, searchTerm.trim());
+    
+    res.status(200).json({ 
+      message: "Search completed successfully", 
+      meals: meals,
+      searchTerm: searchTerm.trim(),
+      count: meals.length
+    });
+  } catch (error) {
+    console.error("Error searching meals:", error);
+    res.status(500).json({ error: "Failed to search meals" });
+  }
+};
