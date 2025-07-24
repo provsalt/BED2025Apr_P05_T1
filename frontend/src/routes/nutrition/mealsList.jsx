@@ -37,7 +37,7 @@ export const MealsList = () => {
 
     setIsSearching(true);
     try {
-      const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/search?q=${encodeURIComponent(searchTerm.trim())}`);
+      const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/search?name=${encodeURIComponent(searchTerm.trim())}`);
       setSearchResults(res.meals || []);
     } catch (err) {
       setError(err.message || "Failed to search meals");
@@ -99,12 +99,12 @@ export const MealsList = () => {
 
         {/* Search Section */}
         <div className="mb-6">
-          <div className="flex gap-2 max-w-md">
+          <div className="flex gap-2 max-w-md items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <Input
                 type="text"
-                placeholder="Search meals by name, category, or ingredients..."
+                placeholder="Search meals by name..."
                 value={searchTerm}
                 onChange={handleSearchInputChange}
                 onKeyPress={handleSearchKeyPress}
@@ -113,7 +113,7 @@ export const MealsList = () => {
               {searchTerm && (
                 <button
                   onClick={clearSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   <X size={20} />
                 </button>
@@ -127,35 +127,6 @@ export const MealsList = () => {
               {isSearching ? "Searching..." : "Search"}
             </Button>
           </div>
-          
-          {/* Search Results Info */}
-          {(searchResults.length > 0 || isSearching) && (
-            <div className="mt-2 text-sm text-gray-600">
-              {isSearching ? (
-                <span>Searching...</span>
-              ) : searchResults.length > 0 ? (
-                <span>
-                  Found {searchResults.length} meal{searchResults.length !== 1 ? 's' : ''} for "{searchTerm}"
-                  <button 
-                    onClick={clearSearch}
-                    className="ml-2 text-blue-600 hover:text-blue-800 underline"
-                  >
-                    Clear search
-                  </button>
-                </span>
-              ) : searchTerm.trim() && (
-                <span>
-                  No meals found for "{searchTerm}"
-                  <button 
-                    onClick={clearSearch}
-                    className="ml-2 text-blue-600 hover:text-blue-800 underline"
-                  >
-                    Clear search
-                  </button>
-                </span>
-              )}
-            </div>
-          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
