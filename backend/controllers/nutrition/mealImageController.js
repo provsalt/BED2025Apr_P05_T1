@@ -338,7 +338,7 @@ export const amendMeal = async (req, res) => {
 
 export const searchMealsController = async (req, res) => {
   try {
-    const { q: searchTerm } = req.query;
+    const { name: searchTerm } = req.query;
 
     // Check if user is authenticated
     if (!req.user || !req.user.id) {
