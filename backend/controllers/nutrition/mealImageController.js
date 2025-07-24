@@ -336,6 +336,49 @@ export const amendMeal = async (req, res) => {
   }
 }
 
+/**
+ * @openapi
+ * /api/nutrition/search:
+ *   get:
+ *     tags:
+ *       - Nutrition
+ *     summary: Search meals by name
+ *     description: Returns meals for the authenticated user whose name contains the search term (case-insensitive, partial match).
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The search term to look for in meal names.
+ *     responses:
+ *       200:
+ *         description: Search results retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 meals:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Meal'
+ *                 searchTerm:
+ *                   type: string
+ *                 count:
+ *                   type: integer
+ *       400:
+ *         description: Search term is required
+ *       401:
+ *         description: User not authenticated
+ *       500:
+ *         description: Failed to search meals
+ */
+
 export const searchMealsController = async (req, res) => {
   try {
     const { name: searchTerm } = req.query;
@@ -363,3 +406,4 @@ export const searchMealsController = async (req, res) => {
     res.status(500).json({ error: "Failed to search meals" });
   }
 };
+
