@@ -366,7 +366,28 @@ export const amendMeal = async (req, res) => {
  *                 meals:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Meal'
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       carbohydrates:
+ *                         type: number
+ *                       protein:
+ *                         type: number
+ *                       fat:
+ *                         type: number
+ *                       calories:
+ *                         type: number
+ *                       ingredients:
+ *                         type: string
+ *                       image_url:
+ *                         type: string
+ *                       user_id:
+ *                         type: integer
  *                 searchTerm:
  *                   type: string
  *                 count:
@@ -377,6 +398,17 @@ export const amendMeal = async (req, res) => {
  *         description: User not authenticated
  *       500:
  *         description: Failed to search meals
+ *       404:
+ *         description: No meals found for the given search term
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+              properties:
+ *                 error:
+ *                   type: string
+ *                 searchTerm:
+ *                   type: string
  */
 
 export const searchMealsController = async (req, res) => {
@@ -395,6 +427,13 @@ export const searchMealsController = async (req, res) => {
 
     const meals = await searchMeals(req.user.id, searchTerm.trim());
     
+    if (!meals || meals.length === 0) {
+      return res.status(404).json({
+        error: "No meals found for the given search term",
+        searchTerm: searchTerm.trim()
+      });
+    }
+
     res.status(200).json({ 
       message: "Search completed successfully", 
       meals: meals,
