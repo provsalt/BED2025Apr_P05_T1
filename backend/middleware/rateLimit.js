@@ -1,4 +1,5 @@
 import rateLimit from "express-rate-limit";
+import { ErrorFactory } from "../utils/AppError.js";
 
 const getRealIP = (req) => {
     // In production with Caddy reverse proxy, use X-Real-IP header
@@ -20,15 +21,19 @@ export const createRateLimit = ({
     return rateLimit({
         windowMs,
         max,
-        message: {
-            error: message,
-            retryAfter: Math.ceil(windowMs / 1000)
+        handler: (req, res, next) => {
+            const retryAfter = Math.ceil(windowMs / 1000);
+            res.set("Retry-After", retryAfter);
+            
+            const error = ErrorFactory.rateLimited(message);
+            error.retryAfter = retryAfter;
+            
+            next(error);
         },
         standardHeaders,
         legacyHeaders,
         keyGenerator: getRealIP,
         skip: (req) => {
-            // future prometheus feature
             return req.path === "/health" || req.path === "/api/health";
         }
     });
