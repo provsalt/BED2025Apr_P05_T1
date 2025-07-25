@@ -32,7 +32,7 @@ export const errorHandler = (err, req, res, next) => {
       details: err.issues?.map(issue => ({
         field: issue.path.join("."),
         message: issue.message
-      })),
+      })) || err.message,
       ...(req.traceId && { traceId: req.traceId })
     });
   }
@@ -68,6 +68,8 @@ export const errorHandler = (err, req, res, next) => {
       ...(req.traceId && { traceId: req.traceId })
     });
   }
+
+  console.log(err)
 
   res.status(500).json({
     success: false,
