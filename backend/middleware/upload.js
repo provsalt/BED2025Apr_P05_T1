@@ -1,4 +1,5 @@
 import multer from 'multer';
+import { ErrorFactory } from '../utils/AppError.js';
 
 export const createUploadMiddleware = (options) => {
   const { allowedMimeTypes, fileSize } = options;
@@ -9,7 +10,11 @@ export const createUploadMiddleware = (options) => {
       if (allowedMimeTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
-        cb(new Error(`Invalid file type. Only ${allowedMimeTypes.join(', ')} are allowed.`), false);
+        const error = ErrorFactory.fileUpload(
+          `Invalid file type: ${file.mimetype}`,
+          `Only ${allowedMimeTypes.join(', ')} files are allowed`
+        );
+        cb(error, false);
       }
     },
     limits: { fileSize: fileSize },

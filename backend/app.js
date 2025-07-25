@@ -13,6 +13,7 @@ import { connectedUsersGauge } from "./services/prometheusService.js";
 import client from "prom-client";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { tracingMiddleware } from "./middleware/tracing.js";
+import {logInfo} from "./utils/logger.js";
 
 const app = express();
 const server = createServer(app);
@@ -107,12 +108,12 @@ setIO(io);
 io.use(socketAuthMiddleware);
 
 io.on('connection', (socket) => {
-    console.log(`User ${socket.userId} connected via WebSocket`);
-    
+    logInfo(`User ${socket.userId} connected to WebSocket`);
+
     socket.join(`user_${socket.userId}`);
     
     socket.on('disconnect', () => {
-        console.log(`User ${socket.userId} disconnected from WebSocket`);
+        logInfo(`User ${socket.userId} disconnected from WebSocket`);
     });
 });
 
