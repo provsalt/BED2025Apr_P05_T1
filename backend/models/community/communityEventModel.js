@@ -103,3 +103,31 @@ export async function getAllApprovedEvents() {
     }
 }
 
+// GET: Get a single community event by ID
+export async function getCommunityEventById(eventId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                SELECT CommunityEvent.*, Users.name as created_by_name,
+                  (SELECT TOP 1 image_url FROM CommunityEventImage WHERE community_event_id = CommunityEvent.id ORDER BY uploaded_at DESC) as image_url
+                FROM CommunityEvent
+                JOIN Users ON CommunityEvent.user_id = Users.id
+                WHERE CommunityEvent.id = @eventId AND CommunityEvent.approved_by_admin_id IS NOT NULL
+            `);
+        if (result.recordset.length === 0) {
+            return { success: false, message: 'Event not found' };
+        }
+        return { success: true, event: result.recordset[0] };
+    } catch (error) {
+        console.error('Error getting community event by ID:', error);
+        return { success: false, message: 'Failed to get event', error: error.message };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+

@@ -91,7 +91,7 @@ export function CommunityEvents() {
           }
 
           return (
-            <Card key={event.id} className="w-64 p-0 overflow-hidden flex-shrink-0">
+            <Card key={event.id} className="w-64 p-0 overflow-hidden flex-shrink-0 cursor-pointer" onClick={() => navigate(`/community/${event.id}`)}>
               {imageSrc && (
                 <img
                   src={imageSrc}
@@ -100,7 +100,7 @@ export function CommunityEvents() {
                   style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                 />
               )}
-              <CardContent className="pb-6">
+              <CardContent>
                 <div className="font-semibold text-base mb-1 truncate capitalize" title={event.name}>{event.name}</div>
                 <div className="flex items-center text-gray-600 text-sm mb-1 gap-2">
                   <Clock className="size-4 text-gray-400" />

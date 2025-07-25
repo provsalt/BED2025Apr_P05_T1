@@ -4,11 +4,16 @@ import { getUserMiddleware } from "../../middleware/getUser.js";
 import { validateSchema } from '../../middleware/validateSchema.js';
 import { CommunityInformation } from '../../utils/validation/community.js';
 import { genericUploadMiddleware } from '../../middleware/upload.js';
-import { getApprovedEvents } from "./communityEventController.js";
+import { getApprovedEvents, getEventById } from "./communityEventController.js";
 
 const router = express.Router();
 
+// POST /api/community/create - Create a new community event
 router.post("/create", getUserMiddleware, genericUploadMiddleware.single("image"), validateSchema(CommunityInformation), createEvent);
+// GET /api/community - Get all approved community events
 router.get("/", getUserMiddleware, getApprovedEvents);
+
+// GET /api/community/:id - Get details for a single community event
+router.get("/:id", getUserMiddleware, getEventById);
 
 export default router; 
