@@ -4,6 +4,10 @@ import { UserContext } from '@/provider/UserContext.js';
 import { fetcher } from '@/lib/fetcher.js';
 import { useNavigate } from 'react-router';
 
+//limit max reminder and max frequency
+const MAX_REMINDERS_PER_USER = 3;
+const MAX_FREQUENCY_PER_REMINDER = 3;
+
 const defaultValues = {
   medicationName: '',
   reason: '',
@@ -11,10 +15,10 @@ const defaultValues = {
   medicineTime: '',
   frequencyPerDay: '',
   imageFile: null,
-  imagePreview: null,
+  imagePreview: null
 };
 
-export function MedicalCreateForm() {
+export const MedicalCreateForm = () =>  {
   const user = useContext(UserContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialog, setDialog] = useState({ open: false, type: '', message: '' });
@@ -34,7 +38,23 @@ export function MedicalCreateForm() {
       setDialog({ open: true, type: 'error', message: 'Frequency per day must be a positive number' });
       return;
     }
-
+    
+    if (parseInt(formData.frequencyPerDay) > MAX_FREQUENCY_PER_REMINDER) {
+      setDialog({ open: true, type: 'error', message: `Frequency per day cannot exceed ${MAX_FREQUENCY_PER_REMINDER}` });
+      return;
+    }
+    // Check max reminders per user
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      const remindersResult = await fetcher(`${backendUrl}/api/medications`);
+      if (remindersResult.success && remindersResult.reminders.length >= MAX_REMINDERS_PER_USER) {
+        setDialog({ open: true, type: 'error', message: `You can only have up to ${MAX_REMINDERS_PER_USER} medication reminders.` });
+        return;
+      }
+    } catch (err) {
+      setDialog({ open: true, type: 'error', message: 'Could not check your current reminders. Please try again.' });
+      return;
+    }
     setIsSubmitting(true);
 
     try {

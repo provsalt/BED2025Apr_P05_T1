@@ -6,6 +6,9 @@ import { useParams, useNavigate } from 'react-router';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
+//limit frequency per reminder
+const MAX_FREQUENCY_PER_REMINDER = 3;
+
 export function MedicationEditForm() {
   const user = useContext(UserContext);
   const { id } = useParams();
@@ -62,7 +65,12 @@ export function MedicationEditForm() {
       setDialog({ open: true, type: 'error', message: 'Frequency per day must be a positive number' });
       return;
     }
+    if (parseInt(formData.frequencyPerDay) > MAX_FREQUENCY_PER_REMINDER) {
+      setDialog({ open: true, type: 'error', message: `Frequency per day cannot exceed ${MAX_FREQUENCY_PER_REMINDER}` });
+      return;
+    }
     setIsSubmitting(true);
+    
     try {
       const submitData = new FormData();
       submitData.append('medicine_name', formData.medicationName);
