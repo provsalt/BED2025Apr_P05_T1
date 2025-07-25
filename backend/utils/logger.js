@@ -11,7 +11,15 @@ const createLogger = () => {
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
-        winston.format.simple()
+        winston.format.printf(({ level, message, timestamp, ...meta }) => {
+          let output = `${timestamp} [${level}]: ${message}`;
+          
+          if (Object.keys(meta).length > 0) {
+            output += `\n${JSON.stringify(meta, null, 2)}`;
+          }
+          
+          return output;
+        })
       )
     })
   ];
@@ -27,30 +35,28 @@ const createLogger = () => {
 export const logger = createLogger();
 
 export const logError = (error, req = null, additionalInfo = {}) => {
-  const logData = {
-    timestamp: new Date().toISOString(),
-    error: {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-      category: error.category || "unknown",
-      statusCode: error.statusCode
-    },
-    ...additionalInfo
+  const errorData = {
+    name: error.name,
+    message: error.message,
+    category: error.category || "unknown",
+    statusCode: error.statusCode,
+    ...(process.env.NODE_ENV === "development" && { stack: error.stack })
   };
 
-  if (req) {
-    logData.request = {
-      method: req.method,
-      url: req.originalUrl,
-      userId: req.user?.id,
-      ip: req.ip,
-      userAgent: req.get("User-Agent"),
-      traceId: req.traceId
-    };
-  }
+  const requestData = req ? {
+    method: req.method,
+    url: req.originalUrl,
+    userId: req.user?.id,
+    ip: req.ip,
+    userAgent: req.get?.("User-Agent"),
+    traceId: req.traceId
+  } : {};
 
-  logger.error(logData);
+  logger.error("Application Error", {
+    error: errorData,
+    request: requestData,
+    ...additionalInfo
+  });
 };
 
 export const logInfo = (message, data = {}) => {
