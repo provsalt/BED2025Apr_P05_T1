@@ -1,5 +1,5 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -195,4 +195,56 @@ export const getApprovedEvents = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
+}; 
+
+/**
+ * @openapi
+ * /api/community/mine:
+ *   get:
+ *     tags:
+ *       - Community
+ *     summary: Get all community events created by the authenticated user
+ *     description: Returns all community events created by the current user.
+ *     responses:
+ *       200:
+ *         description: List of user's community events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       400:
+ *         description: User ID is required
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+export const getMyEvents = async (req, res) => {
+    try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ success: false, message: 'Unauthorized: User not authenticated' });
+        }
+        const userId = req.user.id;
+        // validate user
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'User ID is required'});
+        }
+
+        const result = await getCommunityEventsByUserId(userId);
+        if (result.success) {
+            res.status(200).json(result);
+        } else {
+            res.status(500).json(result);
+        }
+    } catch (error) {
+        console.error('Error in getMyEvents controller:', error);
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
 }; 

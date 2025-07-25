@@ -29,7 +29,9 @@ import {TransportMap} from "@/routes/transport/TransportMap.jsx";
 import {RouteList} from "@/routes/transport/RouteList.jsx";
 import {CreateRoute} from "@/routes/transport/CreateRoute.jsx";
 import {EditRoute} from "@/routes/transport/EditRoute.jsx";
-import { CommunityEvents } from '@/routes/community/CommunityEvents.jsx';
+import {CommunityEvents} from '@/routes/community/CommunityEvents.jsx';
+import {UserEvents} from '@/routes/community/userEvents.jsx';
+import {EventDetail} from '@/routes/community/userEventDetail.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -64,6 +66,8 @@ createRoot(document.getElementById('root')).render(
                   } />
                   <Route path="/community/create" element={<CreateEventPage />} />
                   <Route path="/community" element={<CommunityEvents />} />
+                  <Route path="/community/myevents" element={<UserEvents />} />
+                  <Route path="/community/event/:id" element={<EventDetail />} />
                   <Route path="/transport">
                     <Route index element={<TransportHomePage/>} />
                     <Route path="map" element={<TransportMap />} />
