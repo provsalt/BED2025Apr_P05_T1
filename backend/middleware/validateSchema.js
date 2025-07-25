@@ -1,18 +1,26 @@
 export function validateSchema(schema) {
-  return (req, res, next) => {
-    const result = schema.safeParse(req.body);
-    if (!result.success) {
-      const message =
-        result.error?.errors && result.error.errors.length > 0
-          ? result.error.errors[0].message
-          : 'Invalid request data';
+  return async (req, res, next) => {
+    try {
+      const result = await schema.safeParseAsync(req.body);
+      if (!result.success) {
+        const message =
+          result.error?.errors && result.error.errors.length > 0
+            ? result.error.errors[0].message
+            : 'Invalid request data';
+        return res.status(400).json({
+          success: false,
+          message,
+        });
+      }
+      
+      next();
+    } catch (error) {
+      console.error('Validation error:', error);
       return res.status(400).json({
         success: false,
-        message,
+        message: 'Validation failed',
       });
     }
-    
-    next();
   };
 }
 

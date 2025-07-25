@@ -322,10 +322,10 @@ export const amendMeal = async (req, res) => {
     }
 
     const updatedMeal = {
-      ...req.validatedBody,
-      ingredients: Array.isArray(req.validatedBody.ingredients)
-        ? req.validatedBody.ingredients.join(", ")
-        : req.validatedBody.ingredients
+      ...mealData,
+      ingredients: Array.isArray(mealData.ingredients)
+        ? mealData.ingredients.join(", ")
+        : mealData.ingredients
     };
 
     await updateMeal(id, updatedMeal);
