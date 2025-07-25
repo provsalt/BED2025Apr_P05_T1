@@ -296,18 +296,6 @@ describe('User Controller', () => {
       };
     });
 
-    it('should return 400 for invalid input data', async () => {
-      req.body.email = 'invalid-email';
-
-      await loginUserController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Invalid user data",
-        details: expect.any(Array)
-      });
-    });
-
     it('should return 401 if user is not found', async () => {
       getUserByEmail.mockResolvedValue(null);
 
@@ -374,21 +362,6 @@ describe('User Controller', () => {
       };
     });
 
-    it('should return 400 for invalid user data', async () => {
-      User.safeParse.mockReturnValue({
-        success: false,
-        error: { issues: ['Invalid data'] }
-      });
-
-      await createUserController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Invalid user data",
-        details: ['Invalid data']
-      });
-    });
-
     it('should create user successfully', async () => {
       const mockNewUser = {
         id: 1,
@@ -400,7 +373,6 @@ describe('User Controller', () => {
         language: 'English',
         role: 'User'
       };
-      User.safeParse.mockReturnValue({ success: true, data: req.body });
       createUser.mockResolvedValue(mockNewUser);
 
       await createUserController(req, res);

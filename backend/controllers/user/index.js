@@ -25,13 +25,19 @@ import {
 } from "./userRoleController.js";
 import {authorizeRole} from "../../middleware/authorizeRole.js";
 import { getUserLoginHistoryController } from "./loginHistoryController.js";
+import {Password, User} from "../../utils/validation/user.js";
+import {validateSchema} from "../../middleware/validateSchema.js";
+import { z } from "zod/v4";
 
 const router = Router();
 
 // Raymond signup, login, get current user
-router.post("/", authRateLimit, createUserController);
+router.post("/", authRateLimit, validateSchema(User), createUserController);
 router.get("/", getUserMiddleware, authorizeRole(["Admin"]), getAllUsersController);
-router.post("/login", authRateLimit, loginUserController);
+router.post("/login", authRateLimit, validateSchema(z.object({
+  email: z.email().max(255),
+  password: Password
+})), loginUserController);
 router.get("/me", getUserMiddleware, getCurrentUserController);
 
 // Shun Xiang user's login history and password change under 
