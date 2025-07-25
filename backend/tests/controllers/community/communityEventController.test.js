@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { createEvent, getApprovedEvents } from '../../../controllers/community/communityEventController.js';
+import { createEvent, getApprovedEvents, getEventById } from '../../../controllers/community/communityEventController.js';
 
 // Ensure S3_BUCKET_NAME is set for all tests
 beforeAll(() => {
@@ -15,6 +15,7 @@ vi.mock('../../../models/community/communityEventModel.js', () => ({
   createCommunityEvent: vi.fn().mockResolvedValue({ success: true, eventId: 1 }),
   addCommunityEventImage: vi.fn().mockResolvedValue({ success: true }),
   getAllApprovedEvents: vi.fn().mockResolvedValue({ success: true, events: [] }), // Mock for getApprovedEvents
+  getCommunityEventById: vi.fn().mockResolvedValue({ success: true, event: { id: 1, name: 'Event 1' } }), // Mock for getEventById
 }));
 
 describe('createEvent', () => {
@@ -96,4 +97,45 @@ describe('getApprovedEvents', () => {
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false, message: expect.any(String), error: expect.any(String) }));
   });
-}); 
+});
+
+describe('getEventById', () => {
+  let req, res;
+  beforeEach(() => {
+    req = { params: { id: '1' } };
+    res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+  });
+
+  it('should return 200 and event on success', async () => {
+    const mockEvent = { id: 1, name: 'Event 1' };
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'getCommunityEventById').mockResolvedValue({ success: true, event: mockEvent });
+    await getEventById(req, res);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ success: true, event: mockEvent });
+  });
+
+  it('should return 404 if event not found', async () => {
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'getCommunityEventById').mockResolvedValue({ success: false, message: 'Event not found' });
+    await getEventById(req, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ success: false, message: 'Event not found' });
+  });
+
+  it('should return 400 if id is invalid', async () => {
+    req.params.id = 'abc';
+    await getEventById(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ success: false, message: 'Invalid event ID' });
+  });
+
+  it('should return 500 on error', async () => {
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'getCommunityEventById').mockRejectedValue(new Error('DB error'));
+    await getEventById(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false, message: expect.any(String), error: expect.any(String) }));
+  });
+});
+

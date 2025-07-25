@@ -76,6 +76,18 @@ export const CreateEventPage = () => {
       setIsSubmitting(false);
       return;
     }
+    // If date is today, check if time is in the past
+    if (inputDate.getTime() === today.getTime()) {
+      const now = new Date();
+      const [inputHour, inputMinute] = time.split(":");
+      const eventTime = new Date();
+      eventTime.setHours(Number(inputHour), Number(inputMinute), 0, 0);
+      if (eventTime < now) {
+        setDialog({ open: true, type: 'error', message: 'Time cannot be in the past for today' });
+        setIsSubmitting(false);
+        return;
+      }
+    }
     
     const formData = new FormData(event.target);
     formData.set('category', category);

@@ -1,5 +1,5 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventById } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -62,7 +62,9 @@ import { v4 as uuidv4 } from 'uuid';
  *                   type: string
  *                   description: URL to access the uploaded image (e.g. /api/s3?key=community-events/{userId}/{uuid})
  *       400:
- *         description: Bad request (validation or missing fields)
+ *         description: Bad request (validation or missing fields). 
+ *           - Date cannot be in the past.
+ *           - If the date is today, time cannot be in the past.
  *       500:
  *         description: Internal server error
  */
@@ -191,6 +193,55 @@ export const getApprovedEvents = async (req, res) => {
       res.status(200).json(result);
     } else {
       res.status(500).json(result);
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+}; 
+
+/**
+ * @openapi
+ * /api/community/{id}:
+ *   get:
+ *     tags:
+ *       - Community
+ *     summary: Get a single community event by ID
+ *     description: Returns all details for a single approved community event.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The event ID
+ *     responses:
+ *       200:
+ *         description: Event details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 event:
+ *                   type: object
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Internal server error
+ */
+export const getEventById = async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.id, 10);
+    if (!eventId || isNaN(eventId)) {
+      return res.status(400).json({ success: false, message: 'Invalid event ID' });
+    }
+    const result = await getCommunityEventById(eventId);
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      res.status(404).json(result);
     }
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
