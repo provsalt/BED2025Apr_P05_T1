@@ -8,23 +8,9 @@ export const CommunityInformation = z.object({
   time: z.string().min(1, 'Time is required'),
   description: z.string().min(1, 'Description is required'),
 }).refine((data) => {
-  // Date cannot be in the past
-  const today = new Date();
-  const inputDate = new Date(data.date);
-  today.setHours(0,0,0,0);
-  inputDate.setHours(0,0,0,0);
-  if (inputDate < today) {
+  const eventDateTime = new Date(`${data.date}T${data.time}:00`);
+  if (eventDateTime < new Date()) {
     return false;
-  }
-  // If date is today, time cannot be in the past 
-  if (inputDate.getTime() === today.getTime()) {
-    const now = new Date();
-    const [inputHour, inputMinute] = data.time.split(":");
-    const eventTime = new Date();
-    eventTime.setHours(Number(inputHour), Number(inputMinute), 0, 0);
-    if (eventTime < now) {
-      return false;
-    }
   }
   return true;
 }, {
