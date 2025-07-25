@@ -9,7 +9,13 @@ import { getApprovedEvents, getEventById } from "./communityEventController.js";
 const router = express.Router();
 
 // POST /api/community/create - Create a new community event
-router.post("/create", getUserMiddleware, genericUploadMiddleware.single("image"), validateSchema(CommunityInformation), createEvent);
+router.post(
+  "/create",
+  getUserMiddleware,
+  genericUploadMiddleware.array('images'), 
+  validateSchema(CommunityInformation),
+  createEvent
+);
 // GET /api/community - Get all approved community events
 router.get("/", getUserMiddleware, getApprovedEvents);
 
