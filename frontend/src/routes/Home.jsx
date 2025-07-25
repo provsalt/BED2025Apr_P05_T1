@@ -11,9 +11,36 @@ export const Home = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      fetcher("/home/user/summary")
-        .then((data) => setSummary(data))
-        .catch((err) => console.error("Failed to load summary", err));
+      Promise.all([
+        fetcher('/nutrition'),
+        fetcher('/medications'),
+        fetcher('/transport/routes'),
+        fetcher('/community/events'),
+      ])
+        .then(([mealsRes, medsRes, transportRes, eventsRes]) => {
+          const meals = mealsRes.meals || [];
+          // Nutrition summary calculation
+          const nutrition = meals.reduce(
+            (acc, meal) => {
+              acc.calories += Number(meal.calories) || 0;
+              acc.protein += Number(meal.protein) || 0;
+              acc.carbs += Number(meal.carbohydrates) || 0;
+              return acc;
+            },
+            { calories: 0, protein: 0, carbs: 0 }
+          );
+          setSummary({
+            meals: meals.slice(0, 3),
+            medications: (medsRes.reminders || []).slice(0, 3),
+            transport: (transportRes || []).slice(0, 3),
+            events: (eventsRes.events || []).slice(0, 3),
+            nutrition,
+          });
+        })
+        .catch((err) => {
+          console.error('Failed to load dashboard data', err);
+          setSummary(null);
+        });
     }
   }, [isAuthenticated]);
 

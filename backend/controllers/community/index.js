@@ -4,9 +4,11 @@ import { getUserMiddleware } from "../../middleware/getUser.js";
 import { validateSchema } from '../../middleware/validateSchema.js';
 import { CommunityInformation } from '../../utils/validation/community.js';
 import { genericUploadMiddleware } from '../../middleware/upload.js';
+import { getUpcomingEvents } from './communityEventController.js';
 
 const router = express.Router();
 
 router.post("/create", getUserMiddleware, genericUploadMiddleware.single("image"), validateSchema(CommunityInformation), createEvent);
+router.get("/events", getUserMiddleware, getUpcomingEvents);
 
 export default router; 
