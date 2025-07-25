@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { createEvent, getUpcomingEvents } from '../../../controllers/community/communityEventController.js';
+import { createEvent, getAllEvents } from '../../../controllers/community/communityEventController.js';
 import * as communityEventModel from '../../../models/community/communityEventModel.js';
 
 // Ensure S3_BUCKET_NAME is set for all tests
@@ -15,7 +15,7 @@ vi.mock('../../../services/s3Service.js', () => ({
 vi.mock('../../../models/community/communityEventModel.js', () => ({
   createCommunityEvent: vi.fn().mockResolvedValue({ success: true, eventId: 1 }),
   addCommunityEventImage: vi.fn().mockResolvedValue({ success: true }),
-  getUpcomingEventsByUser: vi.fn(), 
+  getAllUpcomingEvents: vi.fn(), 
 }));
 
 describe('createEvent', () => {
@@ -60,37 +60,31 @@ describe('createEvent', () => {
   });
 });
 
-describe('getUpcomingEvents', () => {
+describe('getAllEvents', () => {
   let req, res;
   beforeEach(() => {
-    req = {
-      user: { id: 1 },
-    };
+    req = {};
     res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
     };
   });
 
-  it('should return 401 if userId is missing', async () => {
-    req.user = undefined;
-    await getUpcomingEvents(req, res);
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false, message: expect.stringContaining('Unauthorized') }));
-  });
-
-  it('should return 200 and events on success', async () => {
-    const mockEvents = [{ id: 1, name: 'Event 1' }];
-    communityEventModel.getUpcomingEventsByUser.mockResolvedValueOnce(mockEvents);
-    await getUpcomingEvents(req, res);
+  it('should return 200 and all events on success', async () => {
+    const mockEvents = [
+      { id: 1, user_id: 1, name: 'Event 1' },
+      { id: 2, user_id: 2, name: 'Event 2' }
+    ];
+    communityEventModel.getAllUpcomingEvents = vi.fn().mockResolvedValueOnce(mockEvents);
+    await getAllEvents(req, res);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ success: true, events: mockEvents });
   });
 
   it('should return 500 on error', async () => {
-    communityEventModel.getUpcomingEventsByUser.mockImplementationOnce(() => { throw new Error('Test error'); });
-    await getUpcomingEvents(req, res);
+    communityEventModel.getAllUpcomingEvents = vi.fn().mockImplementationOnce(() => { throw new Error('Test error'); });
+    await getAllEvents(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false, message: expect.stringContaining('Failed to fetch') }));
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false, message: expect.stringContaining('Failed to fetch all upcoming events') }));
   });
 }); 

@@ -1,7 +1,7 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
 import { createCommunityEvent, addCommunityEventImage } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
-import { getUpcomingEventsByUser } from "../../models/community/communityEventModel.js";
+import { getAllUpcomingEvents } from "../../models/community/communityEventModel.js";
 
 /**
  * @openapi
@@ -180,15 +180,70 @@ export const createEvent = async (req, res) => {
  *         description: Unauthorized
  */
 export const getUpcomingEvents = async (req, res) => {
-    try {
-        if (!req.user || !req.user.id) {
-            return res.status(401).json({ success: false, message: 'Unauthorized: User not authenticated' });
-        }
-        const userId = req.user.id;
-        const events = await getUpcomingEventsByUser(userId);
-        res.status(200).json({ success: true, events });
-    } catch (error) {
-        console.error('Error fetching upcoming events:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch upcoming events', error: error.message });
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ success: false, message: 'Unauthorized: User not authenticated' });
     }
+    const userId = req.user.id;
+    const events = await getUpcomingEventsByUser(userId);
+    res.status(200).json({ success: true, events });
+  } catch (error) {
+    console.error('Error fetching upcoming events:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch upcoming events', error: error.message });
+  }
+}; 
+
+/**
+ * @openapi
+ * /api/community/events:
+ *   get:
+ *     summary: Get all upcoming community events (for all users)
+ *     tags:
+ *       - Community
+ *     responses:
+ *       200:
+ *         description: List of all upcoming events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       user_id:
+ *                         type: integer
+ *                         description: ID of the user who created the event
+ *                       name:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                       time:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       image_url:
+ *                         type: string
+ *       500:
+ *         description: Internal server error
+ */
+export const getAllEvents = async (req, res) => {
+  try {
+    const events = await getAllUpcomingEvents();
+    res.status(200).json({ success: true, events });
+  } catch (error) {
+    console.error('Error fetching all upcoming events:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch all upcoming events', error: error.message });
+  }
 }; 
