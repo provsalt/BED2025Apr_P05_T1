@@ -217,19 +217,12 @@ export const updateUserController = async (req, res) => {
  */
 export const loginUserController = async (req, res) => {
   const body = req.body;
-  const validate = z.object({
-    email: z.email().max(255),
-    password: z.string().min(12).max(255).regex(/(?=.*[A-Z])/, "Password must contain at least one uppercase letter").regex(/(?=.*[!@#$%^&*()])/, "Password must contain at least one special character"),
-  }).safeParse(body)
-  if (!validate.success) {
-    return res.status(400).json({error: "Invalid user data", details: validate.error.issues});
-  }
 
-  const user = await getUserByEmail(validate.data.email);
+  const user = await getUserByEmail(body.email);
   if (!user) {
     return res.status(401).json({error: "Invalid email or password"});
   }
-  const isPasswordValid = await bcrypt.compare(validate.data.password, user.password);
+  const isPasswordValid = await bcrypt.compare(body.password, user.password);
 
   if (!isPasswordValid) {
     return res.status(401).json({ error: "Invalid email or password" });
@@ -290,15 +283,8 @@ export const loginUserController = async (req, res) => {
  *         description: Error creating user
  */
 export const createUserController = async (req, res) => {
-  const body = req.body;
-
-  const validate = User.safeParse(body);
-
-    if (!validate.success) {
-        return res.status(400).json({ error: "Invalid user data", details: validate.error.issues });
-    }
     try {
-        const newUser = await createUser(validate.data);
+        const newUser = await createUser(req.body);
         const secret = new TextEncoder().encode(process.env.SECRET || "");
         const tok = await new SignJWT({
           sub: newUser.id
