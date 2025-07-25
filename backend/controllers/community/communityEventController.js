@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
  *     tags:
  *       - Community
  *     summary: Create a new community event
- *     description: Allows a user to create a new community event with multiple images. 
+ *     description: Allows a user to create a new community event with multiple images. The first image uploaded will be used as the cover image.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -73,6 +73,7 @@ import { v4 as uuidv4 } from 'uuid';
  *           - The combination of date and time cannot be in the past (event must be scheduled for a future date/time).
  *           - Invalid time format. Please use HH:mm or HH:mm:ss.
  *           - Time is required.
+ *           - At least one image is required.
  *       401:
  *         description: Unauthorized - User not authenticated
  *       500:
@@ -80,30 +81,18 @@ import { v4 as uuidv4 } from 'uuid';
  */
 export const createEvent = async (req, res) => {
     try {
-        if (!req.user || !req.user.id) {
-            return res.status(401).json({ success: false, message: 'Unauthorized: User not authenticated' });
-        }
         const userId = req.user.id;
-        // validate user
-        if (!userId) {
-            return res.status(400).json({ success: false, message: 'User ID is required', errors: ['User ID is required'] });
-        }
-
         
-        let { time, ...rest } = req.body;
-        //ensure time is in HH:mm:ss format
-        if (time) {
-            if (/^\d{2}:\d{2}$/.test(time)) {
-                time = time + ":00";
-            } else if (/^\d{2}:\d{2}:\d{2}$/.test(time)) {
-                // Already in HH:mm:ss format, do nothing
-            } else {
-                return res.status(400).json({ success: false, message: 'Invalid time format. Please use HH:mm or HH:mm:ss.' });
-            }
-        } else {
-            return res.status(400).json({ success: false, message: 'Time is required.' });
+        const files = req.files || [];
+        if (files.length === 0) {
+            return res.status(400).json({ success: false, message: 'At least one image is required.' });
         }
 
+        // Ensure time is in HH:mm:ss format t match db
+        let { time, ...rest } = req.body;
+        if (time && /^\d{2}:\d{2}$/.test(time)) {
+            time = time + ":00";
+        }
         
         const eventData = {
             ...rest,
@@ -116,8 +105,7 @@ export const createEvent = async (req, res) => {
             return res.status(500).json(eventResult);
         }
 
-        // Handle multiple images
-        const files = req.files || [];
+        // Handle multiple images 
         const imageUrls = [];
         for (let file of files) {
             // Sanitize filename to avoid encoding issues

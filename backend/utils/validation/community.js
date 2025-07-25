@@ -5,7 +5,12 @@ export const CommunityInformation = z.object({
   location: z.string().min(1, 'Location is required'),
   category: z.enum(['sports', 'arts', 'culinary', 'learn'], { required_error: 'Category is required' }),
   date: z.string().min(1, 'Date is required'),
-  time: z.string().min(1, 'Time is required'),
+  time: z.string().min(1, 'Time is required').refine((time) => {
+    // Validate time format: HH:mm or HH:mm:ss
+    return /^\d{2}:\d{2}(:\d{2})?$/.test(time);
+  }, {
+    message: 'Invalid time format. Please use HH:mm or HH:mm:ss.'
+  }),
   description: z.string().min(1, 'Description is required'),
 }).refine((data) => {
   const eventDateTime = new Date(`${data.date}T${data.time}:00`);
