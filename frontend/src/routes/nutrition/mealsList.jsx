@@ -3,11 +3,17 @@ import { fetcher } from "../../lib/fetcher";
 import { Link } from "react-router";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Search, X } from "lucide-react";
 
 export const MealsList = () => {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
     const fetchMeals = async () => {
@@ -22,6 +28,51 @@ export const MealsList = () => {
     };
     fetchMeals();
   }, []);
+
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      setHasSearched(false);
+      return;
+    }
+    setIsSearching(true);
+    setHasSearched(true);
+    try {
+      const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/search?name=${encodeURIComponent(searchTerm.trim())}`);
+      setSearchResults(res.meals || []);
+    } catch (err) {
+      setError(err.message || "Failed to search meals");
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+    setSearchResults([]);
+    setIsSearching(false);
+    setHasSearched(false);
+  };
+
+  const handleSearchInputChange = (e) => {
+    setSearchTerm(e.target.value);
+    if (e.target.value.trim() === "") {
+      setSearchResults([]);
+      setIsSearching(false);
+      setHasSearched(false);
+    }
+  };
+
+  const handleSearchKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  // Only show searchResults after a search, otherwise show all meals
+  const displayMeals = hasSearched ? searchResults : meals;
 
   if (loading) return <div>Loading meals...</div>;
   if (error) return <div style={{ color: "red" }}>{error}</div>;
@@ -49,8 +100,48 @@ export const MealsList = () => {
           </Button>
           </Link>
         </div>
+
+        {/* Search Section */}
+        <div className="mb-6">
+          <div className="flex gap-2 max-w-md items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Input
+                type="text"
+                placeholder="Search meals by name..."
+                value={searchTerm}
+                onChange={handleSearchInputChange}
+                onKeyPress={handleSearchKeyPress}
+                className="pl-10 pr-10"
+              />
+              {searchTerm && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X size={20} />
+                </button>
+              )}
+            </div>
+            <Button 
+              onClick={handleSearch} 
+              disabled={isSearching || !searchTerm.trim()}
+              className="cursor-pointer"
+            >
+              {isSearching ? "Searching..." : "Search"}
+            </Button>
+          </div>
+        </div>
+
+        {/* No search results message */}
+        {hasSearched && !isSearching && searchResults.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            <p>No meals found matching "{searchTerm}"</p>
+            <p className="text-sm mt-2">Try searching for different terms or check your spelling</p>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {meals.map((meal) => (
+          {displayMeals.map((meal) => (
             <Link
               to={`/nutrition/${meal.id}`}
               className="inline-block mt-3 text-gray-600 hover:text-gray-800 font-medium overflow-hidden"
