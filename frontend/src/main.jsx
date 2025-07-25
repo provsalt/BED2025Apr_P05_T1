@@ -29,6 +29,7 @@ import {TransportMap} from "@/routes/transport/TransportMap.jsx";
 import {RouteList} from "@/routes/transport/RouteList.jsx";
 import {CreateRoute} from "@/routes/transport/CreateRoute.jsx";
 import {EditRoute} from "@/routes/transport/EditRoute.jsx";
+import { CommunityEvents } from '@/routes/community/CommunityEvents.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -62,6 +63,7 @@ createRoot(document.getElementById('root')).render(
                     </AdminProtectedRoute>
                   } />
                   <Route path="/community/create" element={<CreateEventPage />} />
+                  <Route path="/community" element={<CommunityEvents />} />
                   <Route path="/transport">
                     <Route index element={<TransportHomePage/>} />
                     <Route path="map" element={<TransportMap />} />
