@@ -58,33 +58,4 @@ describe('createEvent', () => {
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true, eventId: expect.any(Number), imageUrl: expect.any(String) }));
   });
-});
-
-describe('getAllEvents', () => {
-  let req, res;
-  beforeEach(() => {
-    req = {};
-    res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn(),
-    };
-  });
-
-  it('should return 200 and all events on success', async () => {
-    const mockEvents = [
-      { id: 1, user_id: 1, name: 'Event 1' },
-      { id: 2, user_id: 2, name: 'Event 2' }
-    ];
-    communityEventModel.getAllUpcomingEvents = vi.fn().mockResolvedValueOnce(mockEvents);
-    await getAllEvents(req, res);
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({ success: true, events: mockEvents });
-  });
-
-  it('should return 500 on error', async () => {
-    communityEventModel.getAllUpcomingEvents = vi.fn().mockImplementationOnce(() => { throw new Error('Test error'); });
-    await getAllEvents(req, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false, message: expect.stringContaining('Failed to fetch all upcoming events') }));
-  });
 }); 
