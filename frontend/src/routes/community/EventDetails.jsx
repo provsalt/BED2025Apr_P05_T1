@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, User, Calendar, Tag } from "lucide-react";
+import { MapPin, Clock, User, Calendar, Tag, ChevronLeft, ChevronRight } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 
 export function EventDetails() {
@@ -9,6 +9,7 @@ export function EventDetails() {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentImage, setCurrentImage] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,9 +37,29 @@ export function EventDetails() {
   if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
   if (!event) return null;
 
-  let imageSrc = event.image_url;
+  //Images array
+  let images = [];
+  if (Array.isArray(event.images)) {
+    images = event.images;
+  }
+  let hasImages = false;
+  if (images.length > 0) {
+    hasImages = true;
+  }
+  let imageSrc;
+  if (hasImages) {
+    imageSrc = images[currentImage] && images[currentImage].image_url;
+  } else {
+    imageSrc = event.image_url;
+  }
   if (imageSrc && !imageSrc.startsWith("http")) {
-    imageSrc = `${import.meta.env.VITE_BACKEND_URL}${imageSrc}`;
+    if (imageSrc.startsWith('/api/s3')) {
+      // Handle relative S3 URLs
+      imageSrc = `${import.meta.env.VITE_BACKEND_URL}${imageSrc}`;
+    } else {
+      // Fallback for other relative URLs
+      imageSrc = `${import.meta.env.VITE_BACKEND_URL}/${imageSrc}`;
+    }
   }
 
   //format date and time
@@ -58,6 +79,18 @@ export function EventDetails() {
     organizerAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(organizerName)}&background=E5E7EB&color=374151&size=64`;
   }
 
+  //carousel navigation
+  const goLeft = () => {
+    if (images.length > 0) {
+      setCurrentImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    }
+  };
+  const goRight = () => {
+    if (images.length > 0) {
+      setCurrentImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    }
+  };
+
   return (
     <div className="w-full max-w-3xl mx-auto mt-8 px-2 md:px-0 pb-7">
       <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
@@ -66,8 +99,37 @@ export function EventDetails() {
         <span>Community Event</span>
       </div>
       <h1 className="text-3xl font-bold mb-4 capitalize">{event.name}</h1>
-      {imageSrc && (
-        <img src={imageSrc} alt={event.name} className="w-full max-h-screen object-contain rounded-xl mb-6 bg-white" />
+      {/* Image Carousel */}
+      {hasImages && (
+        <div className="relative flex items-center justify-center mb-6 mx-auto rounded-xl shadow-md aspect-[4/3] max-w-3xl w-full bg-gray-100 overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-between px-2 pointer-events-none z-10">
+            {images.length > 1 && (
+              <Button
+                variant="outline"
+                className="rounded-full p-0 w-8 h-8 flex items-center justify-center shadow bg-white/70 hover:bg-white/90 pointer-events-auto border border-gray-200 cursor-pointer"
+                onClick={goLeft}
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="w-4 h-4 text-gray-700" />
+              </Button>
+            )}
+            {images.length > 1 && (
+              <Button
+                variant="outline"
+                className="rounded-full p-0 w-8 h-8 flex items-center justify-center shadow bg-white/70 hover:bg-white/90 pointer-events-auto border border-gray-200 cursor-pointer"
+                onClick={goRight}
+                aria-label="Next image"
+              >
+                <ChevronRight className="w-4 h-4 text-gray-700" />
+              </Button>
+            )}
+          </div>
+          <img
+            src={imageSrc}
+            alt={event.name}
+            className="object-contain w-full h-full"
+          />
+        </div>
       )}
 
       {/* Event Details Section */}
