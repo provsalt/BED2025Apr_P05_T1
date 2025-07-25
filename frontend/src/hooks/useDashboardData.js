@@ -14,7 +14,7 @@ export function useDashboardData(isAuthenticated) {
       fetcher('/nutrition'),
       fetcher('/medications'),
       fetcher('/transport/routes'),
-      fetcher('/community/events'),
+      fetcher('/community'),
     ]).then((results) => {
       // Each result: { status, value | reason }
       const [mealsRes, medsRes, transportRes, eventsRes] = results.map(r => r.value || {});
