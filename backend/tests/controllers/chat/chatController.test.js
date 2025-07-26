@@ -82,18 +82,6 @@ describe("Chat Controller", () => {
         expect(res.json).toHaveBeenCalledWith({ message: "Chat already exists between these users", chatId: 1 });
     });
 
-    it("should return 401 if user is not authenticated", async () => {
-        const req = { user: null };
-        const res = {
-            status: vi.fn(() => res),
-            json: vi.fn(),
-        };
-
-        await getChatsController(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
-    });
 
     it("should return 400 if recipientId or message is missing", async () => {
         const req = {

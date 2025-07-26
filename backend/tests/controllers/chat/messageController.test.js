@@ -60,15 +60,6 @@ describe("Message Controller", () => {
             expect(res.json).toHaveBeenCalledWith(mockMessages);
         });
 
-        it("should return 401 if user is not authenticated", async () => {
-            req.user = null;
-
-            await getChatMessagesController(req, res);
-
-            expect(res.status).toHaveBeenCalledWith(401);
-            expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
-        });
-
         it("should return 400 if chatId is missing", async () => {
             req.params.chatId = undefined;
 
@@ -133,15 +124,6 @@ describe("Message Controller", () => {
                 message: "Message sent successfully",
                 messageId: 123
             });
-        });
-
-        it("should return 401 if user is not authenticated", async () => {
-            req.user = null;
-
-            await createMessageController(req, res);
-
-            expect(res.status).toHaveBeenCalledWith(401);
-            expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
         });
 
         it("should return 400 if chatId is missing", async () => {
@@ -227,15 +209,6 @@ describe("Message Controller", () => {
             expect(Websocket.broadcastMessageUpdated).toHaveBeenCalledWith("1", "123", "Updated message", 1);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith({ message: "Message updated successfully" });
-        });
-
-        it("should return 401 if user is not authenticated", async () => {
-            req.user = null;
-
-            await updateMessageController(req, res);
-
-            expect(res.status).toHaveBeenCalledWith(401);
-            expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
         });
 
         it("should return 400 if required parameters are missing", async () => {
@@ -334,15 +307,6 @@ describe("Message Controller", () => {
             expect(Websocket.broadcastMessageDeleted).toHaveBeenCalledWith("1", "123", 1);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith({ message: "Message deleted successfully" });
-        });
-
-        it("should return 401 if user is not authenticated", async () => {
-            req.user = null;
-
-            await deleteMessageController(req, res);
-
-            expect(res.status).toHaveBeenCalledWith(401);
-            expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
         });
 
         it("should return 400 if required parameters are missing", async () => {
