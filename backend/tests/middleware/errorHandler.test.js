@@ -115,27 +115,3 @@ describe("errorHandler", () => {
     process.env.NODE_ENV = originalEnv;
   });
 });
-
-describe("asyncHandler", () => {
-  it("should catch async errors and pass to next", async () => {
-    const error = new Error("Async error");
-    const asyncFn = vi.fn().mockRejectedValue(error);
-    const mockNext = vi.fn();
-    
-    const wrappedFn = asyncHandler(asyncFn);
-    await wrappedFn({}, {}, mockNext);
-    
-    expect(mockNext).toHaveBeenCalledWith(error);
-  });
-
-  it("should handle successful async functions", async () => {
-    const asyncFn = vi.fn().mockResolvedValue("success");
-    const mockNext = vi.fn();
-    
-    const wrappedFn = asyncHandler(asyncFn);
-    await wrappedFn({}, {}, mockNext);
-    
-    expect(asyncFn).toHaveBeenCalled();
-    expect(mockNext).not.toHaveBeenCalled();
-  });
-});

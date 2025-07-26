@@ -69,8 +69,6 @@ export const errorHandler = (err, req, res, next) => {
     });
   }
 
-  console.log(err)
-
   res.status(500).json({
     success: false,
     error: "Internal server error",
@@ -80,10 +78,4 @@ export const errorHandler = (err, req, res, next) => {
     }),
     ...(req.traceId && { traceId: req.traceId })
   });
-};
-
-export const asyncHandler = (fn) => {
-  return (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
 };
