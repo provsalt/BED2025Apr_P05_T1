@@ -1,7 +1,6 @@
 import {getChats, createChat, getChatBetweenUsers} from "../../models/chat/chatModel.js";
 import {createMessage} from "../../models/chat/messageModel.js";
 import {broadcastMessageCreated} from "../../utils/websocket.js";
-import express from "express";
 
 /**
  * @openapi
@@ -30,10 +29,6 @@ import express from "express";
  * getChats fetches the list of users a user has had chatted with
  */
 export const getChatsController = async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({"message": "Unauthorized"});
-  }
-
   const chats = await getChats(req.user.id)
 
   if (!chats) {
@@ -84,14 +79,14 @@ export const getChatsController = async (req, res) => {
  *         description: Internal server error
  */
 export const createChatController = async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({"message": "Unauthorized"});
-  }
-
   const { recipientId, message } = req.body;
 
   if (!recipientId || !message) {
     return res.status(400).json({"message": "recipientId and message are required"});
+  }
+
+  if (recipientId === req.user.id) {
+    return res.status(400).json({"message": "You cannot chat with yourself"});
   }
 
   try {

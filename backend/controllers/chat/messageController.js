@@ -36,10 +36,6 @@ import {broadcastMessageCreated, broadcastMessageUpdated, broadcastMessageDelete
  *         description: Internal server error
  */
 export const getChatMessagesController = async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({"message": "Unauthorized"});
-  }
-
   const chatId = req.params.chatId;
   if (!chatId) {
     return res.status(400).json({"message": "Chat ID is required"});
@@ -105,10 +101,6 @@ export const getChatMessagesController = async (req, res) => {
  *         description: Internal server error
  */
 export const createMessageController = async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({"message": "Unauthorized"});
-  }
-
   const { chatId } = req.params;
   const { message } = req.body;
 
@@ -185,10 +177,6 @@ export const createMessageController = async (req, res) => {
  *         description: Internal server error
  */
 export const updateMessageController = async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({"message": "Unauthorized"});
-  }
-
   const { chatId, messageId } = req.params;
   const { message } = req.body;
 
@@ -266,10 +254,6 @@ export const updateMessageController = async (req, res) => {
  *         description: Internal server error
  */
 export const deleteMessageController = async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({"message": "Unauthorized"});
-  }
-
   const { chatId, messageId } = req.params;
 
   if (!chatId || !messageId) {
