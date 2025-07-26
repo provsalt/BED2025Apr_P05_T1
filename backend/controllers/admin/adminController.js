@@ -2,6 +2,7 @@ import {
   getUsersWithDeletionRequested,
   approveUserDeletionRequest
 } from "../../models/user/userModel.js";
+import { ErrorFactory } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -21,12 +22,12 @@ import {
  *       500:
  *         description: Server error
  */
-export const getDeletionRequestsController = async (req, res) => {
+export const getDeletionRequestsController = async (req, res, next) => {
   try {
     const users = await getUsersWithDeletionRequested();
     res.status(200).json(users);
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -59,18 +60,21 @@ export const getDeletionRequestsController = async (req, res) => {
  *       500:
  *         description: Server error
  */
-export const approveUserDeletionController = async (req, res) => {
-  const {userId} = req.body;
-  if (isNaN(userId)) {
-    return res.status(400).json({ error: "Invalid user ID" });
-  }
+export const approveUserDeletionController = async (req, res, next) => {
   try {
+    const {userId} = req.body;
+    
+    if (!userId || isNaN(userId)) {
+      throw ErrorFactory.validation("Invalid user ID");
+    }
+    
     const success = await approveUserDeletionRequest(userId);
     if (!success) {
-      return res.status(400).json({ error: "Failed to delete user" });
+      throw ErrorFactory.notFound("User deletion request");
     }
+    
     res.status(200).json({ message: "User deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
+  } catch (error) {
+    next(error);
   }
 };
