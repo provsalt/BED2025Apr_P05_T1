@@ -1,4 +1,5 @@
 import { getFile } from "../../services/s3Service.js";
+import { ErrorFactory } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -25,14 +26,29 @@ import { getFile } from "../../services/s3Service.js";
  *         description: Error retrieving file
  */
 // make everything public since we're not storing anything else in the bucket.
-export const getFileByKey = async (req, res) => {
+export const getFileByKey = async (req, res, next) => {
   try {
     const { key } = req.query;
-    const fileStream = await getFile(key);
+    
+    if (!key) {
+      throw ErrorFactory.validation("File key is required");
+    }
 
+    const fileStream = await getFile(key);
     fileStream.pipe(res);
   } catch (error) {
-    console.error("Error retrieving file from S3:", error);
-    res.status(500).send("Error retrieving file");
+    if (error.name === "NoSuchKey" || error.Code === "NoSuchKey") {
+      return next(ErrorFactory.notFound("File"));
+    }
+    
+    if (error.name === "AccessDenied" || error.Code === "AccessDenied") {
+      return next(ErrorFactory.forbidden("Access to file denied"));
+    }
+    
+    if (error.isOperational) {
+      return next(error);
+    }
+    
+    next(ErrorFactory.external("S3", error.message, "Unable to retrieve file at this time"));
   }
 };
