@@ -40,6 +40,15 @@ describe('communityEventModel', () => {
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
+    it('returns success with different categories', async () => {
+      mockRequest.query.mockResolvedValue({ recordset: [{ id: 43 }] });
+      const result = await model.createCommunityEvent({
+        name: 'Art Event', location: 'Gallery', category: 'arts', date: '2025-08-15', time: '14:30:00', description: 'Art exhibition', user_id: 2, approved_by_admin_id: 1
+      });
+      expect(result).toEqual({ success: true, message: expect.any(String), eventId: 43 });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
     it('returns error on db error', async () => {
       mockRequest.query.mockRejectedValue(new Error('DB fail'));
       const result = await model.createCommunityEvent({});
@@ -67,6 +76,13 @@ describe('communityEventModel', () => {
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
+    it('returns success with different image URLs', async () => {
+      mockRequest.query.mockResolvedValue({});
+      const result = await model.addCommunityEventImage(2, '/api/s3?key=community-events/2/uuid-here');
+      expect(result).toEqual({ success: true, message: expect.any(String) });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
     it('returns error on db error', async () => {
       mockRequest.query.mockRejectedValue(new Error('DB fail'));
       const result = await model.addCommunityEventImage(1, '/api/s3?key=test-image');
@@ -86,20 +102,62 @@ describe('communityEventModel', () => {
 
   describe('getAllApprovedEvents', () => {
     it('returns success with events and cover images', async () => {
-      mockRequest.query.mockResolvedValue({ 
+      mockRequest.query.mockResolvedValue({
         recordset: [
           { id: 1, name: 'Event 1', image_url: '/api/s3?key=cover1' },
           { id: 2, name: 'Event 2', image_url: '/api/s3?key=cover2' }
-        ] 
+        ]
       });
       const result = await model.getAllApprovedEvents();
-      expect(result).toEqual({ 
-        success: true, 
+      expect(result).toEqual({
+        success: true,
         events: [
           { id: 1, name: 'Event 1', image_url: '/api/s3?key=cover1' },
           { id: 2, name: 'Event 2', image_url: '/api/s3?key=cover2' }
-        ] 
+        ]
       });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns success with multiple events and full data', async () => {
+      const mockEvents = [
+        {
+          id: 1,
+          name: 'Yoga Class',
+          location: 'Community Center',
+          category: 'sports',
+          date: '2025-07-24T00:00:00.000Z',
+          time: '1970-01-01T18:00:00.000Z',
+          description: 'Relaxing yoga session',
+          user_id: 1,
+          approved_by_admin_id: 1,
+          created_by_name: 'John Doe',
+          image_url: '/api/s3?key=test1'
+        },
+        {
+          id: 2,
+          name: 'Art Workshop',
+          location: 'Gallery',
+          category: 'arts',
+          date: '2025-07-25T00:00:00.000Z',
+          time: '1970-01-01T14:00:00.000Z',
+          description: 'Painting workshop',
+          user_id: 2,
+          approved_by_admin_id: 1,
+          created_by_name: 'Jane Smith',
+          image_url: '/api/s3?key=test2'
+        }
+      ];
+      mockRequest.query.mockResolvedValue({ recordset: mockEvents });
+      const result = await model.getAllApprovedEvents();
+      expect(result).toEqual({ success: true, events: mockEvents });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns success with empty events array', async () => {
+      mockRequest.query.mockResolvedValue({ recordset: [] });
+      const result = await model.getAllApprovedEvents();
+      expect(result).toEqual({ success: true, events: [] });
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
@@ -120,23 +178,140 @@ describe('communityEventModel', () => {
       expect(result.message).toMatch(/Failed/);
       expect(result.error).toBe('Connect fail');
     });
+
+
+  });
+
+  describe('getCommunityEventImageUrls', () => {
+    it('returns image URLs on success', async () => {
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [
+          { image_url: '/api/s3?key=test1' },
+          { image_url: '/api/s3?key=test2' }
+        ]
+      });
+
+      const result = await model.getCommunityEventImageUrls(1);
+      expect(result).toEqual(['/api/s3?key=test1', '/api/s3?key=test2']);
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns single image URL', async () => {
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [
+          { image_url: '/api/s3?key=single-image' }
+        ]
+      });
+
+      const result = await model.getCommunityEventImageUrls(2);
+      expect(result).toEqual(['/api/s3?key=single-image']);
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns empty array if no images', async () => {
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+
+      const result = await model.getCommunityEventImageUrls(1);
+      expect(result).toEqual([]);
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('throws error on db error', async () => {
+      mockRequest.query.mockRejectedValue(new Error('DB fail'));
+
+      await expect(model.getCommunityEventImageUrls(1)).rejects.toThrow('DB fail');
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('throws error if connect fails', async () => {
+      const mssql = await import('mssql');
+      mssql.default.connect.mockRejectedValue(new Error('Connect fail'));
+      model = await import('../../../models/community/communityEventModel.js');
+
+      await expect(model.getCommunityEventImageUrls(1)).rejects.toThrow('Connect fail');
+    });
+  });
+
+  describe('deleteCommunityEvent', () => {
+    it('returns true on successful delete', async () => {
+      // Mock the delete queries
+      mockRequest.query.mockResolvedValueOnce({});
+      mockRequest.query.mockResolvedValueOnce({ rowsAffected: [1] });
+
+      const result = await model.deleteCommunityEvent(1, 1);
+      expect(result).toBe(true);
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns true on successful delete with different IDs', async () => {
+      // Mock the delete queries
+      mockRequest.query.mockResolvedValueOnce({});
+      mockRequest.query.mockResolvedValueOnce({ rowsAffected: [1] });
+
+      const result = await model.deleteCommunityEvent(5, 3);
+      expect(result).toBe(true);
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns false if event not found or user does not have permission', async () => {
+      // Mock the delete queries
+      mockRequest.query.mockResolvedValueOnce({});
+      mockRequest.query.mockResolvedValueOnce({ rowsAffected: [0] });
+
+      const result = await model.deleteCommunityEvent(999, 1);
+      expect(result).toBe(false);
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns false when user does not own the event', async () => {
+      // Mock the delete queries
+      mockRequest.query.mockResolvedValueOnce({});
+      mockRequest.query.mockResolvedValueOnce({ rowsAffected: [0] });
+
+      const result = await model.deleteCommunityEvent(1, 999);
+      expect(result).toBe(false);
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('throws error on db error during image deletion', async () => {
+      mockRequest.query.mockRejectedValueOnce(new Error('Image deletion failed'));
+
+      await expect(model.deleteCommunityEvent(1, 1)).rejects.toThrow('Image deletion failed');
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('throws error on db error during event deletion', async () => {
+      mockRequest.query.mockResolvedValueOnce({}); // Image deletion succeeds
+      mockRequest.query.mockRejectedValueOnce(new Error('Event deletion failed')); // Event deletion fails
+
+      await expect(model.deleteCommunityEvent(1, 1)).rejects.toThrow('Event deletion failed');
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('throws error if connect fails', async () => {
+      const mssql = await import('mssql');
+      mssql.default.connect.mockRejectedValue(new Error('Connect fail'));
+      model = await import('../../../models/community/communityEventModel.js');
+
+      await expect(model.deleteCommunityEvent(1, 1)).rejects.toThrow('Connect fail');
+    });
   });
 
   describe('getCommunityEventImages', () => {
     it('returns success with images', async () => {
-      mockRequest.query.mockResolvedValue({ 
+      mockRequest.query.mockResolvedValue({
         recordset: [
           { id: 1, image_url: '/api/s3?key=test1', uploaded_at: '2025-01-01T00:00:00Z' },
           { id: 2, image_url: '/api/s3?key=test2', uploaded_at: '2025-01-01T00:00:01Z' }
-        ] 
+        ]
       });
       const result = await model.getCommunityEventImages(1);
-      expect(result).toEqual({ 
-        success: true, 
+      expect(result).toEqual({
+        success: true,
         images: [
           { id: 1, image_url: '/api/s3?key=test1', uploaded_at: '2025-01-01T00:00:00Z' },
           { id: 2, image_url: '/api/s3?key=test2', uploaded_at: '2025-01-01T00:00:01Z' }
-        ] 
+        ]
       });
       expect(mockConnection.close).toHaveBeenCalled();
     });
@@ -169,15 +344,15 @@ describe('communityEventModel', () => {
 
   describe('getCommunityEventsByUserId', () => {
     it('returns success with user events', async () => {
-      mockRequest.query.mockResolvedValue({ 
+      mockRequest.query.mockResolvedValue({
         recordset: [
           { id: 1, name: 'My Event 1', created_by_name: 'John Doe', image_url: '/api/s3?key=cover1' },
           { id: 2, name: 'My Event 2', created_by_name: 'John Doe', image_url: '/api/s3?key=cover2' }
-        ] 
+        ]
       });
       const result = await model.getCommunityEventsByUserId(1);
-      expect(result).toEqual({ 
-        success: true, 
+      expect(result).toEqual({
+        success: true,
         events: [
           { id: 1, name: 'My Event 1', created_by_name: 'John Doe', image_url: '/api/s3?key=cover1' },
           { id: 2, name: 'My Event 2', created_by_name: 'John Doe', image_url: '/api/s3?key=cover2' }
@@ -215,50 +390,50 @@ describe('communityEventModel', () => {
   describe('getCommunityEventById', () => {
     it('returns success with event and images', async () => {
       // Mock the main event query
-      mockRequest.query.mockResolvedValueOnce({ 
-        recordset: [{ id: 1, name: 'Event 1', created_by_name: 'John Doe' }] 
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{ id: 1, name: 'Event 1', created_by_name: 'John Doe' }]
       });
       // Mock the images query
-      mockRequest.query.mockResolvedValueOnce({ 
+      mockRequest.query.mockResolvedValueOnce({
         recordset: [
           { id: 1, image_url: '/api/s3?key=test1', uploaded_at: '2025-01-01T00:00:00Z' },
           { id: 2, image_url: '/api/s3?key=test2', uploaded_at: '2025-01-01T00:00:01Z' }
-        ] 
+        ]
       });
-      
+
       const result = await model.getCommunityEventById(1);
-      expect(result).toEqual({ 
-        success: true, 
-        event: { 
-          id: 1, 
-          name: 'Event 1', 
+      expect(result).toEqual({
+        success: true,
+        event: {
+          id: 1,
+          name: 'Event 1',
           created_by_name: 'John Doe',
           images: [
             { id: 1, image_url: '/api/s3?key=test1', uploaded_at: '2025-01-01T00:00:00Z' },
             { id: 2, image_url: '/api/s3?key=test2', uploaded_at: '2025-01-01T00:00:01Z' }
           ]
-        } 
+        }
       });
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
     it('returns success with event and empty images array', async () => {
       // Mock the main event query
-      mockRequest.query.mockResolvedValueOnce({ 
-        recordset: [{ id: 1, name: 'Event 1', created_by_name: 'John Doe' }] 
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{ id: 1, name: 'Event 1', created_by_name: 'John Doe' }]
       });
       // Mock the images query returning empty
       mockRequest.query.mockResolvedValueOnce({ recordset: [] });
-      
+
       const result = await model.getCommunityEventById(1);
-      expect(result).toEqual({ 
-        success: true, 
-        event: { 
-          id: 1, 
-          name: 'Event 1', 
+      expect(result).toEqual({
+        success: true,
+        event: {
+          id: 1,
+          name: 'Event 1',
           created_by_name: 'John Doe',
           images: []
-        } 
+        }
       });
       expect(mockConnection.close).toHaveBeenCalled();
     });
@@ -289,5 +464,5 @@ describe('communityEventModel', () => {
     });
   });
 
-  
-}); 
+
+});

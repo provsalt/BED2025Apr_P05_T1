@@ -1,5 +1,5 @@
 import express from "express";
-import { createEvent } from "./communityEventController.js";
+import { createEvent, deleteEvent, getApprovedEvents } from "./communityEventController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import { validateSchema } from '../../middleware/validateSchema.js';
 import { CommunityInformation } from '../../utils/validation/community.js';
@@ -12,7 +12,7 @@ const router = express.Router();
 router.post(
   "/create",
   getUserMiddleware,
-  genericUploadMiddleware.array('images'), 
+  genericUploadMiddleware.array('images'),
   validateSchema(CommunityInformation),
   createEvent
 );
@@ -26,4 +26,7 @@ router.get("/myevents", getUserMiddleware, getMyEvents);
 // GET /api/community/:id - Get details for a single community event
 router.get("/:id", getUserMiddleware, getEventById);
 
-export default router; 
+// DELETE /api/community/:id - Delete a community event
+router.delete("/:id", getUserMiddleware, deleteEvent);
+
+export default router;

@@ -191,3 +191,59 @@ export async function getCommunityEventById(eventId) {
     }
 }
 
+// GET: Get image URLs for a community event
+export async function getCommunityEventImageUrls(eventId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const imagesResult = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .query(`SELECT image_url FROM CommunityEventImage WHERE community_event_id = @eventId`);
+
+        return imagesResult.recordset.map(record => record.image_url);
+    } catch (error) {
+        console.error('Error getting community event image URLs:', error);
+        throw error;
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
+// DELETE: Delete a community event
+export async function deleteCommunityEvent(eventId, userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+
+        // Delete images from CommunityEventImage table first
+        await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                DELETE FROM CommunityEventImage 
+                WHERE community_event_id = @eventId
+            `);
+
+        // Delete the event from CommunityEvent table
+        const result = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .input('userId', sql.Int, userId)
+            .query(`
+                DELETE FROM CommunityEvent 
+                WHERE id = @eventId AND user_id = @userId
+            `);
+
+        return result.rowsAffected[0] > 0;
+    } catch (error) {
+        console.error('Error deleting community event:', error);
+        throw error;
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
+
+

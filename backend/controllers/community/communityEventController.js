@@ -1,5 +1,5 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, deleteCommunityEvent, getCommunityEventImageUrls } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required: [name, location, category, date, time, description, image]
  *             properties:
  *               name:
  *                 type: string
@@ -32,7 +33,7 @@ import { v4 as uuidv4 } from 'uuid';
  *               date:
  *                 type: string
  *                 format: date
- *                 description: Event date (YYYY-MM-DD)
+ *                 description: Event date (YYYY-MM-DD format, must be in the future)
  *               time:
  *                 type: string
  *                 description: Event time (HH:mm or HH:mm:ss format)
@@ -44,9 +45,9 @@ import { v4 as uuidv4 } from 'uuid';
  *                 items:
  *                   type: string
  *                   format: binary
- *                 description: 
- *                  - Event images (JPEG, PNG, WEBP, JPG up to 30MB each). 
- *                  - Multiple images supported.  
+ *                 description:
+ *                  - Event images (JPEG, PNG, WEBP, JPG up to 30MB each).
+ *                  - Multiple images supported.
  *                  - Filenames are automatically sanitized.
  *     responses:
  *       201:
@@ -69,7 +70,7 @@ import { v4 as uuidv4 } from 'uuid';
  *                     type: string
  *                   description: Array of URLs to access the uploaded images (e.g. /api/s3?key=community-events/{userId}/{uuid})
  *       400:
- *         description: Bad request (validation or missing fields). 
+ *         description: Bad request (validation or missing fields).
  *           - The combination of date and time cannot be in the past (event must be scheduled for a future date/time).
  *           - Invalid time format. Please use HH:mm or HH:mm:ss.
  *           - Time is required.
@@ -82,7 +83,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const createEvent = async (req, res) => {
     try {
         const userId = req.user.id;
-        
+
         const files = req.files || [];
         if (files.length === 0) {
             return res.status(400).json({ success: false, message: 'At least one image is required.' });
@@ -93,19 +94,22 @@ export const createEvent = async (req, res) => {
         if (time && /^\d{2}:\d{2}$/.test(time)) {
             time = time + ":00";
         }
-        
+
         const eventData = {
             ...rest,
             time,
             user_id: userId,
             approved_by_admin_id: 1 // For testing, set to admin ID 1 (to be removed when admin approval is done)
         };
+        // Save to database
         const eventResult = await createCommunityEvent(eventData);
         if (!eventResult.success) {
+            // If database fails, cleanup uploaded image
+            await deleteFile(imageKey);
             return res.status(500).json(eventResult);
         }
 
-        // Handle multiple images 
+        // Handle multiple images
         const imageUrls = [];
         for (let file of files) {
             // Sanitize filename to avoid encoding issues
@@ -113,7 +117,7 @@ export const createEvent = async (req, res) => {
                 .replace(/[^\w.-]/g, '_') // Replace special characters with underscore
                 .replace(/_+/g, '_') // Replace multiple underscores with single
                 .substring(0, 100); // Limit length
-            
+
             const imageKey = `community-events/${userId}/${uuidv4()}_${sanitizedFilename}`;
 
             try {
@@ -252,7 +256,7 @@ export const getApprovedEvents = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
-}; 
+};
 
 /**
  * @openapi
@@ -306,7 +310,7 @@ export const getMyEvents = async (req, res) => {
         console.error('Error in getMyEvents controller:', error);
         res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
-}; 
+};
 
 /**
  * @openapi
@@ -392,4 +396,122 @@ export const getEventById = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
+};
+
+
+/**
+ * @openapi
+ * /api/community/{id}:
+ *   delete:
+ *     tags:
+ *       - Community
+ *     summary: Delete a community event
+ *     description:
+ *       Allows a user to delete their own community event and all associated images.
+ *       - User can only delete events they created
+ *       - All associated images will be removed from S3 storage
+ *       - Event and image records will be deleted from database
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The event ID to delete
+ *     responses:
+ *       200:
+ *         description: Community event deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Community event deleted successfully"
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "User not authenticated"
+ *       404:
+ *         description: Not found - Event not found or user does not have permission to delete it
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Event not found or you don't have permission to delete it"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to delete community event"
+ */
+export const deleteEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check if user is authenticated
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ success: false, message: "User not authenticated" });
+        }
+
+        // Get image URLs first for S3 cleanup
+        const imageUrls = await getCommunityEventImageUrls(id);
+
+        // Delete images from S3
+        if (imageUrls && imageUrls.length > 0) {
+            for (const imageUrl of imageUrls) {
+                try {
+                    // Extract S3 key from image URL
+                    const keyMatch = imageUrl.match(/key=([^&]+)/);
+                    if (keyMatch) {
+                        const s3Key = decodeURIComponent(keyMatch[1]);
+                        await deleteFile(s3Key);
+                    }
+                } catch (error) {
+                    console.error('Error deleting image from S3:', error);
+                }
+            }
+        }
+
+        // Delete from database
+        const deleted = await deleteCommunityEvent(id, req.user.id);
+
+        if (!deleted) {
+            return res.status(404).json({ success: false, message: "Event not found or you don't have permission to delete it" });
+        }
+
+        res.status(200).json({ success: true, message: "Community event deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting community event:", error);
+        res.status(500).json({ success: false, message: "Failed to delete community event" });
+    }
 };
