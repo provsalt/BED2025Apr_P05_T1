@@ -18,6 +18,7 @@ import {z} from "zod/v4";
 import bcrypt from "bcryptjs";
 import {deleteFile, uploadFile} from "../../services/s3Service.js";
 import {deleteUser} from "../../models/admin/adminModel.js";
+import { ErrorFactory } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -43,14 +44,16 @@ import {deleteUser} from "../../models/admin/adminModel.js";
  *       500:
  *         description: Failed to fetch current user
  */
-export const getCurrentUserController = async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({message: "Unauthorized"});
-  }
-
+export const getCurrentUserController = async (req, res, next) => {
   try {
+    if (!req.user) {
+      throw ErrorFactory.unauthorized("Unauthorized");
+    }
+
     const fullUser = await getUser(req.user.id);
-    if (!fullUser) return res.status(404).json({error: "User not found"});
+    if (!fullUser) {
+      throw ErrorFactory.notFound("User");
+    }
 
     res.status(200).json({
       id: fullUser.id,
@@ -63,9 +66,8 @@ export const getCurrentUserController = async (req, res) => {
       deletionRequested: fullUser.deletionRequested,
       deletionRequestedAt: fullUser.deletionRequestedAt
     });
-  } catch (err) {
-    console.error("Fetch current user failed:", err);
-    res.status(500).json({error: "Failed to fetch current user"});
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -98,21 +100,20 @@ export const getCurrentUserController = async (req, res) => {
  *       500:
  *         description: Error fetching user
  */
-export const getUserController = async (req, res) => {
-  const userId = parseInt(req.params.id);
-  if (isNaN(userId)) {
-    return res.status(400).json({error: "Invalid user ID"});
-  }
-
+export const getUserController = async (req, res, next) => {
   try {
+    const userId = parseInt(req.params.id);
+    if (isNaN(userId)) {
+      throw ErrorFactory.validation("Invalid user ID");
+    }
+
     const user = await getUser(userId);
     if (!user) {
-      return res.status(404).json({error: "User not found"});
+      throw ErrorFactory.notFound("User");
     }
     res.json(user);
   } catch (error) {
-    console.error("Error fetching user:", error);
-    res.status(500).json({error: "Error fetching user"});
+    next(error);
   }
 };
 
@@ -150,14 +151,14 @@ export const getUserController = async (req, res) => {
  *       500:
  *         description: Failed to update user
  */
-export const updateUserController = async (req, res) => {
-  const userId = parseInt(req.params.id);
-  const updates = req.body;
-
+export const updateUserController = async (req, res, next) => {
   try {
+    const userId = parseInt(req.params.id);
+    const updates = req.body;
+
     const currentUser = await getUser(userId);
     if (!currentUser) {
-      return res.status(404).json({error: "User not found"});
+      throw ErrorFactory.notFound("User");
     }
 
     // Protect non-editable fields
@@ -171,14 +172,12 @@ export const updateUserController = async (req, res) => {
     const success = await updateUser(userId, updates);
 
     if (!success) {
-
-      return res.status(400).json({error: "Failed to update user"});
+      throw ErrorFactory.external("Database", "Failed to update user", "Update operation failed");
     }
 
     res.json({message: "User updated successfully"});
   } catch (error) {
-    console.error("Update error:", error);
-    res.status(500).json({error: "Failed to update user"});
+    next(error);
   }
 };
 
@@ -215,40 +214,44 @@ export const updateUserController = async (req, res) => {
  *       500:
  *         description: Error creating user
  */
-export const loginUserController = async (req, res) => {
-  const body = req.body;
+export const loginUserController = async (req, res, next) => {
+  try {
+    const body = req.body;
 
-  const user = await getUserByEmail(body.email);
-  if (!user) {
-    return res.status(401).json({error: "Invalid email or password"});
-  }
-  const isPasswordValid = await bcrypt.compare(body.password, user.password);
+    const user = await getUserByEmail(body.email);
+    if (!user) {
+      throw ErrorFactory.unauthorized("Invalid email or password");
+    }
+    const isPasswordValid = await bcrypt.compare(body.password, user.password);
 
-  if (!isPasswordValid) {
-    return res.status(401).json({ error: "Invalid email or password" });
-  }                       
-  await insertLoginHistory(user.id);
+    if (!isPasswordValid) {
+      throw ErrorFactory.unauthorized("Invalid email or password");
+    }                       
+    await insertLoginHistory(user.id);
 
-  const secret = new TextEncoder().encode(process.env.SECRET || "");
-  const tok = await new SignJWT({
-    sub: user.id,
-    role: user.role
-  }).setProtectedHeader({alg: "HS256"})
-    .setExpirationTime("1d")
-    .sign(secret);
-  res.status(200).json({
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      profile_picture_url: user.profile_picture_url,
-      gender: user.gender,
-      date_of_birth: user.date_of_birth,
-      language: user.language,
+    const secret = new TextEncoder().encode(process.env.SECRET || "");
+    const tok = await new SignJWT({
+      sub: user.id,
       role: user.role
-    },
-    token: tok
-  });
+    }).setProtectedHeader({alg: "HS256"})
+      .setExpirationTime("1d")
+      .sign(secret);
+    res.status(200).json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        profile_picture_url: user.profile_picture_url,
+        gender: user.gender,
+        date_of_birth: user.date_of_birth,
+        language: user.language,
+        role: user.role
+      },
+      token: tok
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
 /**
@@ -282,7 +285,7 @@ export const loginUserController = async (req, res) => {
  *       500:
  *         description: Error creating user
  */
-export const createUserController = async (req, res) => {
+export const createUserController = async (req, res, next) => {
     try {
         const newUser = await createUser(req.body);
         const secret = new TextEncoder().encode(process.env.SECRET || "");
@@ -305,7 +308,7 @@ export const createUserController = async (req, res) => {
           token: tok
         });
     } catch (error) {
-        res.status(500).json({ error: "Error creating user" });
+        next(error);
     }
 }
 
@@ -340,42 +343,39 @@ export const createUserController = async (req, res) => {
  *       500:
  *         description: Failed to update password
  */
-export const changePasswordController = async (req, res) => {
-  const userId = req.user.id;
-  const { oldPassword, newPassword } = req.body;
-  const validation = z.object({
-    oldPassword: z.string().min(1, "Old password is required"),
-    newPassword: Password,
-  }).safeParse({oldPassword, newPassword});
-  if (!validation.success) {
-    return res.status(400).json({
-      error: "Invalid input",
-      details: validation.error.issues,
-    });
-  }
+export const changePasswordController = async (req, res, next) => {
   try {
+    const userId = req.user.id;
+    const { oldPassword, newPassword } = req.body;
+    const validation = z.object({
+      oldPassword: z.string().min(1, "Old password is required"),
+      newPassword: Password,
+    }).safeParse({oldPassword, newPassword});
+    if (!validation.success) {
+      throw ErrorFactory.validation("Invalid input");
+    }
+    
     const user = await getUser(userId);
     if (!user) {
-      return res.status(404).json({error: "User not found"});
+      throw ErrorFactory.notFound("User");
     }
     const isValid = await bcrypt.compare(oldPassword, user.password);
     if (!isValid) {
-      return res.status(403).json({error: "Old password is incorrect"});
+      throw ErrorFactory.forbidden("Old password is incorrect");
     }
     const isTheSame = await bcrypt.compare(newPassword, user.password);
     if (isTheSame) {
-      return res.status(400).json({error: "New password must be different from old password"});
+      throw ErrorFactory.validation("New password must be different from old password");
     }
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     const success = await updateUser(userId, {password: hashedPassword});
     if (!success) {
-      return res.status(500).json({error: "Failed to update password"});
+      throw ErrorFactory.external("Database", "Failed to update password", "Password update failed");
     }
 
     res.json({message: "Password updated successfully"});
-  } catch (err) {
-    console.error("Password update error:", err);
-    res.status(500).json({error: "Internal server error"});
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -416,18 +416,18 @@ export const changePasswordController = async (req, res) => {
  *       500:
  *         description: Failed to upload image
  */
-export const uploadUserProfilePictureController = async (req, res) => {
-  const userId = req.user.id;
-  const file = req.file;
-
-  if (!file) {
-    return res.status(400).json({error: "No file uploaded"});
-  }
-
-  const uniqueId = randomUUID();
-  const key = `uploads/${uniqueId}`;
-
+export const uploadUserProfilePictureController = async (req, res, next) => {
   try {
+    const userId = req.user.id;
+    const file = req.file;
+
+    if (!file) {
+      throw ErrorFactory.validation("No file uploaded");
+    }
+
+    const uniqueId = randomUUID();
+    const key = `uploads/${uniqueId}`;
+
     const user = await getUser(userId);
     if (user?.profile_picture_url) {
       const oldKey = `/uploads/${decodeURIComponent(user.profile_picture_url.split("/").pop())}`;
@@ -441,9 +441,8 @@ export const uploadUserProfilePictureController = async (req, res) => {
     await updateUserProfilePicture(userId, publicUrl)
 
     res.status(200).json({message: "Upload successful", url: publicUrl});
-  } catch (err) {
-    console.error("Upload failed:", err);
-    res.status(500).json({error: "Failed to upload image"});
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -465,13 +464,13 @@ export const uploadUserProfilePictureController = async (req, res) => {
  *       500:
  *         description: Failed to delete profile picture
  */
-export const deleteUserProfilePictureController = async (req, res) => {
-  const userId = req.user.id;
-
+export const deleteUserProfilePictureController = async (req, res, next) => {
   try {
+    const userId = req.user.id;
+
     const user = await getUser(userId);
     if (!user || !user.profile_picture_url) {
-      return res.status(404).json({error: "No profile picture to delete"});
+      throw ErrorFactory.notFound("Profile picture");
     }
 
     const key = `uploads/${user.profile_picture_url.split("/").pop()}`;
@@ -480,9 +479,8 @@ export const deleteUserProfilePictureController = async (req, res) => {
 
     await updateUserProfilePicture(userId, null)
     res.status(200).json({message: "Profile picture deleted successfully"});
-  } catch (err) {
-    console.error("Delete picture error:", err);
-    res.status(500).json({error: "Failed to delete profile picture"});
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -513,30 +511,29 @@ export const deleteUserProfilePictureController = async (req, res) => {
  *       500:
  *         description: Error deleting user
  */
-export const deleteUserController = async (req, res) => {
-  const {id: userId} = req.params; // Fix: use 'id' from params, not 'userId'
-
-  if (!userId || isNaN(userId)) {
-    return res.status(400).json({error: "Invalid user ID"});
-  }
-
-  // Prevent admin from deleting themselves
-  if (parseInt(userId) === req.user.id) {
-    return res.status(400).json({error: "Cannot delete your own account"});
-  }
-
+export const deleteUserController = async (req, res, next) => {
   try {
+    const {id: userId} = req.params;
+
+    if (!userId || isNaN(userId)) {
+      throw ErrorFactory.validation("Invalid user ID");
+    }
+
+    // Prevent admin from deleting themselves
+    if (parseInt(userId) === req.user.id) {
+      throw ErrorFactory.validation("Cannot delete your own account");
+    }
+
     await deleteUser(parseInt(userId));
     res.status(200).json({
       message: "User deleted successfully",
       deletedUserId: parseInt(userId)
     });
   } catch (error) {
-    console.error("Error deleting user:", error);
     if (error.message.includes("not found")) {
-      return res.status(404).json({error: "User not found"});
+      return next(ErrorFactory.notFound("User"));
     }
-    res.status(500).json({error: "Error deleting user"});
+    next(error);
   }
 };
 
@@ -558,16 +555,16 @@ export const deleteUserController = async (req, res) => {
  *       500:
  *         description: Server error
  */
-export const requestUserDeletionController = async (req, res) => {
+export const requestUserDeletionController = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const success = await requestUserDeletion(userId);
     if (!success) {
-      return res.status(400).json({ error: "Failed to request account deletion" });
+      throw ErrorFactory.external("Database", "Failed to request account deletion", "Request submission failed");
     }
     res.status(200).json({ message: "Account deletion request submitted" });
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -589,16 +586,16 @@ export const requestUserDeletionController = async (req, res) => {
  *       500:
  *         description: Server error
  */
-export const cancelUserDeletionController = async (req, res) => {
+export const cancelUserDeletionController = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const success = await cancelUserDeletionRequest(userId);
     if (!success) {
-      return res.status(400).json({ error: "Failed to cancel deletion request" });
+      throw ErrorFactory.external("Database", "Failed to cancel deletion request", "Cancellation failed");
     }
     res.status(200).json({ message: "Account deletion request cancelled" });
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -624,13 +621,12 @@ export const cancelUserDeletionController = async (req, res) => {
  *       500:
  *         description: Error fetching users
  */
-export const getAllUsersController = async (req, res) => {
+export const getAllUsersController = async (req, res, next) => {
   try {
     const users = await getAllUsers();
     res.status(200).json(users);
   } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({error: "Error fetching users"});
+    next(error);
   }
 };
 
