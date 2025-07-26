@@ -2,6 +2,7 @@ import { uploadFile, deleteFile } from "../../services/s3Service.js";
 import { createMedicationReminder, getMedicationRemindersByUser, updateMedicationReminder, deleteMedicationReminder, createMedicationQuestion } from "../../models/medical/medicalModel.js";
 import { MAX_REMINDERS_PER_USER } from "../../utils/validation/medical.js";
 import { v4 as uuidv4 } from 'uuid';
+import { ErrorFactory } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -51,23 +52,36 @@ import { v4 as uuidv4 } from 'uuid';
  *       500:
  *         description: Internal server error
  */
-export const createMedication = async (req, res) => {
+export const createMedication = async (req, res, next) => {
     try {
         const userId = req.user.id;
-        // validate user
+        
         if (!userId) {
-            return res.status(400).json({ success: false, message: 'User ID is required' });
+            throw ErrorFactory.unauthorized("User not authenticated");
         }
-        //checks max reminders per user
+        
+        if (!req.file) {
+            throw ErrorFactory.validation("Image file is required");
+        }
+        
+        const { medicine_name, reason, dosage, medicine_time, frequency_per_day } = req.body;
+        
+        if (!medicine_name || !reason || !dosage || !medicine_time || !frequency_per_day) {
+            throw ErrorFactory.validation("All fields (medicine_name, reason, dosage, medicine_time, frequency_per_day) are required");
+        }
+        
+        if (frequency_per_day > 3 || frequency_per_day < 1) {
+            throw ErrorFactory.validation("Frequency per day must be between 1 and 3");
+        }
+        
+        // Check max reminders per user
         const remindersResult = await getMedicationRemindersByUser(userId);
         if (remindersResult.success && remindersResult.reminders.length >= MAX_REMINDERS_PER_USER) {
-            return res.status(400).json({ success: false, message: `You can only have up to ${MAX_REMINDERS_PER_USER} medication reminders.` });
+            throw ErrorFactory.validation(`You can only have up to ${MAX_REMINDERS_PER_USER} medication reminders`);
         }
         
         const imageFile = req.file;
         
-        const { medicine_name, reason, dosage, medicine_time, frequency_per_day } = req.body;
-
         // Generate unique key for S3
         const imageKey = `medications/${userId}/${uuidv4()}`;
 
@@ -92,19 +106,14 @@ export const createMedication = async (req, res) => {
         const result = await createMedicationReminder(medicationData);
 
         if (result.success) {
-            res.status(200).json(result);
+            res.status(201).json(result);
         } else {
             // If database fails, cleanup uploaded image
             await deleteFile(imageKey);
-            res.status(500).json(result);
+            throw ErrorFactory.database("Failed to create medication reminder", result.message);
         }
     } catch (error) {
-        console.error('Error in createMedication controller:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: error.message
-        });
+        next(error);
     }
 };
 
@@ -126,25 +135,22 @@ export const createMedication = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-export const getMedicationReminders = async (req, res) => {
+export const getMedicationReminders = async (req, res, next) => {
     try {
         const userId = req.user.id;
+        
         if (!userId) {
-            return res.status(400).json({ success: false, message: 'User ID is required' });
+            throw ErrorFactory.unauthorized("User not authenticated");
         }
+        
         const result = await getMedicationRemindersByUser(userId);
         if (result.success) {
             res.status(200).json(result);
         } else {
-            res.status(500).json(result);
+            throw ErrorFactory.database("Failed to retrieve medication reminders", result.message);
         }
     } catch (error) {
-        console.error('Error in getMedicationReminders controller:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: error.message
-        });
+        next(error);
     }
 };
 
@@ -202,19 +208,32 @@ export const getMedicationReminders = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-export const updateMedication = async (req, res) => {
+export const updateMedication = async (req, res, next) => {
     try {
         const userId = req.user.id;
         const reminderId = req.params.id;
+        
         if (!userId) {
-            return res.status(400).json({ success: false, message: 'User ID is required' });
+            throw ErrorFactory.unauthorized("User not authenticated");
         }
+        
+        if (!reminderId || isNaN(reminderId)) {
+            throw ErrorFactory.validation("Valid reminder ID is required");
+        }
+        
+        const { medicine_name, reason, dosage, medicine_time, frequency_per_day } = req.body;
+        
+        if (frequency_per_day && (frequency_per_day > 3 || frequency_per_day < 1)) {
+            throw ErrorFactory.validation("Frequency per day must be between 1 and 3");
+        }
+        
         // Fetch the existing reminder 
         const remindersResult = await getMedicationRemindersByUser(userId);
         const reminder = remindersResult.reminders?.find(r => r.id == reminderId);
         if (!reminder) {
-            return res.status(404).json({ success: false, message: 'Reminder not found' });
+            throw ErrorFactory.notFound("Medication reminder");
         }
+        
         let imageUrl = reminder.image_url;
         if (req.file) {
             // New image uploaded
@@ -223,7 +242,6 @@ export const updateMedication = async (req, res) => {
             imageUrl = `/api/s3?key=${imageKey}`;
         }
         
-        const { medicine_name, reason, dosage, medicine_time, frequency_per_day } = req.body;
         const updateData = {
             medicationName: medicine_name,
             reason,
@@ -232,19 +250,15 @@ export const updateMedication = async (req, res) => {
             frequencyPerDay: frequency_per_day,
             imageUrl
         };
+        
         const result = await updateMedicationReminder(reminderId, updateData);
         if (result.success) {
             res.status(200).json(result);
         } else {
-            res.status(500).json(result);
+            throw ErrorFactory.database("Failed to update medication reminder", result.message);
         }
     } catch (error) {
-        console.error('Error in updateMedication controller:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: error.message
-        });
+        next(error);
     }
 };
 
@@ -313,29 +327,27 @@ export const updateMedication = async (req, res) => {
  *                 error:
  *                   type: string
  */
-export const deleteMedication = async (req, res) => {
+export const deleteMedication = async (req, res, next) => {
     try {
         const userId = req.user.id;
         const reminderId = parseInt(req.params.id, 10);
+        
         if (!userId) {
-            return res.status(400).json({ success: false, message: 'User ID is required' });
+            throw ErrorFactory.unauthorized("User not authenticated");
         }
+        
         if (!reminderId || isNaN(reminderId) || reminderId <= 0) {
-            return res.status(400).json({ success: false, message: 'Valid reminder ID is required' });
+            throw ErrorFactory.validation("Valid reminder ID is required");
         }
+        
         const result = await deleteMedicationReminder(reminderId, userId);
         if (result.success) {
             res.status(200).json(result);
         } else {
-            res.status(404).json(result);
+            throw ErrorFactory.notFound("Medication reminder");
         }
     } catch (error) {
-        console.error('Error deleting medication reminder:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: error.message
-        });
+        next(error);
     }
 };
 
@@ -411,21 +423,28 @@ export const deleteMedication = async (req, res) => {
  *                 error:
  *                   type: string
  */
-export const submitMedicationQuestionnaire = async (req, res) => {
+export const submitMedicationQuestionnaire = async (req, res, next) => {
   try {
     const userId = req.user.id;
+    
     if (!userId) {
-        return res.status(400).json({ success: false, message: "User ID is required" });
+        throw ErrorFactory.unauthorized("User not authenticated");
     }
+    
     const data = req.body;
+    const { difficulty_walking, assistive_device, symptoms_or_pain, allergies, medical_conditions, exercise_frequency } = data;
+    
+    if (!difficulty_walking || !assistive_device || !symptoms_or_pain || !allergies || !medical_conditions || !exercise_frequency) {
+        throw ErrorFactory.validation("All questionnaire fields are required");
+    }
+    
     const result = await createMedicationQuestion(userId, data);
     if (result.success) {
       res.status(200).json({ success: true, message: "Questionnaire submitted" });
     } else {
-      res.status(500).json({ success: false, message: result.message, error: result.error });
+      throw ErrorFactory.database("Failed to submit questionnaire", result.message);
     }
-  } catch (err) {
-    console.error('Error in submitMedicationQuestionnaire controller:', err);
-    res.status(500).json({ success: false, message: "Server error", error: err.message });
+  } catch (error) {
+    next(error);
   }
 };

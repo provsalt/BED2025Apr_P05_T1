@@ -17,13 +17,22 @@ vi.mock('../../../models/medical/medicalModel.js', () => ({
   createMedicationQuestion: vi.fn(),
 }));
 
-let req, res;
+vi.mock('../../../utils/AppError.js', () => ({
+  ErrorFactory: {
+    validation: vi.fn((message) => new Error(message)),
+    unauthorized: vi.fn((message) => new Error(message)),
+    notFound: vi.fn((resource) => new Error(`${resource} not found`)),
+    database: vi.fn((message, details) => new Error(message)),
+  }
+}));
+
+let req, res, next;
 
 describe('medicalController', () => {
   beforeEach(() => {
     req = {
       user: { id: 1 },
-      file: {},
+      file: { buffer: Buffer.from('test') },
       params: { id: 1 },
       body: {
         medicine_name: 'Test',
@@ -37,29 +46,73 @@ describe('medicalController', () => {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
     };
+    next = vi.fn();
+    vi.clearAllMocks();
   });
 
   describe('createMedication', () => {
-    it('should return 400 if userId missing', async () => {
+    it('should call next with unauthorized error if userId missing', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
       req.user = {};
-      await controller.createMedication(req, res);
-      expect(res.status).toHaveBeenCalledWith(400);
+      await controller.createMedication(req, res, next);
+      expect(ErrorFactory.unauthorized).toHaveBeenCalledWith('User not authenticated');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should return 400 if user already has max reminders', async () => {
+    it('should call next with validation error if image file missing', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      req.file = null;
+      await controller.createMedication(req, res, next);
+      expect(ErrorFactory.validation).toHaveBeenCalledWith('Image file is required');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should call next with validation error for missing required fields', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      req.body.medicine_name = '';
+      await controller.createMedication(req, res, next);
+      expect(ErrorFactory.validation).toHaveBeenCalledWith('All fields (medicine_name, reason, dosage, medicine_time, frequency_per_day) are required');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should call next with validation error if frequency_per_day exceeds max', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      req.body.frequency_per_day = 99;
+      await controller.createMedication(req, res, next);
+      expect(ErrorFactory.validation).toHaveBeenCalledWith('Frequency per day must be between 1 and 3');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should call next with validation error if user already has max reminders', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
       model.getMedicationRemindersByUser.mockResolvedValue({ success: true, reminders: Array(MAX_REMINDERS_PER_USER).fill({}) });
-      await controller.createMedication(req, res);
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining("up to") }));
+      await controller.createMedication(req, res, next);
+      expect(ErrorFactory.validation).toHaveBeenCalledWith(`You can only have up to ${MAX_REMINDERS_PER_USER} medication reminders`);
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should return 400 if frequency_per_day exceeds max', async () => {
-      req.body.frequency_per_day = 99; // Exceeds max
-   
+    it('should return 201 on successful creation', async () => {
       model.getMedicationRemindersByUser.mockResolvedValue({ success: true, reminders: [] });
-      await controller.createMedication(req, res);
-      // The Zod validation should catch this before controller, but if not, backend should still reject
-   
+      model.createMedicationReminder.mockResolvedValue({ success: true, id: 1 });
+      await controller.createMedication(req, res, next);
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith({ success: true, id: 1 });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should call next with database error if creation fails', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      model.getMedicationRemindersByUser.mockResolvedValue({ success: true, reminders: [] });
+      model.createMedicationReminder.mockResolvedValue({ success: false, message: 'DB error' });
+      await controller.createMedication(req, res, next);
+      expect(ErrorFactory.database).toHaveBeenCalledWith('Failed to create medication reminder', 'DB error');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -68,21 +121,28 @@ describe('medicalController', () => {
   describe('getMedicationReminders', () => {
     it('should return 200 and reminders on success', async () => {
       model.getMedicationRemindersByUser.mockResolvedValue({ success: true, reminders: [] });
-      await controller.getMedicationReminders(req, res);
+      await controller.getMedicationReminders(req, res, next);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+      expect(next).not.toHaveBeenCalled();
     });
 
-    it('should return 400 if userId missing', async () => {
+    it('should call next with unauthorized error if userId missing', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
       req.user = {};
-      await controller.getMedicationReminders(req, res);
-      expect(res.status).toHaveBeenCalledWith(400);
+      await controller.getMedicationReminders(req, res, next);
+      expect(ErrorFactory.unauthorized).toHaveBeenCalledWith('User not authenticated');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should return 500 on DB error', async () => {
-      model.getMedicationRemindersByUser.mockResolvedValue({ success: false, message: 'fail', error: 'fail' });
-      await controller.getMedicationReminders(req, res);
-      expect(res.status).toHaveBeenCalledWith(500);
+    it('should call next with database error on DB error', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      model.getMedicationRemindersByUser.mockResolvedValue({ success: false, message: 'fail' });
+      await controller.getMedicationReminders(req, res, next);
+      expect(ErrorFactory.database).toHaveBeenCalledWith('Failed to retrieve medication reminders', 'fail');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -95,43 +155,57 @@ describe('medicalController', () => {
         medicine_name: 'Test', reason: 'Test', dosage: '1 pill', medicine_time: '08:00', frequency_per_day: 1
       };
       req.file = undefined;
-      await controller.updateMedication(req, res);
+      await controller.updateMedication(req, res, next);
       expect(res.status).toHaveBeenCalledWith(200);
+      expect(next).not.toHaveBeenCalled();
     });
 
-    it('should return 400 if frequency_per_day exceeds max', async () => {
-      model.getMedicationRemindersByUser.mockResolvedValue({ success: true, reminders: [{ id: 1, image_url: 'url' }] });
-      req.params.id = 1;
-      req.body = {
-        medicine_name: 'Test', reason: 'Test', dosage: '1 pill', medicine_time: '08:00', frequency_per_day: 99
-      };
-      req.file = undefined;
-      await controller.updateMedication(req, res);
-      // The Zod validation should catch this before controller, but if not, backend should still reject
-      // (simulate middleware not catching it)
-      // In real app, this would be caught by validation middleware, so this is a safety net test
-      // expect(res.status).toHaveBeenCalledWith(400);
+    it('should call next with unauthorized error if userId missing', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      req.user = {};
+      await controller.updateMedication(req, res, next);
+      expect(ErrorFactory.unauthorized).toHaveBeenCalledWith('User not authenticated');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should return 404 if reminder not found', async () => {
+    it('should call next with validation error for invalid reminder ID', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      req.params.id = 'invalid';
+      await controller.updateMedication(req, res, next);
+      expect(ErrorFactory.validation).toHaveBeenCalledWith('Valid reminder ID is required');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should call next with validation error if frequency_per_day exceeds max', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      req.body.frequency_per_day = 99;
+      await controller.updateMedication(req, res, next);
+      expect(ErrorFactory.validation).toHaveBeenCalledWith('Frequency per day must be between 1 and 3');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should call next with notFound error if reminder not found', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
       model.getMedicationRemindersByUser.mockResolvedValue({ success: true, reminders: [] });
       req.params.id = 999;
-      await controller.updateMedication(req, res);
-      expect(res.status).toHaveBeenCalledWith(404);
+      await controller.updateMedication(req, res, next);
+      expect(ErrorFactory.notFound).toHaveBeenCalledWith('Medication reminder');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should return 400 if userId missing', async () => {
-      req.user = {};
-      await controller.updateMedication(req, res);
-      expect(res.status).toHaveBeenCalledWith(400);
-    });
-
-    it('should return 500 on DB error', async () => {
+    it('should call next with database error on DB error', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
       model.getMedicationRemindersByUser.mockResolvedValue({ success: true, reminders: [{ id: 1, image_url: 'url' }] });
-      model.updateMedicationReminder.mockResolvedValue({ success: false, message: 'fail', error: 'fail' });
+      model.updateMedicationReminder.mockResolvedValue({ success: false, message: 'fail' });
       req.params.id = 1;
-      await controller.updateMedication(req, res);
-      expect(res.status).toHaveBeenCalledWith(500);
+      await controller.updateMedication(req, res, next);
+      expect(ErrorFactory.database).toHaveBeenCalledWith('Failed to update medication reminder', 'fail');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -139,34 +213,55 @@ describe('medicalController', () => {
     it('should return 200 on success', async () => {
       model.deleteMedicationReminder.mockResolvedValue({ success: true });
       req.params.id = 1;
-      await controller.deleteMedication(req, res);
+      await controller.deleteMedication(req, res, next);
       expect(res.status).toHaveBeenCalledWith(200);
+      expect(next).not.toHaveBeenCalled();
     });
 
-    it('should return 404 on not found', async () => {
+    it('should call next with unauthorized error if userId missing', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      req.user = {};
+      await controller.deleteMedication(req, res, next);
+      expect(ErrorFactory.unauthorized).toHaveBeenCalledWith('User not authenticated');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should call next with validation error if reminderId missing', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      req.params.id = undefined;
+      await controller.deleteMedication(req, res, next);
+      expect(ErrorFactory.validation).toHaveBeenCalledWith('Valid reminder ID is required');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should call next with validation error for invalid reminderId', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      req.params.id = 'invalid';
+      await controller.deleteMedication(req, res, next);
+      expect(ErrorFactory.validation).toHaveBeenCalledWith('Valid reminder ID is required');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should call next with notFound error if reminder not found', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
       model.deleteMedicationReminder.mockResolvedValue({ success: false, message: 'not found' });
       req.params.id = 1;
-      await controller.deleteMedication(req, res);
-      expect(res.status).toHaveBeenCalledWith(404);
+      await controller.deleteMedication(req, res, next);
+      expect(ErrorFactory.notFound).toHaveBeenCalledWith('Medication reminder');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should return 400 if userId missing', async () => {
-      req.user = {};
-      await controller.deleteMedication(req, res);
-      expect(res.status).toHaveBeenCalledWith(400);
-    });
-
-    it('should return 400 if reminderId missing', async () => {
-      req.params.id = undefined;
-      await controller.deleteMedication(req, res);
-      expect(res.status).toHaveBeenCalledWith(400);
-    });
-
-    it('should return 500 on DB error', async () => {
-      model.deleteMedicationReminder.mockRejectedValue(new Error('fail'));
+    it('should call next with error on DB error', async () => {
+      const serverError = new Error('fail');
+      model.deleteMedicationReminder.mockRejectedValue(serverError);
       req.params.id = 1;
-      await controller.deleteMedication(req, res);
-      expect(res.status).toHaveBeenCalledWith(500);
+      await controller.deleteMedication(req, res, next);
+      expect(next).toHaveBeenCalledWith(serverError);
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -181,13 +276,27 @@ describe('medicalController', () => {
         medical_conditions: 'None',
         exercise_frequency: 'Daily'
       };
-      await controller.submitMedicationQuestionnaire(req, res);
+      await controller.submitMedicationQuestionnaire(req, res, next);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+      expect(next).not.toHaveBeenCalled();
     });
 
-    it('should return 500 on questionnaire DB error', async () => {
-      model.createMedicationQuestion.mockResolvedValue({ success: false, message: 'fail', error: 'fail' });
+    it('should call next with validation error for missing required fields', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      req.body = {
+        difficulty_walking: 'No',
+        // Missing other required fields
+      };
+      await controller.submitMedicationQuestionnaire(req, res, next);
+      expect(ErrorFactory.validation).toHaveBeenCalledWith('All questionnaire fields are required');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should call next with database error on questionnaire DB error', async () => {
+      const { ErrorFactory } = await import('../../../utils/AppError.js');
+      model.createMedicationQuestion.mockResolvedValue({ success: false, message: 'fail' });
       req.body = {
         difficulty_walking: 'No',
         assistive_device: 'None',
@@ -196,8 +305,10 @@ describe('medicalController', () => {
         medical_conditions: 'None',
         exercise_frequency: 'Daily'
       };
-      await controller.submitMedicationQuestionnaire(req, res);
-      expect(res.status).toHaveBeenCalledWith(500);
+      await controller.submitMedicationQuestionnaire(req, res, next);
+      expect(ErrorFactory.database).toHaveBeenCalledWith('Failed to submit questionnaire', 'fail');
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 });
