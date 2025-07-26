@@ -6,6 +6,7 @@ import transportRouter from "./transport/index.js";
 import medicalRouter from "./medical/index.js";
 import {Router} from "express";
 import announcementsRouter from "./announcements/index.js";
+import analyticsRouter from "./analytics/index.js";
 import communityRouter from "./community/index.js";
 import adminRouter from "./admin/index.js";
 
@@ -24,5 +25,6 @@ export const ApiController = () => {
   router.use("/community", communityRouter);
   router.use("/transport", transportRouter);
   router.use("/admin", adminRouter);
+  router.use("/analytics", analyticsRouter);
   return router;
 }
