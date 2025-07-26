@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { getStationCodeNameMap, getShortestPath } from "../../../controllers/transport/transportController.js";
 import transportModel from "../../../models/transport/transportModel.js";
+import {AppError} from "../../../utils/AppError.js";
 
 describe("Transport Controller", () => {
   const testStationCode1 = "NS1 EW24";
@@ -15,8 +16,9 @@ describe("Transport Controller", () => {
       status: vi.fn().mockReturnThis(),
       json: vi.fn()
     };
+    const next = vi.fn();
 
-    getStationCodeNameMap(mockReq, mockRes);
+    getStationCodeNameMap(mockReq, mockRes, next);
 
     expect(mockRes.status).toHaveBeenCalledWith(200);
     expect(mockRes.json).toHaveBeenCalledWith({ codeNameMap: mockCodeNameMap });
@@ -31,10 +33,11 @@ describe("Transport Controller", () => {
       json: vi.fn()
     };
 
-    getShortestPath(mockReq, mockRes);
+    const next = vi.fn();
 
-    expect(mockRes.status).toHaveBeenCalledWith(404);
-    expect(mockRes.json).toHaveBeenCalledWith({ error: `No path found between ${testStationCode1} and ${testStationCode2}.` });
+    getShortestPath(mockReq, mockRes, next);
+
+    expect(next).toHaveBeenCalledWith(expect.any(AppError));
   });
 
   it("should return shortest path with station names", () => {
@@ -52,7 +55,9 @@ describe("Transport Controller", () => {
       json: vi.fn()
     };
 
-    getShortestPath(mockReq, mockRes);
+    const next = vi.fn();
+
+    getShortestPath(mockReq, mockRes, next);
 
     expect(mockRes.json).toHaveBeenCalledWith({
       ...mockPathInfo,

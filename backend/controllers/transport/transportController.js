@@ -1,4 +1,5 @@
 import transportModel from "../../models/transport/transportModel.js";
+import { ErrorFactory } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -23,12 +24,16 @@ import transportModel from "../../models/transport/transportModel.js";
  *       500:
  *         description: Internal server error.
  */
-export const getStationCodeNameMap = (req, res) => {
-  const codeNameMap = transportModel.getStationCodeNameMap()
-  return res.status(200).json({
-    codeNameMap: codeNameMap,
-  })
-}
+export const getStationCodeNameMap = (req, res, next) => {
+  try {
+    const codeNameMap = transportModel.getStationCodeNameMap();
+    return res.status(200).json({
+      codeNameMap: codeNameMap,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * @openapi
@@ -96,26 +101,30 @@ export const getStationCodeNameMap = (req, res) => {
  *       500:
  *         description: Internal server error.
  */
-export const getShortestPath = (req, res) => {
-    const { start, end } = req.query;
+export const getShortestPath = (req, res, next) => {
+    try {
+        const { start, end } = req.query;
 
-    const pathInfo = transportModel.findShortestPath(start, end);
+        const pathInfo = transportModel.findShortestPath(start, end);
 
-    if (!pathInfo) {
-        return res.status(404).json({ error: "One or both stations not found." });
+        if (!pathInfo) {
+            throw ErrorFactory.notFound("Station");
+        }
+
+        if (pathInfo.distance === Infinity) {
+            throw ErrorFactory.notFound(`Path between ${start} and ${end}`);
+        }
+
+        const pathWithNames = pathInfo.path.map(code => ({
+            code,
+            name: transportModel.getStationByCode(code)?.[code].name
+        }));
+
+        res.json({
+            ...pathInfo,
+            path: pathWithNames
+        });
+    } catch (error) {
+        next(error);
     }
-
-    if (pathInfo.distance === Infinity) {
-        return res.status(404).json({ error: `No path found between ${start} and ${end}.` });
-    }
-
-    const pathWithNames = pathInfo.path.map(code => ({
-        code,
-        name: transportModel.getStationByCode(code)?.[code].name
-    }));
-
-    res.json({
-        ...pathInfo,
-        path: pathWithNames
-    });
 };
