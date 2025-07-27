@@ -41,10 +41,6 @@ export const createRouteController = async (req, res) => {
   const { name, start_station, end_station } = req.body;
     const userId = req.user.id;
 
-    if (!name || !start_station || !end_station) {
-        return res.status(400).json({ error: 'Name, start and end stations are required.' });
-    }
-
     const stationCodes = transportModel.getStationCodes();
     if (!stationCodes.includes(start_station) || !stationCodes.includes(end_station)) {
         return res.status(400).json({ error: 'Invalid station code.' });
@@ -84,7 +80,7 @@ export const createRouteController = async (req, res) => {
  */
 export const getRouteController = async (req, res) => {
     try {
-        const routeId = Number(req.params.id);
+        const routeId = req.params.id;
         const route = await getRouteById(routeId);
         if (!route) {
             return res.status(404).json({ error: 'Route not found.' });
@@ -162,12 +158,8 @@ export const getUserRoutesController = async (req, res) => {
  *         description: Internal server error.
  */
 export const updateRouteController = async (req, res) => {
-    const routeId = parseInt(req.params.id);
+    const routeId = req.params.id;
     const { name, start_station, end_station } = req.body;
-
-    if (!name || !start_station || !end_station) {
-        return res.status(400).json({ error: 'Name, start and end stations are required.' });
-    }
 
     const stationCodes = transportModel.getStationCodes();
     if (!stationCodes.includes(start_station) || !stationCodes.includes(end_station)) {
@@ -210,7 +202,7 @@ export const updateRouteController = async (req, res) => {
  *         description: Internal server error.
  */
 export const deleteRouteController = async (req, res) => {
-    const routeId = parseInt(req.params.id);
+    const routeId = req.params.id;
 
     try {
         const success = await deleteRoute(routeId);

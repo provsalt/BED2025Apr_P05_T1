@@ -70,26 +70,32 @@ export async function addCommunityEventImage(community_event_id, image_url) {
     };
 };
 
-// GET: get all upcoming events (for all users)
-export async function getAllUpcomingEvents() {
+// GET: Get all approved community events
+export async function getAllApprovedEvents() {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const today = new Date().toISOString().split('T')[0];
         const result = await connection.request()
-            .input('today', sql.Date, today)
-            .input('limit', sql.Int, 10)
             .query(`
-                SELECT TOP (@limit) e.*, img.image_url
-                FROM CommunityEvent e
-                LEFT JOIN CommunityEventImage img ON img.community_event_id = e.id
-                WHERE e.date >= @today
-                ORDER BY e.date ASC, e.time ASC;
+                SELECT CommunityEvent.*, Users.name as created_by_name,
+                  (SELECT TOP 1 image_url FROM CommunityEventImage WHERE community_event_id = CommunityEvent.id ORDER BY uploaded_at DESC) as image_url
+                FROM CommunityEvent
+                JOIN Users ON CommunityEvent.user_id = Users.id
+                WHERE CommunityEvent.approved_by_admin_id IS NOT NULL
+                ORDER BY CommunityEvent.date ASC, CommunityEvent.time ASC
             `);
-        return result.recordset;
+        
+        return {
+            success: true,
+            events: result.recordset
+        };
     } catch (error) {
-        console.error('Error fetching all upcoming events:', error);
-        return [];
+        console.error('Error getting approved events:', error);
+        return {
+            success: false,
+            message: 'Failed to get approved events',
+            error: error.message
+        };
     } finally {
         if (connection) {
             await connection.close();

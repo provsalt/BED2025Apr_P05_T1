@@ -1,16 +1,16 @@
 import express from "express"
-import { createServer } from "http"
-import { Server } from "socket.io"
+import {createServer} from "http"
+import {Server} from "socket.io"
 import {ApiController} from "./controllers/apiController.js";
 import {socketAuthMiddleware} from "./middleware/socketAuth.js";
 import {setIO} from "./config/socket.js";
 import cors from "cors";
-import { defaultRateLimit } from "./middleware/rateLimit.js";
+import {defaultRateLimit} from "./middleware/rateLimit.js";
 import {initSwagger} from "./swagger/swagger.js";
-import { checkAndSendReminders } from './controllers/medical/reminderController.js';
-import dotenv from "dotenv";
-
-dotenv.config();
+import {checkAndSendReminders} from './controllers/medical/reminderController.js';
+import promBundle from "express-prom-bundle";
+import { connectedUsersGauge } from "./services/prometheusService.js";
+import client from "prom-client";
 
 const app = express();
 const server = createServer(app);
@@ -28,13 +28,12 @@ app.use(express.static("dist"))
 app.use(cors({
     origin: origins,
     credentials: true,
-}))
+}));
 
-app.use(express.json())
+app.use(express.json());
 
 // Apply rate limiting globally
 app.use(defaultRateLimit)
-
 
 app.use("/api", ApiController())
 
@@ -43,16 +42,6 @@ initSwagger(app);
 setIO(io);
 
 io.use(socketAuthMiddleware);
-
-io.on('connection', (socket) => {
-    console.log(`User ${socket.userId} connected via WebSocket`);
-    
-    socket.join(`user_${socket.userId}`);
-    
-    socket.on('disconnect', () => {
-        console.log(`User ${socket.userId} disconnected from WebSocket`);
-    });
-});
 
 // Start the medication reminder loop
 setInterval(checkAndSendReminders, 60 * 1000); // Check every minute

@@ -1,5 +1,5 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
 import { getAllUpcomingEvents } from "../../models/community/communityEventModel.js";
 
@@ -58,6 +58,7 @@ import { getAllUpcomingEvents } from "../../models/community/communityEventModel
  *                   type: string
  *                 eventId:
  *                   type: integer
+ *                   description: ID of the created event
  *                 imageUrl:
  *                   type: string
  *                   description: URL to access the uploaded image (e.g. /api/s3?key=community-events/{userId}/{uuid})
@@ -77,8 +78,8 @@ export const createEvent = async (req, res) => {
             return res.status(400).json({ success: false, message: 'User ID is required', errors: ['User ID is required'] });
         }
 
-        // Use validated body from middleware
-        let { time, ...rest } = req.validatedBody;
+        
+        let { time, ...rest } = req.body;
         // Robustly ensure time is in HH:mm:ss format
         if (time) {
             if (/^\d{2}:\d{2}$/.test(time)) {
@@ -137,16 +138,15 @@ export const createEvent = async (req, res) => {
 
 /**
  * @openapi
- * /api/community/events:
+ * /api/community:
  *   get:
- *     summary: Get upcoming community events for the authenticated user
  *     tags:
  *       - Community
- *     security:
- *       - bearerAuth: []
+ *     summary: Get all approved community events
+ *     description: Returns all community events that have been approved by an admin.
  *     responses:
  *       200:
- *         description: List of upcoming events
+ *         description: List of approved community events
  *         content:
  *           application/json:
  *             schema:
@@ -169,26 +169,31 @@ export const createEvent = async (req, res) => {
  *                         type: string
  *                       date:
  *                         type: string
- *                         format: date
+ *                         format: date-time
+ *                         description: ISO string (e.g., 2025-07-24T00:00:00.000Z)
  *                       time:
  *                         type: string
+ *                         format: date-time
+ *                         description: ISO string (e.g., 1970-01-01T18:00:00.000Z, only the time part is relevant)
  *                       description:
  *                         type: string
  *                       image_url:
  *                         type: string
- *       401:
- *         description: Unauthorized
+ *                         description: URL to the event image (may be relative or absolute)
+ *                       created_by_name:
+ *                         type: string
+ *       500:
+ *         description: Internal server error
  */
-export const getUpcomingEvents = async (req, res) => {
+export const getApprovedEvents = async (req, res) => {
   try {
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ success: false, message: 'Unauthorized: User not authenticated' });
+    const result = await getAllApprovedEvents();
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      res.status(500).json(result);
     }
-    const userId = req.user.id;
-    const events = await getUpcomingEventsByUser(userId);
-    res.status(200).json({ success: true, events });
   } catch (error) {
-    console.error('Error fetching upcoming events:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch upcoming events', error: error.message });
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 }; 

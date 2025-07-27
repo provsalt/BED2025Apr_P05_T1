@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { uploadFile } from "../../services/s3Service.js";
 import { analyzeFoodImage } from "../../services/openaiService.js";
-import { createMeal, getMealById, getAllMeals, deleteMeal, updateMeal } from "../../models/nutrition/nutritionModel.js";
+import { createMeal, getMealById, getAllMeals, deleteMeal, updateMeal, searchMeals } from "../../models/nutrition/nutritionModel.js";
 
 /**
  * @openapi
@@ -335,3 +335,114 @@ export const amendMeal = async (req, res) => {
     res.status(400).json({ error: "Failed to update meal" });
   }
 }
+
+/**
+ * @openapi
+ * /api/nutrition/search:
+ *   get:
+ *     tags:
+ *       - Nutrition
+ *     summary: Search meals by name
+ *     description: Returns meals for the authenticated user whose name contains the search term (case-insensitive, partial match).
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The search term to look for in meal names.
+ *     responses:
+ *       200:
+ *         description: Search results retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 meals:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       carbohydrates:
+ *                         type: number
+ *                       protein:
+ *                         type: number
+ *                       fat:
+ *                         type: number
+ *                       calories:
+ *                         type: number
+ *                       ingredients:
+ *                         type: string
+ *                       image_url:
+ *                         type: string
+ *                       user_id:
+ *                         type: integer
+ *                 searchTerm:
+ *                   type: string
+ *                 count:
+ *                   type: integer
+ *       400:
+ *         description: Search term is required
+ *       401:
+ *         description: User not authenticated
+ *       500:
+ *         description: Failed to search meals
+ *       404:
+ *         description: No meals found for the given search term
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+              properties:
+ *                 error:
+ *                   type: string
+ *                 searchTerm:
+ *                   type: string
+ */
+
+export const searchMealsController = async (req, res) => {
+  try {
+    const { name: searchTerm } = req.query;
+
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    // Check if search term is provided
+    if (!searchTerm || searchTerm.trim() === "") {
+      return res.status(400).json({ error: "Search term is required" });
+    }
+
+    const meals = await searchMeals(req.user.id, searchTerm.trim());
+    
+    if (!meals || meals.length === 0) {
+      return res.status(404).json({
+        error: "No meals found for the given search term",
+        searchTerm: searchTerm.trim()
+      });
+    }
+
+    res.status(200).json({ 
+      message: "Search completed successfully", 
+      meals: meals,
+      searchTerm: searchTerm.trim(),
+      count: meals.length
+    });
+  } catch (error) {
+    console.error("Error searching meals:", error);
+    res.status(500).json({ error: "Failed to search meals" });
+  }
+};
+
