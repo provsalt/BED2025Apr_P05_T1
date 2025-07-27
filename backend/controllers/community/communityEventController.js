@@ -1,7 +1,6 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
 import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
-import { getAllUpcomingEvents } from "../../models/community/communityEventModel.js";
 
 /**
  * @openapi

@@ -23,7 +23,15 @@ export const Dashboard = ({ summary }) => {
                   {summary.meals.map((meal, i) => (
                     <Link to={`/nutrition/${meal.id}`} key={meal.id || i} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50 transition cursor-pointer">
                       {meal.image_url && (
-                        <img src={meal.image_url} alt={meal.name} className="w-20 h-20 object-cover rounded-lg border" />
+                        <img 
+                          src={
+                            meal.image_url.startsWith("/api/")
+                              ? (import.meta.env.VITE_BACKEND_URL || "http://localhost:3001") + meal.image_url
+                              : meal.image_url
+                          } 
+                          alt={meal.name} 
+                          className="w-20 h-20 object-cover rounded-lg border" 
+                        />
                       )}
                       <div className="flex-1">
                         <div className="font-semibold text-lg flex items-center gap-2">{meal.name} {meal.category && <Chip variant="secondary">{meal.category}</Chip>}</div>
@@ -68,7 +76,15 @@ export const Dashboard = ({ summary }) => {
                     <Link to="/community" className="block h-full">
                       <Card className="h-full hover:shadow-lg transition cursor-pointer flex flex-col">
                         {event.image_url && (
-                          <img src={event.image_url} alt={event.name} className="w-full h-40 object-cover rounded-t-lg border-b" />
+                          <img 
+                            src={
+                              event.image_url.startsWith("/api/")
+                                ? (import.meta.env.VITE_BACKEND_URL || "http://localhost:3001") + event.image_url
+                                : event.image_url
+                            } 
+                            alt={event.name} 
+                            className="w-full h-40 object-cover rounded-t-lg border-b" 
+                          />
                         )}
                         <CardContent className="flex-1 flex flex-col gap-2 p-4">
                           <div className="font-semibold text-lg flex items-center gap-2">{event.name} {event.category && <Chip variant="secondary">{event.category}</Chip>}</div>
