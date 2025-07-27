@@ -1,3 +1,4 @@
+import "./instrumentation.js";
 import express from "express"
 import {createServer} from "http"
 import {Server} from "socket.io"
@@ -12,7 +13,6 @@ import promBundle from "express-prom-bundle";
 import { connectedUsersGauge } from "./services/prometheusService.js";
 import client from "prom-client";
 import { errorHandler } from "./middleware/errorHandler.js";
-import { tracingMiddleware } from "./middleware/tracing.js";
 import {logInfo} from "./utils/logger.js";
 
 const app = express();
@@ -35,7 +35,6 @@ app.use(cors({
 
 app.use(express.json());
 
-app.use(tracingMiddleware)
 
 // Apply rate limiting globally
 app.use(defaultRateLimit);
