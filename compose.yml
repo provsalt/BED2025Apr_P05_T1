@@ -83,6 +83,23 @@ services:
       - grafana:/var/lib/grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+  tempo:
+    image: grafana/tempo:2.7.2
+    container_name: tempo
+    ports:
+      - "3200:3200" # HTTP API port
+      - "4318:4318" # OTLP HTTP receiver port
+      - "9095:9095" # gRPC port
+    command: [ "-config.file=/etc/tempo/tempo.yaml" ]
+    volumes:
+      - ./tempo.yaml:/etc/tempo/tempo.yaml
+      - tempo-data:/var/tempo
 
 networks:
   bed-assignment:
@@ -97,3 +114,5 @@ volumes:
   prometheus_data:
 
   grafana:
+
+  tempo-data:
