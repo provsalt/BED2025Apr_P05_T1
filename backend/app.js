@@ -13,7 +13,7 @@ import promBundle from "express-prom-bundle";
 import { connectedUsersGauge } from "./services/prometheusService.js";
 import client from "prom-client";
 import { errorHandler } from "./middleware/errorHandler.js";
-import {logInfo} from "./utils/logger.js";
+import {loggerMiddleware, logInfo} from "./utils/logger.js";
 
 const app = express();
 const server = createServer(app);
@@ -26,7 +26,7 @@ const io = new Server(server, {
 });
 
 app.set("trust proxy", 1);
-
+app.use(loggerMiddleware)
 app.use(express.static("dist"))
 app.use(cors({
     origin: origins,

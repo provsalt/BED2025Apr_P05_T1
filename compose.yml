@@ -87,7 +87,6 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
   loki:
     image: grafana/loki:latest
-    container_name: loki
     ports:
       - "3100:3100"
     volumes:
@@ -95,7 +94,6 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
   tempo:
     image: grafana/tempo:2.7.2
-    container_name: tempo
     ports:
       - "3200:3200" # HTTP API port
       - "4318:4318" # OTLP HTTP receiver port
