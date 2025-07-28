@@ -14,6 +14,7 @@ export const MealsList = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchError, setSearchError] = useState(null);
 
   useEffect(() => {
     const fetchMeals = async () => {
@@ -34,15 +35,18 @@ export const MealsList = () => {
       setSearchResults([]);
       setIsSearching(false);
       setHasSearched(false);
+      setSearchError(null);
       return;
     }
     setIsSearching(true);
     setHasSearched(true);
+    setSearchError(null);
     try {
       const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/search?name=${encodeURIComponent(searchTerm.trim())}`);
       setSearchResults(res.meals || []);
     } catch (err) {
-      setError(err.message || "Failed to search meals");
+      console.error("Search error:", err);
+      setSearchError("Failed to search meals. Please try again.");
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -54,6 +58,7 @@ export const MealsList = () => {
     setSearchResults([]);
     setIsSearching(false);
     setHasSearched(false);
+    setSearchError(null);
   };
 
   const handleSearchInputChange = (e) => {
@@ -62,6 +67,7 @@ export const MealsList = () => {
       setSearchResults([]);
       setIsSearching(false);
       setHasSearched(false);
+      setSearchError(null);
     }
   };
 
@@ -74,8 +80,24 @@ export const MealsList = () => {
   // Only show searchResults after a search, otherwise show all meals
   const displayMeals = hasSearched ? searchResults : meals;
 
-  if (loading) return <div>Loading meals...</div>;
-  if (error) return <div style={{ color: "red" }}>{error}</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center py-20">
+      <div className="text-gray-500 text-lg">Loading meals...</div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <div className="text-red-500 text-lg mb-4">Failed to load meals</div>
+      <div className="text-gray-500 text-sm mb-4">{error}</div>
+      <Button 
+        onClick={() => window.location.reload()} 
+        className="cursor-pointer"
+      >
+        Try Again
+      </Button>
+    </div>
+  );
   if (!meals.length) return (
     <div className="flex flex-col items-center justify-center py-20 text-gray-500 text-xl font-semibold">
       <div>No Meals Scanned</div>
@@ -131,6 +153,13 @@ export const MealsList = () => {
               {isSearching ? "Searching..." : "Search"}
             </Button>
           </div>
+          
+          {/* Error Display */}
+          {searchError && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600 text-sm">{searchError}</p>
+            </div>
+          )}
         </div>
 
         {/* No search results message */}
