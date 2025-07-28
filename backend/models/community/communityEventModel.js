@@ -112,11 +112,11 @@ export async function getCommunityEventsByUserId(userId) {
             .input('userId', sql.Int, userId)
             .query(`
                 SELECT CommunityEvent.*, Users.name as created_by_name,
-                  (SELECT TOP 1 image_url FROM CommunityEventImage WHERE community_event_id = CommunityEvent.id ORDER BY uploaded_at DESC) as image_url
+                  (SELECT TOP 1 image_url FROM CommunityEventImage WHERE community_event_id = CommunityEvent.id ORDER BY uploaded_at ASC) as image_url
                 FROM CommunityEvent
                 JOIN Users ON CommunityEvent.user_id = Users.id
                 WHERE CommunityEvent.user_id = @userId
-                ORDER BY CommunityEvent.date ASC, CommunityEvent.time ASC
+                ORDER BY CommunityEvent.date DESC, CommunityEvent.time DESC
             `);
         return {
             success: true,
@@ -168,7 +168,7 @@ export async function getCommunityEventById(eventId) {
                 SELECT CommunityEvent.*, Users.name as created_by_name
                 FROM CommunityEvent
                 JOIN Users ON CommunityEvent.user_id = Users.id
-                WHERE CommunityEvent.id = @eventId AND CommunityEvent.approved_by_admin_id IS NOT NULL
+                WHERE CommunityEvent.id = @eventId
             `);
         if (result.recordset.length === 0) {
             return { success: false, message: 'Event not found' };

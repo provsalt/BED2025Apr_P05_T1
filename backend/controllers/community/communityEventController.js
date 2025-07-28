@@ -193,6 +193,54 @@ export const createEvent = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
+/**
+ * @openapi
+ * /api/community:
+ *   get:
+ *     tags:
+ *       - Community
+ *     summary: Get all approved community events
+ *     description: Returns all approved community events, sorted by date and time.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of approved community events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                       time:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       created_by_name:
+ *                         type: string
+ *                       image_url:
+ *                         type: string
+ *                         description: URL to access the cover image
+ *       500:
+ *         description: Internal server error
+ */
 export const getApprovedEvents = async (req, res) => {
   try {
     const result = await getAllApprovedEvents();

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, User, Calendar, Tag, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Clock, User, Calendar, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 
 export function EventDetails() {
@@ -63,33 +63,56 @@ export function EventDetails() {
   }
 
   //format date and time
-  let dateStr = event.date ? new Date(event.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : "";
+  let dateStr = "";
+  if (event.date) {
+    dateStr = new Date(event.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  }
   let timeStr = "";
   if (event.time) {
     const match = event.time.match(/T(\d{2}:\d{2}:\d{2})/);
-    if (match) timeStr = match[1].slice(0, 5);
+    if (match) {
+      timeStr = match[1].slice(0, 5);
+    }
   }
 
   // Organizer info (placeholder avatar)
-  const organizerName = event.created_by_name || "Event Organizer";
-  let organizerAvatar = event.created_by_profile_picture
+  let organizerName = "Event Organizer";
+  if (event.created_by_name) {
+    organizerName = event.created_by_name;
+  }
+  let organizerAvatar = event.created_by_profile_picture;
 
   //carousel navigation
   const goLeft = () => {
     if (images.length > 0) {
-      setCurrentImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+      setCurrentImage((prev) => {
+        if (prev === 0) {
+          return images.length - 1;
+        } else {
+          return prev - 1;
+        }
+      });
     }
   };
   const goRight = () => {
     if (images.length > 0) {
-      setCurrentImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+      setCurrentImage((prev) => {
+        if (prev === images.length - 1) {
+          return 0;
+        } else {
+          return prev + 1;
+        }
+      });
     }
   };
 
   return (
     <div className="w-full max-w-3xl mx-auto mt-8 px-2 md:px-0 pb-7">
-      <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
-        <span className="cursor-pointer hover:underline" onClick={() => navigate('/community')}>Events</span>
+      <div className="mb-4 flex items-center gap-1 text-sm text-muted-foreground cursor-pointer -ml-2">
+        <Button variant="ghost" className="p-0 h-auto cursor-pointer" onClick={() => navigate('/community')}>
+          <ArrowLeft className="mr-2 size-4" />
+          Events
+        </Button>
         <span>/</span>
         <span>Community Event</span>
       </div>
@@ -156,11 +179,13 @@ export function EventDetails() {
       </div>
       {/* Organizer Section */}
       <div className="flex items-center gap-4 border-t pt-6 mb-8">
-        {
-          organizerAvatar ?
-            <img src={organizerAvatar} alt={organizerName} className="w-12 h-12 rounded-full border" /> :
-            <User className="w-12" />
-        }
+        {(() => {
+          if (organizerAvatar) {
+            return <img src={organizerAvatar} alt={organizerName} className="w-12 h-12 rounded-full border" />;
+          } else {
+            return <User className="w-12" />;
+          }
+        })()}
         <div className="flex-1">
           <div className="font-semibold text-gray-800 capitalize">{organizerName}</div>
           <div className="text-xs text-gray-500">Event Organizer</div>

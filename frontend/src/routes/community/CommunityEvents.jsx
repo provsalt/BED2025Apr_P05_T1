@@ -137,7 +137,7 @@ export function CommunityEvents() {
       <div className="w-full flex flex-col">
         <div className="flex items-center justify-between mb-4 w-full">
           <h2 className="text-xl font-semibold">Community Events</h2>
-          <div className="flex gap-2 pr-14">
+          <div className="flex gap-2">
             <Button className="bg-black text-white hover:bg-gray-900 cursor-pointer" onClick={() => navigate('/community/myevents')}>
               My Events
             </Button>
