@@ -1,4 +1,5 @@
 import winston from "winston";
+import {OpenTelemetryTransportV3} from "@opentelemetry/winston-transport";
 
 const createLogger = () => {
   const logFormat = winston.format.combine(
@@ -21,7 +22,8 @@ const createLogger = () => {
           return output;
         })
       )
-    })
+    }),
+    new OpenTelemetryTransportV3()
   ];
 
   return winston.createLogger({
