@@ -1,5 +1,5 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventById } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
  *     tags:
  *       - Community
  *     summary: Create a new community event
- *     description: Allows a user to create a new community event with an image.
+ *     description: Allows a user to create a new community event with multiple images. The first image uploaded will be used as the cover image.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -35,14 +35,19 @@ import { v4 as uuidv4 } from 'uuid';
  *                 description: Event date (YYYY-MM-DD)
  *               time:
  *                 type: string
- *                 description: Event time (HH:mm or HH:mm:ss)
+ *                 description: Event time (HH:mm or HH:mm:ss format)
  *               description:
  *                 type: string
  *                 description: Event description
- *               image:
- *                 type: string
- *                 format: binary
- *                 description: Event image (JPEG, PNG, WEBP, JPG)
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: 
+ *                  - Event images (JPEG, PNG, WEBP, JPG up to 30MB each). 
+ *                  - Multiple images supported.  
+ *                  - Filenames are automatically sanitized.
  *     responses:
  *       201:
  *         description: Community event created successfully
@@ -58,72 +63,76 @@ import { v4 as uuidv4 } from 'uuid';
  *                 eventId:
  *                   type: integer
  *                   description: ID of the created event
- *                 imageUrl:
- *                   type: string
- *                   description: URL to access the uploaded image (e.g. /api/s3?key=community-events/{userId}/{uuid})
+ *                 images:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: Array of URLs to access the uploaded images (e.g. /api/s3?key=community-events/{userId}/{uuid})
  *       400:
- *         description: Bad request (validation or missing fields)
+ *         description: Bad request (validation or missing fields). 
+ *           - The combination of date and time cannot be in the past (event must be scheduled for a future date/time).
+ *           - Invalid time format. Please use HH:mm or HH:mm:ss.
+ *           - Time is required.
+ *           - At least one image is required.
+ *       401:
+ *         description: Unauthorized - User not authenticated
  *       500:
  *         description: Internal server error
  */
 export const createEvent = async (req, res) => {
     try {
-        if (!req.user || !req.user.id) {
-            return res.status(401).json({ success: false, message: 'Unauthorized: User not authenticated' });
-        }
         const userId = req.user.id;
-        // validate user
-        if (!userId) {
-            return res.status(400).json({ success: false, message: 'User ID is required', errors: ['User ID is required'] });
-        }
-
         
-        let { time, ...rest } = req.body;
-        // Robustly ensure time is in HH:mm:ss format
-        if (time) {
-            if (/^\d{2}:\d{2}$/.test(time)) {
-                time = time + ":00";
-            } else if (/^\d{2}:\d{2}:\d{2}$/.test(time)) {
-                // Already in HH:mm:ss format, do nothing
-            } else {
-                return res.status(400).json({ success: false, message: 'Invalid time format. Please use HH:mm or HH:mm:ss.' });
-            }
-        } else {
-            return res.status(400).json({ success: false, message: 'Time is required.' });
+        const files = req.files || [];
+        if (files.length === 0) {
+            return res.status(400).json({ success: false, message: 'At least one image is required.' });
         }
 
-        const imageFile = req.file;
-        // Generate unique key for S3 
-        const imageKey = `community-events/${userId}/${uuidv4()}`;
-        // Upload image to S3
-        await uploadFile(imageFile, imageKey);
-        // Create image URL (medical style)
-        const imageUrl = `/api/s3?key=${imageKey}`;
-
+        // Ensure time is in HH:mm:ss format t match db
+        let { time, ...rest } = req.body;
+        if (time && /^\d{2}:\d{2}$/.test(time)) {
+            time = time + ":00";
+        }
+        
         const eventData = {
             ...rest,
             time,
             user_id: userId,
             approved_by_admin_id: 1 // For testing, set to admin ID 1 (to be removed when admin approval is done)
         };
-        // Save to database
         const eventResult = await createCommunityEvent(eventData);
         if (!eventResult.success) {
-            // If database fails, cleanup uploaded image
-            await deleteFile(imageKey);
             return res.status(500).json(eventResult);
         }
-        // Save image to database
-        const imageResult = await addCommunityEventImage(eventResult.eventId, imageUrl);
-        if (!imageResult.success) {
-            await deleteFile(imageKey);
-            return res.status(500).json(imageResult);
+
+        // Handle multiple images 
+        const imageUrls = [];
+        for (let file of files) {
+            // Sanitize filename to avoid encoding issues
+            const sanitizedFilename = file.originalname
+                .replace(/[^\w.-]/g, '_') // Replace special characters with underscore
+                .replace(/_+/g, '_') // Replace multiple underscores with single
+                .substring(0, 100); // Limit length
+            
+            const imageKey = `community-events/${userId}/${uuidv4()}_${sanitizedFilename}`;
+
+            try {
+                await uploadFile(file, imageKey);
+                const imageUrl = `/api/s3?key=${imageKey}`;
+                const imageResult = await addCommunityEventImage(eventResult.eventId, imageUrl);
+                if (imageResult.success) {
+                    imageUrls.push(imageUrl);
+                }
+            } catch (error) {
+                console.error('Error processing file:', file.originalname, error);
+            }
         }
+
         return res.status(201).json({
             success: true,
             message: 'Community event created successfully',
             eventId: eventResult.eventId,
-            imageUrl
+            images: imageUrls
         });
     } catch (error) {
         console.error('Error in createEvent controller:', error);
@@ -191,6 +200,92 @@ export const getApprovedEvents = async (req, res) => {
       res.status(200).json(result);
     } else {
       res.status(500).json(result);
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+}; 
+
+/**
+ * @openapi
+ * /api/community/{id}:
+ *   get:
+ *     tags:
+ *       - Community
+ *     summary: Get a single community event by ID
+ *     description: Returns all details for a single approved community event including all uploaded images.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The event ID
+ *     responses:
+ *       200:
+ *         description: Event details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 event:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     name:
+ *                       type: string
+ *                     location:
+ *                       type: string
+ *                     category:
+ *                       type: string
+ *                     date:
+ *                       type: string
+ *                       format: date
+ *                       description: Event date (YYYY-MM-DD)
+ *                     time:
+ *                       type: string
+ *                       description: Event time (HH:mm:ss format)
+ *                     description:
+ *                       type: string
+ *                     created_by_name:
+ *                       type: string
+ *                       description: Name of the organiser
+ *                     images:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                           image_url:
+ *                             type: string
+ *                             description: URL to access the image (e.g. /api/s3?key=community-events/{userId}/{uuid})
+ *                           uploaded_at:
+ *                             type: string
+ *                             format: date-time
+ *                       description: All images for the event. The first image is used as the cover by convention.
+ *       400:
+ *         description: Invalid event ID
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Internal server error
+ */
+export const getEventById = async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.id, 10);
+    if (!eventId || isNaN(eventId)) {
+      return res.status(400).json({ success: false, message: 'Invalid event ID' });
+    }
+    const result = await getCommunityEventById(eventId);
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      res.status(404).json(result);
     }
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
