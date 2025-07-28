@@ -91,6 +91,7 @@ services:
       - "3100:3100"
     volumes:
       - ./loki-config.yaml:/etc/loki/local-config.yaml
+      - loki_data:/loki
     command: -config.file=/etc/loki/local-config.yaml
   tempo:
     image: grafana/tempo:2.7.2
@@ -118,3 +119,5 @@ volumes:
   grafana:
 
   tempo-data:
+
+  loki_data:
