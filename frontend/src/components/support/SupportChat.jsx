@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {useState, useRef, useEffect, useContext} from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { cn } from '@/lib/utils';
+import {UserContext} from "@/provider/UserContext.js";
 
 export const SupportChat = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,6 +15,7 @@ export const SupportChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
   const messagesEndRef = useRef(null);
+  const user = useContext(UserContext);
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -35,6 +37,12 @@ export const SupportChat = () => {
     setMessages(newConversation);
     setInputValue('');
     setIsLoading(true);
+    if (!user) {
+      setMessages([...newConversation, {
+        role: "assistant",
+        content: "You have to be signed in to chat with us."
+      }]);
+    }
 
     try {
       const response = await fetcher('/support/chat', {
