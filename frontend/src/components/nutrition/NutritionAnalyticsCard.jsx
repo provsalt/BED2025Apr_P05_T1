@@ -135,8 +135,7 @@ export const NutritionAnalyticsCard = () => {
         <div className="flex gap-3">
           {[
             { days: 7, label: '7 Days' },
-            { days: 30, label: '30 Days' },
-            { days: 90, label: '90 Days' }
+            { days: 30, label: '30 Days' }
           ].map(period => (
             <Button
               key={period.days}

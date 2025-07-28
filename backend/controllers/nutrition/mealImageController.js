@@ -124,7 +124,7 @@ export const retrieveMeals = async (req, res) => {
     const meals = await getAllMeals(req.user.id);
     res.status(200).json({ 
       message: "Meals retrieved successfully", 
-      meals: meals 
+      meals: meals || []
     });
   } catch (error) {
     console.error("Error fetching meals:", error);

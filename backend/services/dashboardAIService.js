@@ -1,7 +1,12 @@
-import OpenAI from 'openai';
+import Op/**
+ * Generate AI nutrition predictions and recommendations based on user's meal history
+ * @param {Object} nutritionData - User's nutrition data and trends
+ * @returns {Promise<Object>} AI predictions and recommendations
+ */
+export const generateNutritionPredictionsNew = async (nutritionData) => {
+  try {
+    const response = await openai.chat.completions.create({'openai';
 import dotenv from 'dotenv';
-import {z} from "zod/v4";
-import {nutritionSchema} from "../utils/validation/nutrition.js";
 
 dotenv.config();
 
@@ -10,58 +15,14 @@ const openai = new OpenAI({
 });
 
 /**
- * Analyze food image using OpenAI GPT-4 Vision API
- * @param {Buffer} imageBuffer - The processed image buffer
- * @returns {Promise<Object>} Analysis results
- */
-export const analyzeFoodImage = async (imageBuffer) => {
-  try {
-    const res = nutritionSchema.extend({
-      error: z.string().describe("Error message if no food is detected")
-    });
-
-    const response = await openai.responses.parse({
-      model: "gpt-4.1-mini",
-      input: [
-        {
-          role: "system",
-          content: "Analyze the food image and provide detailed nutritional information. If the image does not contain any food, please do not analyze the image. Be as accurate as possible with the nutritional estimates. Even if you cannot identify exact details, you can estimate it. If it does not contain any food, please do not analyze the image and place an error message."
-        },
-        {
-          role: "user",
-          content: [
-            {
-              type: "input_image",
-              image_url: `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
-            }
-          ]
-        }
-      ],
-      text: {
-        format: {
-          name: "nutrition-analysis",
-          type: "json_schema",
-          strict: true,
-          schema: z.toJSONSchema(res, {target: 'draft-7'}),
-        },
-      },
-    });
-
-   return response.output_parsed
-
-  } catch (error) {
-    console.error("OpenAI API error:", error);
-    throw new Error("Failed to analyze food image");
-  }
-}; 
-
-/**
  * Generate AI nutrition predictions and recommendations based on user's meal history
  * @param {Object} nutritionData - User's nutrition data and trends
  * @returns {Promise<Object>} AI predictions and recommendations
  */
-export const generateNutritionPredictionsNew = async (nutritionData) => {
+export const generateNutritionPredictions = async (nutritionData) => {
   try {
+    console.log("🚀 AI Service: Generating predictions for data:", JSON.stringify(nutritionData, null, 2));
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -119,19 +80,32 @@ export const generateNutritionPredictionsNew = async (nutritionData) => {
 
     const content = response.choices[0].message.content.trim();
     
+    console.log("📝 AI Service: Response received");
+    console.log("Content length:", content.length);
+    console.log("Content preview:", content.substring(0, 200) + "...");
+    
     try {
-      return JSON.parse(content);
+      const parsed = JSON.parse(content);
+      console.log("✅ AI Service: Successfully parsed JSON with keys:", Object.keys(parsed));
+      return parsed;
     } catch (parseError) {
+      console.error("❌ AI Service: JSON parse error:", parseError.message);
+      console.log("Full content that failed to parse:", content);
+      
+      // Try to extract JSON from markdown or other formatting
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        console.log("🔧 AI Service: Attempting to parse extracted JSON...");
+        const extracted = JSON.parse(jsonMatch[0]);
+        console.log("✅ AI Service: Successfully parsed extracted JSON");
+        return extracted;
       }
       
       throw new Error("Could not parse AI predictions from response");
     }
 
   } catch (error) {
-    console.error("Dashboard AI API error:", error);
+    console.error("💥 AI Service: API error:", error);
     throw new Error("Failed to generate nutrition predictions: " + error.message);
   }
-}; 
+};

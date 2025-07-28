@@ -17,7 +17,7 @@ import { getNutritionAnalytics, getDailyNutritionBreakdown, getCaloriesTrend } f
  *         schema:
  *           type: integer
  *           default: 7
- *         description: Number of days to include in analytics (7, 30, or 90).
+ *         description: Number of days to include in analytics (7 or 30).
  *     responses:
  *       200:
  *         description: Analytics retrieved successfully
@@ -62,8 +62,8 @@ export const getNutritionAnalyticsController = async (req, res) => {
     const days = parseInt(req.query.days) || 7;
     
     // Validate days parameter
-    if (![7, 30, 90].includes(days)) {
-      return res.status(400).json({ error: "Days parameter must be 7, 30, or 90" });
+    if (![7, 30].includes(days)) {
+      return res.status(400).json({ error: "Days parameter must be 7 or 30" });
     }
 
     const analytics = await getNutritionAnalytics(req.user.id, days);
