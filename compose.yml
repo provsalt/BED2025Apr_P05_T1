@@ -75,7 +75,7 @@ services:
   grafana:
     image: grafana/grafana
     ports:
-      - "7000:3000"
+      - "${GRAFANA_PORT:-7000}:3000"
     depends_on:
       - prometheus
     volumes:

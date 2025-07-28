@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { uploadFile } from "../../services/s3Service.js";
-import { analyzeFoodImage } from "../../services/openaiService.js";
+import { analyzeFoodImage } from "../../services/openai/openaiService.js";
 import { createMeal, getMealById, getAllMeals, deleteMeal, updateMeal, searchMeals } from "../../models/nutrition/nutritionModel.js";
 
 /**
@@ -322,10 +322,10 @@ export const amendMeal = async (req, res) => {
     }
 
     const updatedMeal = {
-      ...req.validatedBody,
-      ingredients: Array.isArray(req.validatedBody.ingredients)
-        ? req.validatedBody.ingredients.join(", ")
-        : req.validatedBody.ingredients
+      ...mealData,
+      ingredients: Array.isArray(mealData.ingredients)
+        ? mealData.ingredients.join(", ")
+        : mealData.ingredients
     };
 
     await updateMeal(id, updatedMeal);
@@ -427,18 +427,12 @@ export const searchMealsController = async (req, res) => {
 
     const meals = await searchMeals(req.user.id, searchTerm.trim());
     
-    if (!meals || meals.length === 0) {
-      return res.status(404).json({
-        error: "No meals found for the given search term",
-        searchTerm: searchTerm.trim()
-      });
-    }
-
+    // Return empty array instead of 404 for no results - this is more user-friendly
     res.status(200).json({ 
-      message: "Search completed successfully", 
-      meals: meals,
+      message: meals.length > 0 ? "Search completed successfully" : "No meals found",
+      meals: meals || [],
       searchTerm: searchTerm.trim(),
-      count: meals.length
+      count: meals ? meals.length : 0
     });
   } catch (error) {
     console.error("Error searching meals:", error);

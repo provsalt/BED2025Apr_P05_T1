@@ -31,6 +31,7 @@ import {CreateRoute} from "@/routes/transport/CreateRoute.jsx";
 import {EditRoute} from "@/routes/transport/EditRoute.jsx";
 import {CommunityEvents} from '@/routes/community/CommunityEvents.jsx';
 import {EventDetails} from '@/routes/community/EventDetails.jsx';
+import { SupportChat } from '@/components/support/SupportChat.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -75,6 +76,7 @@ createRoot(document.getElementById('root')).render(
                   </Route>
                 </Routes>
               </div>
+              <SupportChat />
             </div>
           </BrowserRouter>
         </SocketProvider>
