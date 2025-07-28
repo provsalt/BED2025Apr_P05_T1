@@ -16,6 +16,7 @@ import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
 import {MealsList} from "@/routes/nutrition/mealsList.jsx";
 import {MealDetail} from "@/routes/nutrition/mealDetail.jsx";
+import {NutritionAnalyticsPage} from "@/routes/nutrition/nutritionAnalytics.jsx";
 import { MedicalCreateForm } from '@/routes/medical/medicalCreateForm.jsx';
 import {MedicationRemindersList} from '@/routes/medical/MedicationRemindersList.jsx';
 import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
@@ -51,6 +52,7 @@ createRoot(document.getElementById('root')).render(
                   </Route>
                   <Route path="/medical" element={<MedicalDashboard />} />
                   <Route path="/nutrition/upload" element={<MealImageUpload/>} />
+                  <Route path="/nutrition/analytics" element={<NutritionAnalyticsPage/>} />
                   <Route path="/nutrition" element={<MealsList/>} />
                   <Route path="/nutrition/:id" element={<MealDetail/>} />
                   <Route path="/medical/create" element={<MedicalCreateForm />} />

@@ -8,8 +8,19 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { DashboardSkeleton } from "@/components/home/Dashboard";
 
 export const Home = () => {
-  const { isAuthenticated, id: userId } = useContext(UserContext);
-  const { summary, loading, error, fetchDashboardData } = useDashboardData(isAuthenticated);
+  const { isAuthenticated, isLoading: authLoading, id: userId } = useContext(UserContext);
+  const { summary, loading, error, fetchDashboardData } = useDashboardData(isAuthenticated && !authLoading);
+
+  // Show loading while authentication is being determined
+  if (authLoading) {
+    return (
+      <div className="flex-1 bg-gray-50 text-gray-900">
+        <div className="mx-auto px-6 py-12">
+          <DashboardSkeleton />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-gray-50 text-gray-900">

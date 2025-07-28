@@ -3,6 +3,7 @@ import {genericUploadMiddleware} from "../../middleware/upload.js";
 import { resizeAndConvertImage } from "../../middleware/resizeAndConvertImage.js";
 import { compressImage } from "../../middleware/compression.js";
 import { uploadNutritionImage, retrieveMeals, retrieveMealsById, removeMeal, amendMeal, searchMealsController } from "./mealImageController.js";
+import { getNutritionAnalyticsController, getDailyBreakdownController, getCaloriesTrendController } from "./nutritionAnalyticsController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import {openaiRateLimit} from "../../middleware/rateLimit.js";
 import { nutritionSchema } from "../../utils/validation/nutrition.js";
@@ -22,6 +23,11 @@ uploadNutritionImage
 );
 // Get route for fetching all meals for the user
 router.get("/", getUserMiddleware, retrieveMeals);
+
+// Analytics routes - must come before search route to avoid conflicts
+router.get("/analytics", getUserMiddleware, getNutritionAnalyticsController);
+router.get("/analytics/daily", getUserMiddleware, getDailyBreakdownController);
+router.get("/analytics/trend", getUserMiddleware, getCaloriesTrendController);
 
 // Search route for searching meals
 router.get("/search", getUserMiddleware, searchMealsController);
