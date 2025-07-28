@@ -16,14 +16,14 @@ import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
 import {MealsList} from "@/routes/nutrition/mealsList.jsx";
 import {MealDetail} from "@/routes/nutrition/mealDetail.jsx";
-import { MedicalCreateForm } from '@/routes/medical/medicalCreateForm.jsx';
+import {MedicalCreateForm} from '@/routes/medical/medicalCreateForm.jsx';
 import {MedicationRemindersList} from '@/routes/medical/MedicationRemindersList.jsx';
 import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
 import {CreateEventPage} from "@/routes/community/CreateEvent.jsx";
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
-import { MedicationEditForm }  from '@/routes/medical/medicalEditForm.jsx';
-import { MedicationQuestionnaire } from '@/routes/medical/MedicationQuestionnaire.jsx';
+import {MedicationEditForm}  from '@/routes/medical/medicalEditForm.jsx';
+import {MedicationQuestionnaire} from '@/routes/medical/MedicationQuestionnaire.jsx';
 import {TransportHomePage} from "@/routes/transport/TransportHomePage.jsx";
 import {TransportMap} from "@/routes/transport/TransportMap.jsx";
 import {RouteList} from "@/routes/transport/RouteList.jsx";
@@ -32,6 +32,8 @@ import {EditRoute} from "@/routes/transport/EditRoute.jsx";
 import {CommunityEvents} from '@/routes/community/CommunityEvents.jsx';
 import {UserEvents} from '@/routes/community/userEvents.jsx';
 import {EventDetail} from '@/routes/community/userEventDetail.jsx';
+import {EventDetails} from '@/routes/community/EventDetails.jsx';
+import { SupportChat } from '@/components/support/SupportChat.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -68,6 +70,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/community" element={<CommunityEvents />} />
                   <Route path="/community/myevents" element={<UserEvents />} />
                   <Route path="/community/event/:id" element={<EventDetail />} />
+                  <Route path="/community/:id" element={<EventDetails />} />
                   <Route path="/transport">
                     <Route index element={<TransportHomePage/>} />
                     <Route path="map" element={<TransportMap />} />
@@ -77,6 +80,7 @@ createRoot(document.getElementById('root')).render(
                   </Route>
                 </Routes>
               </div>
+              <SupportChat />
             </div>
           </BrowserRouter>
         </SocketProvider>

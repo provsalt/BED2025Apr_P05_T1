@@ -1,0 +1,320 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "get_current_date",
+      "description": "Get the current date and time to provide temporal context for queries like 'yesterday', 'last week', 'next month', etc.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_user_details",
+      "description": "Get current user's profile information including name, email, gender, date of birth, and language preferences",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_medication_reminders",
+      "description": "Get all medication reminders for the user",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  },
+  {
+    "type": "function", 
+    "function": {
+      "name": "get_meals",
+      "description": "Get all meals logged by the user",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "search_meals", 
+      "description": "Search meals by name",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "searchTerm": {
+            "type": "string",
+            "description": "The meal name to search for"
+          }
+        },
+        "required": ["searchTerm"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_meal_details",
+      "description": "Get detailed information about a specific meal by ID",
+      "parameters": {
+        "type": "object", 
+        "properties": {
+          "mealId": {
+            "type": "string",
+            "description": "The ID of the meal to retrieve"
+          }
+        },
+        "required": ["mealId"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "update_meal",
+      "description": "Update meal information",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "mealId": {
+            "type": "string", 
+            "description": "The ID of the meal to update"
+          },
+          "name": {
+            "type": "string",
+            "description": "Updated meal name"
+          },
+          "category": {
+            "type": "string", 
+            "description": "Updated meal category"
+          },
+          "carbohydrates": {
+            "type": "number",
+            "description": "Updated carbohydrates in grams"
+          },
+          "protein": {
+            "type": "number",
+            "description": "Updated protein in grams" 
+          },
+          "fat": {
+            "type": "number",
+            "description": "Updated fat in grams"
+          },
+          "calories": {
+            "type": "number",
+            "description": "Updated calories"
+          },
+          "ingredients": {
+            "type": "string",
+            "description": "Updated ingredients list"
+          }
+        },
+        "required": ["mealId"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "delete_meal",
+      "description": "Delete a meal by ID",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "mealId": {
+            "type": "string",
+            "description": "The ID of the meal to delete"
+          }
+        },
+        "required": ["mealId"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_transport_stations",
+      "description": "Get map of all available transport station codes and names",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  },
+  {
+    "type": "function", 
+    "function": {
+      "name": "find_shortest_path",
+      "description": "Find the shortest path between two transport stations",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "startStation": {
+            "type": "string",
+            "description": "Starting station code"
+          },
+          "endStation": {
+            "type": "string", 
+            "description": "Destination station code"
+          }
+        },
+        "required": ["startStation", "endStation"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_user_routes",
+      "description": "Get all saved transport routes for the user",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_route_details",
+      "description": "Get details of a specific saved route by ID",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "routeId": {
+            "type": "string",
+            "description": "The ID of the route to retrieve"
+          }
+        },
+        "required": ["routeId"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "create_route",
+      "description": "Create a new saved transport route",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name for the route"
+          },
+          "startStation": {
+            "type": "string", 
+            "description": "Starting station code"
+          },
+          "endStation": {
+            "type": "string",
+            "description": "Destination station code"
+          }
+        },
+        "required": ["name", "startStation", "endStation"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "update_route",
+      "description": "Update an existing saved route",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "routeId": {
+            "type": "string",
+            "description": "The ID of the route to update"
+          },
+          "name": {
+            "type": "string",
+            "description": "Updated route name"
+          },
+          "startStation": {
+            "type": "string",
+            "description": "Updated starting station code"
+          },
+          "endStation": {
+            "type": "string", 
+            "description": "Updated destination station code"
+          }
+        },
+        "required": ["routeId"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "delete_route",
+      "description": "Delete a saved route by ID",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "routeId": {
+            "type": "string",
+            "description": "The ID of the route to delete"
+          }
+        },
+        "required": ["routeId"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_community_events",
+      "description": "Get all approved community events",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_user_chats", 
+      "description": "Get all chats for the user",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  },
+  {
+    "type": "function", 
+    "function": {
+      "name": "get_chat_messages",
+      "description": "Get all messages in a specific chat",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "chatId": {
+            "type": "string",
+            "description": "The ID of the chat to retrieve messages from"
+          }
+        },
+        "required": ["chatId"]
+      }
+    }
+  }
+]

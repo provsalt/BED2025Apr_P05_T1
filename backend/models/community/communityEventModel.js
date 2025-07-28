@@ -78,7 +78,7 @@ export async function getAllApprovedEvents() {
         const result = await connection.request()
             .query(`
                 SELECT CommunityEvent.*, Users.name as created_by_name,
-                  (SELECT TOP 1 image_url FROM CommunityEventImage WHERE community_event_id = CommunityEvent.id ORDER BY uploaded_at DESC) as image_url
+                  (SELECT TOP 1 image_url FROM CommunityEventImage WHERE community_event_id = CommunityEvent.id ORDER BY uploaded_at ASC) as image_url
                 FROM CommunityEvent
                 JOIN Users ON CommunityEvent.user_id = Users.id
                 WHERE CommunityEvent.approved_by_admin_id IS NOT NULL
@@ -129,6 +129,61 @@ export async function getCommunityEventsByUserId(userId) {
             message: 'Failed to get user events',
             error: error.message
         };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
+// GET: Get all images for a community event
+export async function getCommunityEventImages(eventId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                SELECT id, image_url, uploaded_at
+                FROM CommunityEventImage
+                WHERE community_event_id = @eventId
+                ORDER BY uploaded_at ASC
+            `);
+        return { success: true, images: result.recordset };
+    } catch (error) {
+        return { success: false, message: 'Failed to get images', error: error.message };
+    } finally {
+        if (connection) await connection.close();
+    }
+}
+
+// GET: Get a single community event by ID (with all images)
+export async function getCommunityEventById(eventId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                SELECT CommunityEvent.*, Users.name as created_by_name
+                FROM CommunityEvent
+                JOIN Users ON CommunityEvent.user_id = Users.id
+                WHERE CommunityEvent.id = @eventId AND CommunityEvent.approved_by_admin_id IS NOT NULL
+            `);
+        if (result.recordset.length === 0) {
+            return { success: false, message: 'Event not found' };
+        }
+        const event = result.recordset[0];
+        // Get all images
+        const imagesResult = await getCommunityEventImages(eventId);
+        if (imagesResult.success) {
+            event.images = imagesResult.images;
+        } else {
+            event.images = [];
+        }
+        return { success: true, event };
+    } catch (error) {
+        return { success: false, message: 'Failed to get event', error: error.message };
     } finally {
         if (connection) {
             await connection.close();

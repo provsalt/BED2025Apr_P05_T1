@@ -56,8 +56,82 @@ export function CommunityEvents() {
     });
   };
 
-  let content = null;
   const upcomingEvents = getUpcomingEvents(events);
+
+  let content = null;
+  if (loading) {
+    content = <div className="text-center py-8 text-gray-500">Loading events...</div>;
+  } else if (error) {
+    content = <div className="text-center py-8 text-red-500">{error}</div>;
+  } else if (upcomingEvents.length === 0) {
+    content = <div className="text-center py-8 text-gray-500">No community events available.</div>;
+  } else {
+    content = (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {upcomingEvents.map(event => {
+          let imageSrc = '';
+          if (event.image_url) {
+            if (event.image_url.startsWith('http')) {
+              imageSrc = event.image_url;
+            } else if (event.image_url.startsWith('/api/s3')) {
+              // Handle relative S3 URLs
+              imageSrc = `${import.meta.env.VITE_BACKEND_URL}${event.image_url}`;
+            } else {
+              // Fallback for other relative URLs
+              imageSrc = `${import.meta.env.VITE_BACKEND_URL}/${event.image_url}`;
+            }
+          }
+          // Date/time formatting logic
+          let dateTimeStr = '';
+          let timeStr = '';
+          if (event.date) {
+            dateTimeStr = new Date(event.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+          }
+          if (event.time) {
+            // Parse ISO string and extract HH:MM
+            const match = event.time.match(/T(\d{2}:\d{2}:\d{2})/);
+            if (match) {
+              timeStr = match[1].slice(0, 5);
+            }
+          }
+
+          return (
+            <Card key={event.id} className="w-full p-0 overflow-hidden cursor-pointer" onClick={() => navigate(`/community/${event.id}`)}>
+              {imageSrc && (
+                <img
+                  src={imageSrc}
+                  alt={event.name}
+                  className="w-full h-40 object-cover rounded-t-xl"
+                  style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                />
+              )}
+              <CardContent>
+                <div className="font-semibold text-base mb-1 truncate capitalize" title={event.name}>{event.name}</div>
+                <div className="flex items-center text-gray-600 text-sm mb-1 gap-2">
+                  <Clock className="size-4 text-gray-400" />
+                  <span>{dateTimeStr}{timeStr ? ` • ${timeStr}` : ''}</span>
+                </div>
+                <div className="flex items-center text-gray-500 text-xs mb-1 gap-2">
+                  <MapPin className="size-4 text-gray-400" />
+                  <span className="capitalize">{event.location || ''}</span>
+                </div>
+                {event.category && (
+                  <div className="flex items-center text-gray-500 text-xs mb-1 gap-2">
+                    <Tag className="size-4 text-gray-400" />
+                    <span className="capitalize">{event.category}</span>
+                  </div>
+                )}
+                {event.created_by_name && (
+                  <div className="text-gray-400 text-xs mt-2 mb-4 capitalize">By {event.created_by_name}</div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-6xl mx-auto pt-8 pb-7">
       <div className="w-full flex flex-col">
@@ -72,67 +146,7 @@ export function CommunityEvents() {
             </Button>
           </div>
         </div>
-        {loading ? (
-          <div className="text-center py-8 text-gray-500">Loading events...</div>
-        ) : error ? (
-          <div className="text-center py-8 text-red-500">{error}</div>
-        ) : (
-          <div className="flex flex-row flex-wrap gap-6">
-            {upcomingEvents.map(event => {
-              let imageSrc = '';
-              if (event.image_url) {
-                if (event.image_url.startsWith('http')) {
-                  imageSrc = event.image_url;
-                } else {
-                  imageSrc = `${import.meta.env.VITE_BACKEND_URL}${event.image_url}`;
-                }
-              }
-              let dateTimeStr = '';
-              let timeStr = '';
-              if (event.date) {
-                dateTimeStr = new Date(event.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-              }
-              if (event.time) {
-                const match = event.time.match(/T(\d{2}:\d{2}:\d{2})/);
-                if (match) {
-                  timeStr = match[1].slice(0, 5);
-                }
-              }
-              return (
-                <Card key={event.id} className="w-64 p-0 overflow-hidden flex-shrink-0">
-                  {imageSrc && (
-                    <img
-                      src={imageSrc}
-                      alt={event.name}
-                      className="w-full h-40 object-cover rounded-t-xl"
-                      style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                    />
-                  )}
-                  <CardContent>
-                    <div className="font-semibold text-base mb-1 truncate capitalize" title={event.name}>{event.name}</div>
-                    <div className="flex items-center text-gray-600 text-sm mb-1 gap-2">
-                      <Clock className="size-4 text-gray-400" />
-                      <span>{dateTimeStr}{timeStr ? ` • ${timeStr}` : ''}</span>
-                    </div>
-                    <div className="flex items-center text-gray-500 text-xs mb-1 gap-2">
-                      <MapPin className="size-4 text-gray-400" />
-                      <span className="capitalize">{event.location || ''}</span>
-                    </div>
-                    {event.category && (
-                      <div className="flex items-center text-gray-500 text-xs mb-1 gap-2">
-                        <Tag className="size-4 text-gray-400" />
-                        <span className="capitalize">{event.category}</span>
-                      </div>
-                    )}
-                    {event.created_by_name && (
-                      <div className="text-gray-400 text-xs mt-2 mb-4 capitalize">By {event.created_by_name}</div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+        {content}
       </div>
     </div>
   );
