@@ -72,12 +72,7 @@ export function EventDetails() {
 
   // Organizer info (placeholder avatar)
   const organizerName = event.created_by_name || "Event Organizer";
-  let organizerAvatar;
-  if (event.created_by_profile_picture) {
-    organizerAvatar = event.created_by_profile_picture;
-  } else {
-    organizerAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(organizerName)}&background=E5E7EB&color=374151&size=64`;
-  }
+  let organizerAvatar = event.created_by_profile_picture
 
   //carousel navigation
   const goLeft = () => {
@@ -161,7 +156,11 @@ export function EventDetails() {
       </div>
       {/* Organizer Section */}
       <div className="flex items-center gap-4 border-t pt-6 mb-8">
-        <img src={organizerAvatar} alt={organizerName} className="w-12 h-12 rounded-full border" />
+        {
+          organizerAvatar ?
+            <img src={organizerAvatar} alt={organizerName} className="w-12 h-12 rounded-full border" /> :
+            <User className="w-12" />
+        }
         <div className="flex-1">
           <div className="font-semibold text-gray-800 capitalize">{organizerName}</div>
           <div className="text-xs text-gray-500">Event Organizer</div>
