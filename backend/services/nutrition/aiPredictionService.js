@@ -2,7 +2,7 @@ import { generateNutritionPredictionsNew as generateNutritionPredictions } from 
 import { GENDER, CALORIE_LIMITS, HEALTH_SCORES } from "../../utils/constants.js";
 
 /**
- * Service for handling AI nutrition predictions
+ * Service for handling AI nutrition predictions using OpenAI Responses API with Structured Outputs
  */
 export class AIPredictionService {
   /**

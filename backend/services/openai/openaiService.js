@@ -1,12 +1,32 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
-import {z} from "zod/v4";
-import {nutritionSchema} from "../../utils/validation/nutrition.js";
+import { z } from "zod";
+import { nutritionSchema } from "../../utils/validation/nutrition.js";
 
 dotenv.config();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Define the schema for AI nutrition predictions
+const NutritionPredictionsSchema = z.object({
+  predictions: z.object({
+    weeklyCalorieGoal: z.number(),
+    proteinTarget: z.number(),
+    improvementAreas: z.array(z.string()),
+    trendAnalysis: z.string()
+  }),
+  recommendations: z.array(z.object({
+    category: z.string(),
+    suggestion: z.string(),
+    priority: z.enum(["high", "medium", "low"]),
+    reasoning: z.string()
+  })),
+  insights: z.object({
+    healthScore: z.number().min(0).max(100),
+    balanceAssessment: z.string()
+  })
 });
 
 /**
@@ -127,45 +147,12 @@ export const isResponseSafe = async (response) => {
  */
 export const generateNutritionPredictionsNew = async (nutritionData) => {
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
+    const response = await openai.responses.create({
+      model: "gpt-4o-2024-08-06",
+      input: [
         {
           role: "system",
-          content: `You are a nutrition expert AI assistant. Analyze nutrition data and provide personalized predictions and recommendations for elderly users.
-
-          Respond with ONLY a valid JSON object in this exact structure:
-          {
-            "predictions": {
-              "weeklyCalorieGoal": number,
-              "proteinTarget": number,
-              "improvementAreas": [string, string],
-              "trendAnalysis": "detailed analysis string"
-            },
-            "recommendations": [
-              {
-                "category": "category name",
-                "suggestion": "specific suggestion",
-                "priority": "high|medium|low",
-                "reasoning": "why this matters"
-              }
-            ],
-            "insights": {
-              "healthScore": number (0-100),
-              "balanceAssessment": "assessment string"
-            }
-          }
-
-          Focus on:
-          - MANDATORY gender-specific nutrition needs and recommendations
-          - Gender-based calorie ranges: Males 1800-2400, Females 1600-2000  
-          - Gender-specific nutrient requirements and health priorities
-          - Weekly calorie goals should be 7x daily target (11,200-16,800 total)
-          - Evidence-based nutrition advice tailored specifically to the user's gender
-          - Practical, actionable suggestions based on gender and current intake
-          - Encouraging tone while being informative and gender-aware
-          
-          CRITICAL: Always respect gender-specific calorie limits and nutrient needs. Never exceed 2000 calories daily for females or go below 1800 for males.`
+          content: `You are a nutrition expert AI assistant. Analyze nutrition data and provide personalized predictions and recommendations for elderly users. Focus on gender-specific nutrition needs and provide evidence-based advice.`
         },
         {
           role: "user",
@@ -180,8 +167,6 @@ export const generateNutritionPredictionsNew = async (nutritionData) => {
           - Total meals tracked: ${nutritionData.totalMeals || 0}
           - Analysis period: ${nutritionData.days || 7} days
 
-          CRITICAL: Provide gender-specific nutrition analysis based on the user's gender above.
-
           MANDATORY Gender-Specific Guidelines:
           
           If Gender is MALE or male:
@@ -189,43 +174,99 @@ export const generateNutritionPredictionsNew = async (nutritionData) => {
           - Weekly calorie goal = daily target × 7 (12,600-16,800 range)
           - Protein target: 56-75g daily (higher muscle mass needs)
           - Focus areas: Heart health, prostate health, muscle maintenance
-          - Key nutrients: Lycopene, zinc, omega-3 fatty acids
-          - Recommendations should address: Lean protein sources, heart-healthy fats, adequate fiber
           
           If Gender is FEMALE or female:
           - MUST set daily calorie target between 1600-2000 calories ONLY  
           - Weekly calorie goal = daily target × 7 (11,200-14,000 range)
           - Protein target: 46-65g daily (lean muscle maintenance)
           - Focus areas: Bone health, iron levels, heart health, hormonal balance
-          - Key nutrients: Calcium, vitamin D, iron, folate, magnesium
-          - Recommendations should address: Iron-rich foods, bone-strengthening nutrients, heart health
-          
-          VALIDATION RULES:
-          - If gender is female: weeklyCalorieGoal must be ≤ 14,000 (2000×7)
-          - If gender is male: weeklyCalorieGoal must be ≥ 12,600 (1800×7)
-          - Consider user's current intake patterns when setting realistic goals within gender limits
-          - If current intake is outside gender range, suggest gradual adjustments
-          - All recommendations must be gender-appropriate and evidence-based
 
-          Generate insights that specifically address the nutritional needs and health priorities for this user's gender, incorporating their current eating patterns and meal data.`
+          Generate insights that specifically address the nutritional needs and health priorities for this user's gender.`
         }
       ],
-      max_tokens: 2000,
-      temperature: 0.3
+      text: {
+        format: {
+          type: "json_schema",
+          name: "nutrition_predictions",
+          schema: {
+            type: "object",
+            properties: {
+              predictions: {
+                type: "object",
+                properties: {
+                  weeklyCalorieGoal: { type: "number" },
+                  proteinTarget: { type: "number" },
+                  improvementAreas: { 
+                    type: "array", 
+                    items: { type: "string" },
+                    minItems: 1,
+                    maxItems: 5
+                  },
+                  trendAnalysis: { type: "string" }
+                },
+                required: ["weeklyCalorieGoal", "proteinTarget", "improvementAreas", "trendAnalysis"],
+                additionalProperties: false
+              },
+              recommendations: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    category: { type: "string" },
+                    suggestion: { type: "string" },
+                    priority: { 
+                      type: "string", 
+                      enum: ["high", "medium", "low"] 
+                    },
+                    reasoning: { type: "string" }
+                  },
+                  required: ["category", "suggestion", "priority", "reasoning"],
+                  additionalProperties: false
+                },
+                minItems: 1,
+                maxItems: 10
+              },
+              insights: {
+                type: "object",
+                properties: {
+                  healthScore: { 
+                    type: "number", 
+                    minimum: 0, 
+                    maximum: 100 
+                  },
+                  balanceAssessment: { type: "string" }
+                },
+                required: ["healthScore", "balanceAssessment"],
+                additionalProperties: false
+              }
+            },
+            required: ["predictions", "recommendations", "insights"],
+            additionalProperties: false
+          },
+          strict: true
+        }
+      }
     });
 
-    const content = response.choices[0].message.content.trim();
-    
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
-      }
-      
-      throw new Error("Could not parse AI predictions from response");
+    // Handle different response statuses
+    if (response.status === "incomplete") {
+      console.error('Incomplete AI response:', response.incomplete_details);
+      throw new Error(`Incomplete response: ${response.incomplete_details.reason}`);
     }
+
+    // Check for refusal
+    if (response.output[0].content[0].type === "refusal") {
+      console.error('AI refused to respond:', response.output[0].content[0].refusal);
+      throw new Error('AI refused to provide analysis');
+    }
+
+    // Parse the structured output
+    const analysisData = JSON.parse(response.output_text);
+    
+    // Additional validation with our Zod schema
+    const validatedResponse = NutritionPredictionsSchema.parse(analysisData);
+    
+    return validatedResponse;
 
   } catch (error) {
     console.error("Dashboard AI API error:", error);

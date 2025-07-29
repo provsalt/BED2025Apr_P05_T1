@@ -4,7 +4,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Brain, Sparkles, Target, TrendingUp, Zap, Heart, 
-  CheckCircle2, AlertCircle, Clock, Camera
+  CheckCircle2, AlertCircle, Clock, Camera, RefreshCw
 } from "lucide-react";
 import { useAIPredictions } from "@/hooks/useNutrition";
 
