@@ -5,6 +5,7 @@ import { useContext } from "react";
 import { UserContext } from "@/provider/UserContext";
 import { NutritionAnalyticsCard } from "@/components/nutrition/NutritionAnalyticsCard";
 import { AIPredictions } from "@/components/ai/AIPredictions";
+import { NutritionAreaChart } from "@/components/charts/NutritionAreaChart";
 import { 
   Apple, 
   Dumbbell, 
@@ -164,6 +165,11 @@ export const Dashboard = ({ summary }) => {
                   </div>
                 )}
               </div>
+            </section>
+
+            {/* Nutrition Trends Chart */}
+            <section>
+              <NutritionAreaChart />
             </section>
 
             {/* Nutrition Analytics Section */}

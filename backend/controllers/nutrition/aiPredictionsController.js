@@ -1,5 +1,6 @@
 import { generateNutritionPredictionsNew as generateNutritionPredictions } from "../../services/openaiService.js";
 import { getNutritionAnalytics, getCaloriesTrend } from "../../models/nutrition/nutritionAnalyticsModel.js";
+import { getUser } from "../../models/user/userModel.js";
 
 /**
  * @openapi
@@ -60,8 +61,6 @@ import { getNutritionAnalytics, getCaloriesTrend } from "../../models/nutrition/
  *                   properties:
  *                     healthScore:
  *                       type: number
- *                     consistencyRating:
- *                       type: number
  *                     balanceAssessment:
  *                       type: string
  *       401:
@@ -79,6 +78,19 @@ export const getAIPredictionsController = async (req, res) => {
     }
 
     const days = parseInt(req.query.days) || 7;
+    
+    // Get fresh user data to ensure we have current gender setting
+    let currentUser;
+    try {
+      currentUser = await getUser(req.user.id);
+      if (!currentUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+    } catch (userError) {
+      console.error("Error fetching current user:", userError);
+      // Fallback to req.user if database query fails
+      currentUser = req.user;
+    }
     
     // Get user's nutrition analytics and trend data with better error handling
     let analytics, trendData;
@@ -104,7 +116,7 @@ export const getAIPredictionsController = async (req, res) => {
       trendData = [];
     }
 
-    // Prepare data for AI analysis
+    // Prepare data for AI analysis with fresh user data
     const nutritionData = {
       avgCalories: analytics.avgDailyCalories || 0,
       avgProtein: analytics.avgProtein || 0,
@@ -113,22 +125,60 @@ export const getAIPredictionsController = async (req, res) => {
       totalMeals: analytics.totalMeals || 0,
       days: days,
       dailyBreakdown: analytics.dailyBreakdown || [],
-      trendData: trendData || []
+      trendData: trendData || [],
+      gender: (currentUser.gender == 0 || currentUser.gender === '0') ? 'female' : 
+              (currentUser.gender == 1 || currentUser.gender === '1') ? 'male' : 'unknown'
     };
+
+    console.log(`AI Nutrition Generation - User Gender: ${currentUser.gender} (${nutritionData.gender}), User ID: ${req.user.id}`);
 
     // Always attempt AI call first, provide fallbacks only if AI fails
     let aiResponse;
     
     try {
       aiResponse = await generateNutritionPredictions(nutritionData);
+      
+      // Validate and enforce gender-specific calorie limits
+      if (aiResponse && aiResponse.predictions && aiResponse.predictions.weeklyCalorieGoal) {
+        const gender = currentUser.gender; // 0 or "0" = female, 1 or "1" = male
+        const weeklyGoal = aiResponse.predictions.weeklyCalorieGoal;
+        const dailyGoal = Math.round(weeklyGoal / 7);
+        
+        // Enforce gender-specific limits (0/"0" = female, 1/"1" = male)
+        if ((gender == 0 || gender === '0') && dailyGoal > 2000) { // Female
+          console.log(`Correcting female calorie goal from ${dailyGoal} to 1800`);
+          aiResponse.predictions.weeklyCalorieGoal = 1800 * 7; // 12,600
+        } else if ((gender == 1 || gender === '1') && dailyGoal < 1800) { // Male
+          console.log(`Correcting male calorie goal from ${dailyGoal} to 2000`);
+          aiResponse.predictions.weeklyCalorieGoal = 2000 * 7; // 14,000
+        } else if ((gender == 0 || gender === '0') && dailyGoal < 1600) { // Female
+          console.log(`Correcting female calorie goal from ${dailyGoal} to 1600`);
+          aiResponse.predictions.weeklyCalorieGoal = 1600 * 7; // 11,200
+        } else if ((gender == 1 || gender === '1') && dailyGoal > 2400) { // Male
+          console.log(`Correcting male calorie goal from ${dailyGoal} to 2200`);
+          aiResponse.predictions.weeklyCalorieGoal = 2200 * 7; // 15,400
+        }
+      }
+      
     } catch (aiError) {
       console.error("AI service error:", aiError);
       
       // Provide context-specific fallbacks based on data availability
       if (analytics.totalMeals > 0) {
+        // Gender-aware fallback calorie goals (0/"0" = female, 1/"1" = male)
+        const gender = currentUser.gender; // 0 or "0" = female, 1 or "1" = male
+        let fallbackDailyCalories;
+        if (gender == 0 || gender === '0') { // Female
+          fallbackDailyCalories = Math.min(Math.max(analytics.avgDailyCalories || 1800, 1600), 2000);
+        } else if (gender == 1 || gender === '1') { // Male
+          fallbackDailyCalories = Math.min(Math.max(analytics.avgDailyCalories || 2000, 1800), 2400);
+        } else {
+          fallbackDailyCalories = analytics.avgDailyCalories || 2000;
+        }
+        
         aiResponse = {
           predictions: {
-            weeklyCalorieGoal: Math.round((analytics.avgDailyCalories || 2000) * 7),
+            weeklyCalorieGoal: Math.round(fallbackDailyCalories * 7),
             proteinTarget: Math.round(analytics.avgProtein || 60),
             improvementAreas: ["AI analysis temporarily unavailable"],
             trendAnalysis: "AI analysis is currently unavailable. Your current average is " + Math.round(analytics.avgDailyCalories || 0) + " calories per day."
@@ -143,15 +193,24 @@ export const getAIPredictionsController = async (req, res) => {
           ],
           insights: {
             healthScore: 75,
-            consistencyRating: Math.min(analytics.totalMeals, 10),
             balanceAssessment: "AI analysis temporarily unavailable. Continue tracking meals for insights."
           }
         };
       } else {
-        // Default response for users with no meal data
+        // Gender-aware default response for users with no meal data (0/"0" = female, 1/"1" = male)
+        const gender = currentUser.gender; // 0 or "0" = female, 1 or "1" = male
+        let defaultDailyCalories;
+        if (gender == 0 || gender === '0') { // Female
+          defaultDailyCalories = 1800; // Mid-range for females
+        } else if (gender == 1 || gender === '1') { // Male
+          defaultDailyCalories = 2000; // Mid-range for males
+        } else {
+          defaultDailyCalories = 1900; // Neutral default
+        }
+        
         aiResponse = {
           predictions: {
-            weeklyCalorieGoal: 14000,
+            weeklyCalorieGoal: defaultDailyCalories * 7,
             proteinTarget: 60,
             improvementAreas: ["Start meal tracking", "Focus on balanced nutrition"],
             trendAnalysis: "No meal data available yet. Start tracking your nutrition to see personalized insights!"
@@ -178,7 +237,6 @@ export const getAIPredictionsController = async (req, res) => {
           ],
           insights: {
             healthScore: 50,
-            consistencyRating: 0,
             balanceAssessment: "Welcome to nutrition tracking! Upload your meals to get personalized insights."
           }
         };

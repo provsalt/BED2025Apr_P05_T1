@@ -6,40 +6,76 @@ export const AIPredictions = ({ isAuthenticated }) => {
   const [predictions, setPredictions] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
-  useEffect(() => {
+  // Remove auto-loading effect
+  // useEffect(() => {
+  //   if (!isAuthenticated) return;
+  //   fetchPredictions();
+  // }, [isAuthenticated]);
+
+  const fetchPredictions = async () => {
     if (!isAuthenticated) return;
-
-    const fetchPredictions = async () => {
-      setLoading(true);
-      setError(null);
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const data = await fetcher('/nutrition/ai-predictions?days=7');
+      setPredictions(data);
+      setHasGenerated(true);
+    } catch (err) {
+      console.error('Failed to fetch AI predictions:', err);
       
-      try {
-        const data = await fetcher('/nutrition/ai-predictions?days=7');
-        setPredictions(data);
-      } catch (err) {
-        console.error('Failed to fetch AI predictions:', err);
-        
-        // Handle specific error cases
-        if (err.message.includes('User not authenticated')) {
-          setError('Please log in to view AI predictions');
-        } else if (err.message.includes('Failed to fetch meal')) {
-          setError('No nutrition data available yet. Upload some meals to get AI insights!');
-        } else if (err.message.includes('Rate limit')) {
-          setError('Too many requests. Please try again in a few minutes.');
-        } else {
-          setError('Unable to load AI predictions at the moment');
-        }
-      } finally {
-        setLoading(false);
+      // Handle specific error cases
+      if (err.message.includes('User not authenticated')) {
+        setError('Please log in to view AI predictions');
+      } else if (err.message.includes('Failed to fetch meal')) {
+        setError('No nutrition data available yet. Upload some meals to get AI insights!');
+      } else if (err.message.includes('Rate limit')) {
+        setError('Too many requests. Please try again in a few minutes.');
+      } else {
+        setError('Unable to load AI predictions at the moment');
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const generateInsights = () => {
     fetchPredictions();
-  }, [isAuthenticated]);
+  };
 
   if (!isAuthenticated) {
     return null;
+  }
+
+  // Show initial state with generate button
+  if (!hasGenerated && !loading && !error) {
+    return (
+      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="bg-black p-2 rounded-full">
+            <Brain className="h-5 w-5 text-white" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">AI Nutrition Insights</h3>
+        </div>
+        <div className="flex flex-col items-center justify-center py-8">
+          <Brain className="h-12 w-12 mb-3 text-gray-300" />
+          <div className="text-center">
+            <h4 className="font-medium text-lg mb-2">Generate AI Insights</h4>
+            <p className="text-gray-600 mb-4">Get personalized nutrition recommendations based on your meal data</p>
+            <button
+              onClick={generateInsights}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition"
+            >
+              <Brain className="h-4 w-4" />
+              Generate Insights
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (loading) {
@@ -112,15 +148,25 @@ export const AIPredictions = ({ isAuthenticated }) => {
 
   return (
     <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="bg-black p-2 rounded-full">
-          <Brain className="h-5 w-5 text-white" />
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="bg-black p-2 rounded-full">
+            <Brain className="h-5 w-5 text-white" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">AI Nutrition Insights</h3>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900">AI Nutrition Insights</h3>
+        <button
+          onClick={generateInsights}
+          disabled={loading}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
+        >
+          <Brain className="h-4 w-4" />
+          {loading ? "Updating..." : "Refresh"}
+        </button>
       </div>
 
       {/* Health Score & Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="text-center p-4 bg-gray-50 rounded-lg">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Activity className="h-5 w-5 text-gray-600" />
@@ -138,16 +184,6 @@ export const AIPredictions = ({ isAuthenticated }) => {
           </div>
           <div className="text-2xl font-bold text-black">
             {Math.round((predictions.predictions?.weeklyCalorieGoal || 0) / 7)}
-          </div>
-        </div>
-        
-        <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <TrendingUp className="h-5 w-5 text-gray-600" />
-            <span className="text-sm font-medium text-gray-600">Consistency</span>
-          </div>
-          <div className="text-2xl font-bold text-black">
-            {predictions.insights?.consistencyRating || 0}/10
           </div>
         </div>
       </div>

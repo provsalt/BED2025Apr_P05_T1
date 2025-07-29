@@ -87,22 +87,26 @@ export const generateNutritionPredictionsNew = async (nutritionData) => {
             ],
             "insights": {
               "healthScore": number (0-100),
-              "consistencyRating": number (0-10),
               "balanceAssessment": "assessment string"
             }
           }
 
           Focus on:
-          - Realistic goals for elderly users
-          - Evidence-based nutrition advice
+          - STRICT adherence to gender-specific nutrition needs for elderly users
+          - MANDATORY gender-based calorie ranges: Males 1800-2400, Females 1600-2000
+          - Weekly calorie goals should be 7x daily target (11,200-16,800 total)
+          - Evidence-based nutrition advice tailored to gender
           - Practical, actionable suggestions
-          - Encouraging tone while being informative`
+          - Encouraging tone while being informative
+          
+          IMPORTANT: Always respect gender-specific calorie limits. Never exceed 2000 calories daily for females or go below 1800 for males.`
         },
         {
           role: "user",
           content: `Analyze this nutrition data and provide predictions:
 
           User's Nutrition Summary:
+          - Gender: ${nutritionData.gender || 'unknown'}
           - Daily average calories: ${nutritionData.avgCalories || 0}
           - Daily average protein: ${nutritionData.avgProtein || 0}g
           - Daily average carbs: ${nutritionData.avgCarbs || 0}g
@@ -110,7 +114,29 @@ export const generateNutritionPredictionsNew = async (nutritionData) => {
           - Total meals tracked: ${nutritionData.totalMeals || 0}
           - Analysis period: ${nutritionData.days || 7} days
 
-          Based on this data, provide personalized nutrition predictions and recommendations.`
+          CRITICAL: Use gender-specific calorie recommendations based on the user's gender above.
+
+          MANDATORY Gender-Specific Guidelines for elderly nutrition:
+          
+          If Gender is MALE or male:
+          - MUST set daily calorie target between 1800-2400 calories ONLY
+          - Weekly calorie goal = daily target × 7 (12,600-16,800 range)
+          - Protein target: 56-75g daily
+          - Focus: Heart health, prostate health, muscle maintenance
+          
+          If Gender is FEMALE or female:
+          - MUST set daily calorie target between 1600-2000 calories ONLY  
+          - Weekly calorie goal = daily target × 7 (11,200-14,000 range)
+          - Protein target: 46-65g daily
+          - Focus: Bone health (calcium, vitamin D), iron, heart health
+          
+          VALIDATION RULES:
+          - If gender is female/FEMALE: weeklyCalorieGoal must be ≤ 14,000 (2000×7)
+          - If gender is male/MALE: weeklyCalorieGoal must be ≥ 12,600 (1800×7)
+          - Consider user's current intake when setting realistic goals within gender ranges
+          - If user's current intake is very low, suggest gradual increases within gender limits
+
+          Based on this data and STRICT gender-specific needs, provide personalized nutrition predictions and recommendations.`
         }
       ],
       max_tokens: 2000,

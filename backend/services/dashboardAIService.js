@@ -39,14 +39,15 @@ export const generateNutritionPredictionsNew = async (nutritionData) => {
             ],
             "insights": {
               "healthScore": number (0-100),
-              "consistencyRating": number (0-10),
               "balanceAssessment": "assessment string"
             }
           }
 
           Focus on:
-          - Realistic goals for elderly users
-          - Evidence-based nutrition advice
+          - Gender-specific nutrition needs for elderly users
+          - Realistic goals for elderly users (1600-2000 daily calories)
+          - Weekly calorie goals should be 7x daily target (11,200-16,800 total)
+          - Evidence-based nutrition advice tailored to gender
           - Practical, actionable suggestions
           - Encouraging tone while being informative`
         },
@@ -55,13 +56,35 @@ export const generateNutritionPredictionsNew = async (nutritionData) => {
           content: `Analyze this nutrition data and provide predictions:
 
           User's Nutrition Summary:
+          - Gender: ${nutritionData.gender || 'unknown'}
           - Daily average calories: ${nutritionData.avgCalories || 0}
+          - Daily average protein: ${nutritionData.avgProtein || 0}g
           - Daily average carbs: ${nutritionData.avgCarbs || 0}g
           - Daily average fat: ${nutritionData.avgFat || 0}g
           - Total meals tracked: ${nutritionData.totalMeals || 0}
           - Analysis period: ${nutritionData.days || 7} days
 
-          Based on this data, provide personalized nutrition predictions and recommendations.`
+          Gender-Specific Guidelines for elderly nutrition:
+          
+          For MALES:
+          - Daily calorie needs: 1800-2400 calories (generally higher due to larger body mass)
+          - Protein target: 56-75g daily (1.0-1.2g per kg body weight)
+          - Focus areas: Heart health, prostate health, muscle maintenance
+          - Common deficiencies: Fiber, potassium, magnesium
+          
+          For FEMALES:
+          - Daily calorie needs: 1600-2000 calories (generally lower due to smaller body mass)
+          - Protein target: 46-65g daily (1.0-1.2g per kg body weight)
+          - Focus areas: Bone health (calcium, vitamin D), iron, heart health
+          - Common deficiencies: Calcium, iron, vitamin D, folate
+          
+          General guidelines:
+          - Weekly calorie goal should be 7 times the daily target
+          - Consider user's current intake when setting realistic goals
+          - If user's current intake is very low, suggest gradual increases
+          - Tailor recommendations based on gender-specific health needs
+
+          Based on this data and gender-specific needs, provide personalized nutrition predictions and recommendations.`
         }
       ],
       max_tokens: 2000,
