@@ -34,9 +34,9 @@ describe('communityEventModel', () => {
     it('returns success on insert', async () => {
       mockRequest.query.mockResolvedValue({ recordset: [{ id: 42 }] });
       const result = await model.createCommunityEvent({
-        name: 'Event', location: 'Loc', category: 'sports', date: '2025-07-20', time: '12:00:00', description: 'desc', user_id: 1, approved_by_admin_id: 1
+        name: 'Event', location: 'Loc', category: 'sports', date: '2025-07-20', time: '12:00:00', description: 'desc', user_id: 1
       });
-      expect(result).toEqual({ success: true, message: expect.any(String), eventId: 42 });
+      expect(result).toEqual({ success: true, message: expect.stringContaining('pending admin approval'), eventId: 42 });
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
@@ -110,15 +110,81 @@ describe('communityEventModel', () => {
       expect(result.message).toMatch(/Failed/);
       expect(result.error).toBe('DB fail');
     });
+  });
 
-    it('returns error if connect fails', async () => {
-      const mssql = await import('mssql');
-      mssql.default.connect.mockRejectedValue(new Error('Connect fail'));
-      model = await import('../../../models/community/communityEventModel.js');
-      const result = await model.getAllApprovedEvents();
+  describe('getPendingEvents', () => {
+    it('returns success with pending events', async () => {
+      mockRequest.query.mockResolvedValue({ 
+        recordset: [
+          { id: 1, name: 'Pending Event 1', approved_by_admin_id: 0 },
+          { id: 2, name: 'Pending Event 2', approved_by_admin_id: 0 }
+        ] 
+      });
+      const result = await model.getPendingEvents();
+      expect(result).toEqual({ 
+        success: true, 
+        events: [
+          { id: 1, name: 'Pending Event 1', approved_by_admin_id: 0 },
+          { id: 2, name: 'Pending Event 2', approved_by_admin_id: 0 }
+        ] 
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error on db error', async () => {
+      mockRequest.query.mockRejectedValue(new Error('DB fail'));
+      const result = await model.getPendingEvents();
       expect(result.success).toBe(false);
       expect(result.message).toMatch(/Failed/);
-      expect(result.error).toBe('Connect fail');
+      expect(result.error).toBe('DB fail');
+    });
+  });
+
+  describe('approveCommunityEvent', () => {
+    it('returns success when event is approved', async () => {
+      mockRequest.query.mockResolvedValue({ recordset: [{ affectedRows: 1 }] });
+      const result = await model.approveCommunityEvent(1, 2);
+      expect(result).toEqual({ success: true, message: expect.stringContaining('approved successfully') });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error when event not found or already approved', async () => {
+      mockRequest.query.mockResolvedValue({ recordset: [{ affectedRows: 0 }] });
+      const result = await model.approveCommunityEvent(999, 2);
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/not found or already approved/);
+    });
+
+    it('returns error on db error', async () => {
+      mockRequest.query.mockRejectedValue(new Error('DB fail'));
+      const result = await model.approveCommunityEvent(1, 2);
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/Failed/);
+      expect(result.error).toBe('DB fail');
+    });
+  });
+
+  describe('rejectCommunityEvent', () => {
+    it('returns success when event is rejected', async () => {
+      mockRequest.query.mockResolvedValue({ recordset: [{ affectedRows: 1 }] });
+      const result = await model.rejectCommunityEvent(1);
+      expect(result).toEqual({ success: true, message: expect.stringContaining('rejected successfully') });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error when event not found or already approved', async () => {
+      mockRequest.query.mockResolvedValue({ recordset: [{ affectedRows: 0 }] });
+      const result = await model.rejectCommunityEvent(999);
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/not found or already approved/);
+    });
+
+    it('returns error on db error', async () => {
+      mockRequest.query.mockRejectedValue(new Error('DB fail'));
+      const result = await model.rejectCommunityEvent(1);
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/Failed/);
+      expect(result.error).toBe('DB fail');
     });
   });
 
