@@ -156,55 +156,6 @@ export const createEvent = async (req, res) => {
  *       - Community
  *     summary: Get all approved community events
  *     description: Returns all community events that have been approved by an admin.
- *     responses:
- *       200:
- *         description: List of approved community events
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 events:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                       name:
- *                         type: string
- *                       location:
- *                         type: string
- *                       category:
- *                         type: string
- *                       date:
- *                         type: string
- *                         format: date-time
- *                         description: ISO string (e.g., 2025-07-24T00:00:00.000Z)
- *                       time:
- *                         type: string
- *                         format: date-time
- *                         description: ISO string (e.g., 1970-01-01T18:00:00.000Z, only the time part is relevant)
- *                       description:
- *                         type: string
- *                       image_url:
- *                         type: string
- *                         description: URL to the event image (may be relative or absolute)
- *                       created_by_name:
- *                         type: string
- *       500:
- *         description: Internal server error
- */
-/**
- * @openapi
- * /api/community:
- *   get:
- *     tags:
- *       - Community
- *     summary: Get all approved community events
- *     description: Returns all approved community events, sorted by date and time.
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -233,8 +184,10 @@ export const createEvent = async (req, res) => {
  *                       date:
  *                         type: string
  *                         format: date
+ *                         description: Event date (YYYY-MM-DD format)
  *                       time:
  *                         type: string
+ *                         description: Event time (HH:mm:ss format)
  *                       description:
  *                         type: string
  *                       created_by_name:
@@ -245,6 +198,7 @@ export const createEvent = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
+
 export const getApprovedEvents = async (req, res) => {
   try {
     const result = await getAllApprovedEvents();
@@ -260,7 +214,7 @@ export const getApprovedEvents = async (req, res) => {
 
 /**
  * @openapi
- * /api/community/mine:
+ * /api/community/myevents:
  *   get:
  *     tags:
  *       - Community
@@ -282,6 +236,29 @@ export const getApprovedEvents = async (req, res) => {
  *                   type: array
  *                   items:
  *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                         description: Event date (YYYY-MM-DD format)
+ *                       time:
+ *                         type: string
+ *                         description: Event time (HH:mm:ss format)
+ *                       description:
+ *                         type: string
+ *                       created_by_name:
+ *                         type: string
+ *                       image_url:
+ *                         type: string
+ *                         description: URL to access the cover image
  *       400:
  *         description: User ID is required
  *       401:
