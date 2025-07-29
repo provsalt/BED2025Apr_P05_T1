@@ -8,10 +8,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { User, Settings, LogOut } from "lucide-react";
+import {User, Settings, LogOut, LayoutDashboard} from "lucide-react";
 
 export const Navbar = () => {
-  const { isAuthenticated, data, setUser } = useContext(UserContext);
+  const { isAuthenticated, role, data, setUser } = useContext(UserContext);
   const profile_picture_url = data?.profile_picture_url;
   const navigate = useNavigate();
 
@@ -74,8 +74,7 @@ export const Navbar = () => {
               align="end"
               className="w-52 rounded-xl bg-white shadow-lg border border-gray-200 p-2"
             >
-              <DropdownMenuItem asChild>
-                <Link
+              <DropdownMenuItem asChild> <Link
                   to="/settings"
                   className="group flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-800 rounded-md hover:bg-gray-100 transition"
                 >
@@ -85,6 +84,17 @@ export const Navbar = () => {
                 </span>
                 </Link>
               </DropdownMenuItem>
+
+              {role === "Admin" && <DropdownMenuItem asChild> <Link
+                to="/admin"
+                className="group flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-800 rounded-md hover:bg-gray-100 transition"
+              >
+                <LayoutDashboard className="w-5 h-5 text-gray-600" />
+                <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:bg-purple-600 after:scale-x-0 after:origin-left after:transition-transform after:duration-300 group-hover:after:scale-x-100">
+                  Admin Dashboard
+                </span>
+              </Link>
+              </DropdownMenuItem>}
 
               <DropdownMenuItem onClick={handleLogout} asChild>
                 <div className="group flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-800 rounded-md hover:bg-gray-100 cursor-pointer transition">
