@@ -259,11 +259,11 @@ export function EventDetail() {
           <div className="text-xs text-gray-500">Event Organizer</div>
         </div>
         <div className="flex gap-2">
-          <Button className="h-10 px-6 cursor-pointer">Edit Event</Button>
+          <Button className="h-10 px-6 cursor-pointer" onClick={() => navigate(`/community/event/${id}/edit`)}>Edit Event</Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 className="h-10 px-6 cursor-pointer"
                 disabled={deleting}
               >
@@ -295,7 +295,7 @@ export function EventDetail() {
           </AlertDialog>
         </div>
       </div>
-      
+
       {/* Dialog */}
       <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
         <DialogContent className="rounded-xl">

@@ -21,6 +21,7 @@ import {MedicationRemindersList} from '@/routes/medical/MedicationRemindersList.
 import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
 import {CreateEventPage} from "@/routes/community/CreateEvent.jsx";
+import {EditEventPage} from "@/routes/community/EditEvent.jsx";
 import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
 import {MedicationEditForm}  from '@/routes/medical/medicalEditForm.jsx';
 import {MedicationQuestionnaire} from '@/routes/medical/MedicationQuestionnaire.jsx';
@@ -70,6 +71,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/community" element={<CommunityEvents />} />
                   <Route path="/community/myevents" element={<UserEvents />} />
                   <Route path="/community/event/:id" element={<EventDetail />} />
+                  <Route path="/community/event/:id/edit" element={<EditEventPage />} />
                   <Route path="/community/:id" element={<EventDetails />} />
                   <Route path="/transport">
                     <Route index element={<TransportHomePage/>} />
