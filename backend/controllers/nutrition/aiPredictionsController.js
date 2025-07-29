@@ -1,4 +1,4 @@
-import { generateNutritionPredictionsNew as generateNutritionPredictions } from "../../services/openaiService.js";
+import { generateNutritionPredictionsNew as generateNutritionPredictions } from "../../services/openai/openaiService.js";
 import { getNutritionAnalytics, getCaloriesTrend } from "../../models/nutrition/nutritionAnalyticsModel.js";
 import { getUser } from "../../models/user/userModel.js";
 
