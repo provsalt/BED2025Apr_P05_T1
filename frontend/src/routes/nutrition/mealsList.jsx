@@ -14,7 +14,6 @@ export const MealsList = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
-  const [searchError, setSearchError] = useState(null);
 
   useEffect(() => {
     const fetchMeals = async () => {
@@ -35,18 +34,14 @@ export const MealsList = () => {
       setSearchResults([]);
       setIsSearching(false);
       setHasSearched(false);
-      setSearchError(null);
       return;
     }
     setIsSearching(true);
     setHasSearched(true);
-    setSearchError(null);
     try {
       const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/search?name=${encodeURIComponent(searchTerm.trim())}`);
       setSearchResults(res.meals || []);
-    } catch (err) {
-      console.error("Search error:", err);
-      setSearchError("Failed to search meals. Please try again.");
+    } catch {
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -58,7 +53,6 @@ export const MealsList = () => {
     setSearchResults([]);
     setIsSearching(false);
     setHasSearched(false);
-    setSearchError(null);
   };
 
   const handleSearchInputChange = (e) => {
@@ -67,7 +61,6 @@ export const MealsList = () => {
       setSearchResults([]);
       setIsSearching(false);
       setHasSearched(false);
-      setSearchError(null);
     }
   };
 
@@ -153,13 +146,6 @@ export const MealsList = () => {
               {isSearching ? "Searching..." : "Search"}
             </Button>
           </div>
-          
-          {/* Error Display */}
-          {searchError && (
-            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-600 text-sm">{searchError}</p>
-            </div>
-          )}
         </div>
 
         {/* No search results message */}
