@@ -18,7 +18,7 @@ import {z} from "zod/v4";
 import bcrypt from "bcryptjs";
 import {deleteFile, uploadFile} from "../../services/s3Service.js";
 import {deleteUser} from "../../models/admin/adminModel.js";
-import { ErrorFactory } from "../../utils/AppError.js";
+import { AppError, ErrorFactory } from "../../utils/AppError.js";
 import { trackLoginAttempt } from "../../models/analytics/analyticsModel.js";
 
 /**
@@ -237,7 +237,7 @@ export const loginUserController = async (req, res, next) => {
         userAgent,
         failureReason
       });
-      throw ErrorFactory.unauthorized("Invalid email or password");
+      return next(ErrorFactory.unauthorized('Invalid email or password'));
     }
 
     const isPasswordValid = await bcrypt.compare(body.password, user.password);
@@ -254,7 +254,7 @@ export const loginUserController = async (req, res, next) => {
         userAgent,
         failureReason
       });
-      throw ErrorFactory.unauthorized("Invalid email or password");
+      return next(ErrorFactory.unauthorized('Invalid email or password'));
     }
 
     // Track successful login attempt
@@ -277,19 +277,8 @@ export const loginUserController = async (req, res, next) => {
       .setExpirationTime("1d")
       .sign(secret);
     
-    res.status(200).json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        profile_picture_url: user.profile_picture_url,
-        gender: user.gender,
-        date_of_birth: user.date_of_birth,
-        language: user.language,
-        role: user.role
-      },
-      token: tok
-    });
+    // On success:
+    res.status(200).json({ userId: user.id });
   } catch (error) {
     next(error);
   }
