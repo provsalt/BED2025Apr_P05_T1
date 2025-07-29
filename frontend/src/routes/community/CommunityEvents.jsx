@@ -9,6 +9,8 @@ export function CommunityEvents() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+
   const navigate = useNavigate();
 
   const fetchEvents = async () => {
@@ -87,7 +89,12 @@ export function CommunityEvents() {
                 <div className="font-semibold text-base mb-1 truncate capitalize" title={event.name}>{event.name}</div>
                 <div className="flex items-center text-gray-600 text-sm mb-1 gap-2">
                   <Clock className="size-4 text-gray-400" />
-                  <span>{dateTimeStr}{timeStr ? ` • ${timeStr}` : ''}</span>
+                  <span>{dateTimeStr}{(() => {
+                    if (timeStr) {
+                      return ` • ${timeStr}`;
+                    }
+                    return '';
+                  })()}</span>
                 </div>
                 <div className="flex items-center text-gray-500 text-xs mb-1 gap-2">
                   <MapPin className="size-4 text-gray-400" />
