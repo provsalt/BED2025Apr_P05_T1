@@ -1,7 +1,7 @@
 import { 
   generateNutritionPredictionsNew as generateNutritionPredictions,
   generateAgenticNutritionPredictions 
-} from "../openai/openaiService.js";
+} from "../openai/additionalOpenaiService.js";
 import { GENDER, CALORIE_LIMITS, HEALTH_SCORES } from "../../utils/constants.js";
 
 /**
