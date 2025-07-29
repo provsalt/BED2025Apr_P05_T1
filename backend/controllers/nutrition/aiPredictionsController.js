@@ -18,6 +18,13 @@ import { logger } from "../../utils/logger.js";/**
  *           type: integer
  *           default: 7
  *         description: Number of days of data to analyze (7, 14, or 30).
+ *       - in: query
+ *         name: agentic
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *           default: true
+ *         description: Whether to use agentic AI with web search and code interpreter.
  *     responses:
  *       200:
  *         description: AI predictions generated successfully
@@ -76,6 +83,9 @@ export const getAIPredictionsController = async (req, res) => {
     }
 
     const days = parseInt(req.query.days) || 7;
+    const useAgentic = req.query.agentic !== 'false'; // Default to true
+    
+    logger.info(`Generating AI predictions for user ${req.user.id}, days: ${days}, agentic: ${useAgentic}`);
     
     // Get user nutrition data
     const { user, analytics, trendData } = await NutritionDataService.getUserNutritionData(
@@ -91,8 +101,12 @@ export const getAIPredictionsController = async (req, res) => {
       days
     );
 
-    // Generate AI predictions with fallbacks
-    const aiResponse = await AIPredictionService.generatePredictions(nutritionData, user);
+    // Generate AI predictions with agentic capabilities
+    const aiResponse = await AIPredictionService.generatePredictions(
+      nutritionData, 
+      user, 
+      useAgentic
+    );
     
     res.status(200).json({ 
       message: "AI predictions generated successfully",
@@ -100,6 +114,9 @@ export const getAIPredictionsController = async (req, res) => {
       dataAnalyzed: {
         daysOfData: days,
         totalMeals: analytics.totalMeals,
+        agenticMode: useAgentic,
+        agenticSuccess: aiResponse.agenticSuccess || false,
+        enhancedAnalysis: aiResponse.enhancedAnalysis || false,
         generatedAt: new Date().toISOString()
       }
     });

@@ -54,7 +54,6 @@ export function NutritionAreaChart() {
       const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/analytics/daily?days=${days}`)
       
       if (response.breakdown?.length > 0) {
-        // Transform the data for the chart
         const transformedData = response.breakdown.map((day) => ({
           date: day.date,
           calories: Math.round(day.calories || 0),
@@ -63,7 +62,7 @@ export function NutritionAreaChart() {
           fat: Math.round(day.fat || 0)
         }))
 
-        // Sort by date from earliest to latest
+        
         transformedData.sort((a, b) => new Date(a.date) - new Date(b.date))
         setChartData(transformedData)
         setError(null)
@@ -175,7 +174,6 @@ export function NutritionAreaChart() {
               }}
             />
             <ChartTooltip
-              cursor={false}
               content={
                 <ChartTooltipContent
                   labelFormatter={(value) => {

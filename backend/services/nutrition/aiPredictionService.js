@@ -1,23 +1,72 @@
-import { generateNutritionPredictionsNew as generateNutritionPredictions } from "../openai/openaiService.js";
+import { 
+  generateNutritionPredictionsNew as generateNutritionPredictions,
+  generateAgenticNutritionPredictions 
+} from "../openai/openaiService.js";
 import { GENDER, CALORIE_LIMITS, HEALTH_SCORES } from "../../utils/constants.js";
 
 /**
  * Service for handling AI nutrition predictions using OpenAI Responses API with Structured Outputs
+ * Now supports both basic and agentic modes
  */
 export class AIPredictionService {
   /**
-   * Generate AI predictions with fallback handling
+   * Generate AI predictions with agentic capabilities and fallback handling
    * @param {Object} nutritionData - User's nutrition data
    * @param {Object} user - User object with gender info
+   * @param {boolean} useAgentic - Whether to use agentic mode (default: true)
    * @returns {Promise<Object>} AI predictions response
    */
-  static async generatePredictions(nutritionData, user) {
+  static async generatePredictions(nutritionData, user, useAgentic = true) {
     try {
+      // Try agentic mode first if enabled
+      if (useAgentic) {
+        console.log('Attempting agentic nutrition analysis...');
+        try {
+          const agenticResponse = await generateAgenticNutritionPredictions(nutritionData);
+          const validatedResponse = this.validateAndEnforceCalorieLimits(agenticResponse, user);
+          
+          // Add agentic success metadata
+          return {
+            ...validatedResponse,
+            agenticSuccess: true,
+            enhancedAnalysis: true
+          };
+        } catch (agenticError) {
+          console.warn('Agentic mode failed, falling back to basic:', agenticError.message);
+          // Continue to basic mode
+        }
+      }
+      
+      // Basic mode fallback
       const aiResponse = await generateNutritionPredictions(nutritionData);
-      return this.validateAndEnforceCalorieLimits(aiResponse, user);
+      const validatedResponse = this.validateAndEnforceCalorieLimits(aiResponse, user);
+      
+      return {
+        ...validatedResponse,
+        agenticSuccess: false,
+        fallbackUsed: useAgentic
+      };
+      
     } catch (error) {
-      console.warn('AI prediction failed, using fallback:', error.message);
+      console.warn('All AI prediction methods failed, using manual fallback:', error.message);
       return this.generateFallbackPredictions(nutritionData, user);
+    }
+  }
+
+  /**
+   * Generate enhanced agentic predictions (direct access)
+   * @param {Object} nutritionData - User's nutrition data
+   * @param {Object} user - User object with gender info
+   * @returns {Promise<Object>} Enhanced AI predictions response
+   */
+  static async generateAgenticPredictions(nutritionData, user) {
+    try {
+      const agenticResponse = await generateAgenticNutritionPredictions(nutritionData);
+      return this.validateAndEnforceCalorieLimits(agenticResponse, user);
+    } catch (error) {
+      console.error('Agentic prediction failed:', error.message);
+      // Fallback to basic
+      return this.generatePredictions(nutritionData, user, false);
     }
   }
 
