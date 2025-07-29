@@ -9,11 +9,18 @@ import {defaultRateLimit} from "./middleware/rateLimit.js";
 import {initSwagger} from "./swagger/swagger.js";
 import {checkAndSendReminders} from './controllers/medical/reminderController.js';
 import promBundle from "express-prom-bundle";
-import { connectedUsersGauge } from "./services/prometheusService.js";
+import { 
+  connectedUsersGauge, 
+  pageVisitCounter, 
+  pageVisitHistogram,
+  loginAttemptCounter,
+  loginAttemptHistogram
+} from "./services/prometheusService.js";
 import client from "prom-client";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { tracingMiddleware } from "./middleware/tracing.js";
 import {logInfo} from "./utils/logger.js";
+import { pageVisitTracker } from "./middleware/pageVisitTracker.js";
 
 const app = express();
 const server = createServer(app);
@@ -96,8 +103,15 @@ const metricsMiddleware = promBundle({
 });
 app.use(metricsMiddleware);
 client.register.registerMetric(connectedUsersGauge);
+client.register.registerMetric(pageVisitCounter);
+client.register.registerMetric(pageVisitHistogram);
+client.register.registerMetric(loginAttemptCounter);
+client.register.registerMetric(loginAttemptHistogram);
 
 app.use("/api", ApiController())
+
+// Add page visit tracking after API routes are set up
+app.use(pageVisitTracker);
 
 app.use(errorHandler)
 

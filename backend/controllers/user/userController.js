@@ -19,6 +19,7 @@ import bcrypt from "bcryptjs";
 import {deleteFile, uploadFile} from "../../services/s3Service.js";
 import {deleteUser} from "../../models/admin/adminModel.js";
 import { ErrorFactory } from "../../utils/AppError.js";
+import { trackLoginAttempt } from "../../models/analytics/analyticsModel.js";
 
 /**
  * @openapi
@@ -217,16 +218,55 @@ export const updateUserController = async (req, res, next) => {
 export const loginUserController = async (req, res, next) => {
   try {
     const body = req.body;
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const userAgent = req.headers["user-agent"];
 
     const user = await getUserByEmail(body.email);
+    let success = false;
+    let failureReason = null;
+
     if (!user) {
+      failureReason = "user_not_found";
+      
+      // Track failed login attempt
+      await trackLoginAttempt({
+        userId: null,
+        attemptedEmail: body.email,
+        success: false,
+        ipAddress,
+        userAgent,
+        failureReason
+      });
       throw ErrorFactory.unauthorized("Invalid email or password");
     }
+
     const isPasswordValid = await bcrypt.compare(body.password, user.password);
 
     if (!isPasswordValid) {
+      failureReason = "wrong_password";
+      
+      // Track failed login attempt
+      await trackLoginAttempt({
+        userId: user.id,
+        attemptedEmail: body.email,
+        success: false,
+        ipAddress,
+        userAgent,
+        failureReason
+      });
       throw ErrorFactory.unauthorized("Invalid email or password");
-    }                       
+    }
+
+    // Track successful login attempt
+    await trackLoginAttempt({
+      userId: user.id,
+      attemptedEmail: body.email,
+      success: true,
+      ipAddress,
+      userAgent,
+      failureReason: null
+    });
+
     await insertLoginHistory(user.id);
 
     const secret = new TextEncoder().encode(process.env.SECRET || "");
@@ -236,6 +276,7 @@ export const loginUserController = async (req, res, next) => {
     }).setProtectedHeader({alg: "HS256"})
       .setExpirationTime("1d")
       .sign(secret);
+    
     res.status(200).json({
       user: {
         id: user.id,
