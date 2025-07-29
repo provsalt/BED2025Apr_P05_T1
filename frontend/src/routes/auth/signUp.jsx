@@ -83,7 +83,7 @@ export const Signup = () => {
           profile_picture_url: resp.profile_picture_url || "",
         }
       });
-      setTimeout(() => navigate("/medicine"), 3000);
+      setTimeout(() => navigate("/"), 3000);
     } else {
       const errorData = await res.json();
       if (errorData.details && Array.isArray(errorData.details)) {
