@@ -237,7 +237,7 @@ export const loginUserController = async (req, res, next) => {
         userAgent,
         failureReason
       });
-      return next(ErrorFactory.unauthorized('Invalid email or password'));
+      return next(new AppError('Invalid email or password', 401));
     }
 
     const isPasswordValid = await bcrypt.compare(body.password, user.password);
@@ -254,7 +254,7 @@ export const loginUserController = async (req, res, next) => {
         userAgent,
         failureReason
       });
-      return next(ErrorFactory.unauthorized('Invalid email or password'));
+      return next(new AppError('Invalid email or password', 401));
     }
 
     // Track successful login attempt
@@ -278,7 +278,7 @@ export const loginUserController = async (req, res, next) => {
       .sign(secret);
     
     // On success:
-    res.status(200).json({ userId: user.id });
+    res.status(200).json({ user: user.id });
   } catch (error) {
     next(error);
   }
