@@ -1,4 +1,5 @@
 import {getConnectedUsers, getConnectedUsersRange} from "../../models/analytics/analyticsModel.js";
+import {ErrorFactory} from "../../utils/AppError.js";
 
 export const getConnectedUsersController = async (req, res) => {
   try {
@@ -27,26 +28,11 @@ export const getConnectedUsersController = async (req, res) => {
     res.json(response);
 
   } catch (error) {
-    console.error("Error fetching connected users metrics:", error);
-
     if (error.response?.status === 400) {
-      return res.status(400).json({
-        error: "Invalid query parameters",
-        message: error.message
-      });
+      throw ErrorFactory.validation("Invalid query parameters");
     }
 
-    if (error.response?.status === 503) {
-      return res.status(503).json({
-        error: "Prometheus unavailable",
-        message: "Unable to connect to Prometheus server"
-      });
-    }
-
-    res.status(500).json({
-      error: "Internal server error",
-      message: "Failed to fetch metrics data"
-    });
+    throw ErrorFactory.external("Prometheus service is unavailable", error);
   }
 }
 
@@ -63,7 +49,6 @@ export const getConnectedUsersInstant = async (req, res) => {
 
     res.json(response);
   } catch (e) {
-    console.error("Error fetching connected users:", e);
-    return res.status(500).json({ error: "Internal Server Error" });
+    throw ErrorFactory.external("Prometheus service is unavailable", e);
   }
 }

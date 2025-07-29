@@ -56,8 +56,9 @@ export function CommunityEvents() {
     });
   };
 
-  let content = null;
   const upcomingEvents = getUpcomingEvents(events);
+
+  let content = null;
   if (loading) {
     content = <div className="text-center py-8 text-gray-500">Loading events...</div>;
   } else if (error) {
@@ -132,14 +133,21 @@ export function CommunityEvents() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto mt-8 pb-7">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Community Events</h2>
-        <Button className="bg-black text-white hover:bg-gray-900 cursor-pointer" onClick={() => navigate('/community/create')}>
-          Add New Event
-        </Button>
+    <div className="w-full max-w-6xl mx-auto pt-8 pb-7">
+      <div className="w-full flex flex-col">
+        <div className="flex items-center justify-between mb-4 w-full">
+          <h2 className="text-xl font-semibold">Community Events</h2>
+          <div className="flex gap-2">
+            <Button className="bg-black text-white hover:bg-gray-900 cursor-pointer" onClick={() => navigate('/community/myevents')}>
+              My Events
+            </Button>
+            <Button className="bg-black text-white hover:bg-gray-900 cursor-pointer" onClick={() => navigate('/community/create')}>
+              Add New Event
+            </Button>
+          </div>
+        </div>
+        {content}
       </div>
-      {content}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import {createAnnouncement, getAnnouncements, getAnnouncementById, deleteAnnounc
 import {z} from "zod/v4";
 import { Router } from "express";
 import { getUserMiddleware } from "../../middleware/getUser.js";
+import { ErrorFactory } from "../../utils/AppError.js";
 
 // Validation schema for announcement data
 const announcementSchema = z.object({
@@ -39,13 +40,13 @@ const announcementSchema = z.object({
  *       500:
  *         description: Error creating announcement
  */
-export const createAnnouncementController = async (req, res) => {
-  const validate = announcementSchema.safeParse(req.body);
-  if (!validate.success) {
-    return res.status(400).json({ error: "Invalid announcement data", details: validate.error.issues });
-  }
-
+export const createAnnouncementController = async (req, res, next) => {
   try {
+    const validate = announcementSchema.safeParse(req.body);
+    if (!validate.success) {
+      throw ErrorFactory.validation("Invalid announcement data");
+    }
+
     const announcementData = {
       ...validate.data,
       user_id: req.user.id
@@ -54,8 +55,7 @@ export const createAnnouncementController = async (req, res) => {
     const announcement = await createAnnouncement(announcementData);
     res.status(201).json(announcement);
   } catch (error) {
-    console.error("Error creating announcement:", error);
-    res.status(500).json({ error: "Error creating announcement" });
+    next(error);
   }
 };
 
@@ -73,13 +73,12 @@ export const createAnnouncementController = async (req, res) => {
  *       500:
  *         description: Error fetching announcements
  */
-export const getAnnouncementsController = async (req, res) => {
+export const getAnnouncementsController = async (req, res, next) => {
   try {
     const announcements = await getAnnouncements();
     res.status(200).json(announcements);
   } catch (error) {
-    console.error("Error fetching announcements:", error);
-    res.status(500).json({ error: "Error fetching announcements" });
+    next(error);
   }
 };
 
@@ -108,22 +107,21 @@ export const getAnnouncementsController = async (req, res) => {
  *       500:
  *         description: Error fetching announcement
  */
-export const getAnnouncementByIdController = async (req, res) => {
-  const { id } = req.params;
-  
-  if (!id || isNaN(id)) {
-    return res.status(400).json({ error: "Invalid announcement ID" });
-  }
-
+export const getAnnouncementByIdController = async (req, res, next) => {
   try {
+    const { id } = req.params;
+    
+    if (!id || isNaN(id)) {
+      throw ErrorFactory.validation("Invalid announcement ID");
+    }
+
     const announcement = await getAnnouncementById(parseInt(id));
     if (!announcement) {
-      return res.status(404).json({ error: "Announcement not found" });
+      throw ErrorFactory.notFound("Announcement");
     }
     res.status(200).json(announcement);
   } catch (error) {
-    console.error("Error fetching announcement:", error);
-    res.status(500).json({ error: "Error fetching announcement" });
+    next(error);
   }
 };
 
@@ -154,21 +152,20 @@ export const getAnnouncementByIdController = async (req, res) => {
  *       500:
  *         description: Error deleting announcement
  */
-export const deleteAnnouncementController = async (req, res) => {
-  const { id } = req.params;
-  
-  if (!id || isNaN(id)) {
-    return res.status(400).json({ error: "Invalid announcement ID" });
-  }
-
+export const deleteAnnouncementController = async (req, res, next) => {
   try {
+    const { id } = req.params;
+    
+    if (!id || isNaN(id)) {
+      throw ErrorFactory.validation("Invalid announcement ID");
+    }
+
     await deleteAnnouncement(parseInt(id));
     res.status(200).json({ message: "Announcement deleted successfully" });
   } catch (error) {
-    console.error("Error deleting announcement:", error);
     if (error.message.includes("not found")) {
-      return res.status(404).json({ error: "Announcement not found" });
+      return next(ErrorFactory.notFound("Announcement"));
     }
-    res.status(500).json({ error: "Error deleting announcement" });
+    next(error);
   }
 };

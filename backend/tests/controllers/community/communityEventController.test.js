@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { createEvent, getApprovedEvents, getEventById } from '../../../controllers/community/communityEventController.js';
+import { createEvent, getApprovedEvents, getMyEvents, getEventById } from '../../../controllers/community/communityEventController.js';
 
 // Ensure S3_BUCKET_NAME is set for all tests
 beforeAll(() => {
@@ -16,6 +16,7 @@ vi.mock('../../../models/community/communityEventModel.js', () => ({
   addCommunityEventImage: vi.fn().mockResolvedValue({ success: true }),
   getCommunityEventImages: vi.fn().mockResolvedValue({ success: true, images: [] }),
   getAllApprovedEvents: vi.fn().mockResolvedValue({ success: true, events: [] }), // Mock for getApprovedEvents
+  getCommunityEventsByUserId: vi.fn().mockResolvedValue({ success: true, events: [] }), // Mock for getMyEvents
   getCommunityEventById: vi.fn().mockResolvedValue({ success: true, event: { id: 1, name: 'Event 1' } }), // Mock for getEventById
 }));
 
@@ -168,6 +169,55 @@ describe('getEventById', () => {
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'getCommunityEventById').mockRejectedValue(new Error('DB error'));
     await getEventById(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false, message: expect.any(String), error: expect.any(String) }));
+  });
+});
+
+describe('getMyEvents', () => {
+  let req, res;
+  beforeEach(() => {
+    req = { user: { id: 1 } };
+    res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+  });
+
+  it('should return 200 and events on success', async () => {
+    const mockEvents = [{ id: 1, name: 'My Event 1' }];
+    const mockResult = { success: true, events: mockEvents };
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'getCommunityEventsByUserId').mockResolvedValue(mockResult);
+    await getMyEvents(req, res);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(mockResult);
+  });
+
+  it('should return 401 if user not authenticated', async () => {
+    req.user = null;
+    await getMyEvents(req, res);
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ success: false, message: 'Unauthorized: User not authenticated' });
+  });
+
+  it('should return 401 if user ID is missing', async () => {
+    req.user = {};
+    await getMyEvents(req, res);
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ success: false, message: 'Unauthorized: User not authenticated' });
+  });
+
+  it('should return 500 if model returns success: false', async () => {
+    const mockResult = { success: false, message: 'fail' };
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'getCommunityEventsByUserId').mockResolvedValue(mockResult);
+    await getMyEvents(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(mockResult);
+  });
+
+  it('should return 500 on error', async () => {
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'getCommunityEventsByUserId').mockRejectedValue(new Error('DB error'));
+    await getMyEvents(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false, message: expect.any(String), error: expect.any(String) }));
   });
