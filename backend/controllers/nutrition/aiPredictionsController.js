@@ -1,6 +1,7 @@
 import { generateNutritionPredictionsNew as generateNutritionPredictions } from "../../services/openai/openaiService.js";
 import { getNutritionAnalytics, getCaloriesTrend } from "../../models/nutrition/nutritionAnalyticsModel.js";
 import { getUser } from "../../models/user/userModel.js";
+import { GENDER, CALORIE_LIMITS, HEALTH_SCORES } from "../../utils/constants.js";
 
 /**
  * @openapi
@@ -87,7 +88,6 @@ export const getAIPredictionsController = async (req, res) => {
         return res.status(404).json({ error: "User not found" });
       }
     } catch (userError) {
-      console.error("Error fetching current user:", userError);
       // Fallback to req.user if database query fails
       currentUser = req.user;
     }
@@ -101,7 +101,6 @@ export const getAIPredictionsController = async (req, res) => {
         getCaloriesTrend(req.user.id, days)
       ]);
     } catch (dbError) {
-      console.error("Database error in AI predictions:", dbError);
       
       // Provide fallback data if database fails
       analytics = {
@@ -116,8 +115,18 @@ export const getAIPredictionsController = async (req, res) => {
       trendData = [];
     }
 
-    // Prepare data for AI analysis with fresh user data
+    // Prepare comprehensive data for AI analysis with fresh user data
+    const genderString = parseInt(currentUser.gender) === GENDER.FEMALE ? 'female' : 
+                        parseInt(currentUser.gender) === GENDER.MALE ? 'male' : 'unknown';
+    
     const nutritionData = {
+      // User profile information
+      userId: req.user.id,
+      gender: genderString,
+      userAge: currentUser.date_of_birth ? 
+        Math.floor((new Date() - new Date(currentUser.date_of_birth)) / (365.25 * 24 * 60 * 60 * 1000)) : null,
+      
+      // Nutrition analytics
       avgCalories: analytics.avgDailyCalories || 0,
       avgProtein: analytics.avgProtein || 0,
       avgCarbs: analytics.avgCarbs || 0,
@@ -126,11 +135,11 @@ export const getAIPredictionsController = async (req, res) => {
       days: days,
       dailyBreakdown: analytics.dailyBreakdown || [],
       trendData: trendData || [],
-      gender: (currentUser.gender == 0 || currentUser.gender === '0') ? 'female' : 
-              (currentUser.gender == 1 || currentUser.gender === '1') ? 'male' : 'unknown'
+      
+      // Analysis metadata
+      analysisDate: new Date().toISOString(),
+      hasHistoricalData: analytics.totalMeals > 0
     };
-
-    console.log(`AI Nutrition Generation - User Gender: ${currentUser.gender} (${nutritionData.gender}), User ID: ${req.user.id}`);
 
     // Always attempt AI call first, provide fallbacks only if AI fails
     let aiResponse;
@@ -140,80 +149,129 @@ export const getAIPredictionsController = async (req, res) => {
       
       // Validate and enforce gender-specific calorie limits
       if (aiResponse && aiResponse.predictions && aiResponse.predictions.weeklyCalorieGoal) {
-        const gender = currentUser.gender; // 0 or "0" = female, 1 or "1" = male
+        const gender = parseInt(currentUser.gender);
         const weeklyGoal = aiResponse.predictions.weeklyCalorieGoal;
         const dailyGoal = Math.round(weeklyGoal / 7);
         
-        // Enforce gender-specific limits (0/"0" = female, 1/"1" = male)
-        if ((gender == 0 || gender === '0') && dailyGoal > 2000) { // Female
-          console.log(`Correcting female calorie goal from ${dailyGoal} to 1800`);
-          aiResponse.predictions.weeklyCalorieGoal = 1800 * 7; // 12,600
-        } else if ((gender == 1 || gender === '1') && dailyGoal < 1800) { // Male
-          console.log(`Correcting male calorie goal from ${dailyGoal} to 2000`);
-          aiResponse.predictions.weeklyCalorieGoal = 2000 * 7; // 14,000
-        } else if ((gender == 0 || gender === '0') && dailyGoal < 1600) { // Female
-          console.log(`Correcting female calorie goal from ${dailyGoal} to 1600`);
-          aiResponse.predictions.weeklyCalorieGoal = 1600 * 7; // 11,200
-        } else if ((gender == 1 || gender === '1') && dailyGoal > 2400) { // Male
-          console.log(`Correcting male calorie goal from ${dailyGoal} to 2200`);
-          aiResponse.predictions.weeklyCalorieGoal = 2200 * 7; // 15,400
+        // Enforce gender-specific limits (0 = female, 1 = male)
+        if (gender === GENDER.FEMALE && dailyGoal > CALORIE_LIMITS.FEMALE.MAX) {
+          aiResponse.predictions.weeklyCalorieGoal = CALORIE_LIMITS.FEMALE.DEFAULT * 7;
+        } else if (gender === GENDER.MALE && dailyGoal < CALORIE_LIMITS.MALE.MIN) {
+          aiResponse.predictions.weeklyCalorieGoal = CALORIE_LIMITS.MALE.DEFAULT * 7;
+        } else if (gender === GENDER.FEMALE && dailyGoal < CALORIE_LIMITS.FEMALE.MIN) {
+          aiResponse.predictions.weeklyCalorieGoal = CALORIE_LIMITS.FEMALE.MIN * 7;
+        } else if (gender === GENDER.MALE && dailyGoal > CALORIE_LIMITS.MALE.MAX) {
+          aiResponse.predictions.weeklyCalorieGoal = CALORIE_LIMITS.MALE.MAX * 7;
         }
       }
       
     } catch (aiError) {
-      console.error("AI service error:", aiError);
       
       // Provide context-specific fallbacks based on data availability
       if (analytics.totalMeals > 0) {
-        // Gender-aware fallback calorie goals (0/"0" = female, 1/"1" = male)
-        const gender = currentUser.gender; // 0 or "0" = female, 1 or "1" = male
-        let fallbackDailyCalories;
-        if (gender == 0 || gender === '0') { // Female
-          fallbackDailyCalories = Math.min(Math.max(analytics.avgDailyCalories || 1800, 1600), 2000);
-        } else if (gender == 1 || gender === '1') { // Male
-          fallbackDailyCalories = Math.min(Math.max(analytics.avgDailyCalories || 2000, 1800), 2400);
+        // Gender-aware fallback calorie goals using constants
+        const gender = parseInt(currentUser.gender);
+        let fallbackDailyCalories, genderSpecificAdvice;
+        
+        if (gender === GENDER.FEMALE) {
+          fallbackDailyCalories = Math.min(Math.max(analytics.avgDailyCalories || CALORIE_LIMITS.FEMALE.DEFAULT, CALORIE_LIMITS.FEMALE.MIN), CALORIE_LIMITS.FEMALE.MAX);
+          genderSpecificAdvice = "Focus on calcium-rich foods for bone health and iron-rich foods to maintain energy levels.";
+        } else if (gender === GENDER.MALE) {
+          fallbackDailyCalories = Math.min(Math.max(analytics.avgDailyCalories || CALORIE_LIMITS.MALE.DEFAULT, CALORIE_LIMITS.MALE.MIN), CALORIE_LIMITS.MALE.MAX);
+          genderSpecificAdvice = "Focus on lean proteins for muscle maintenance and heart-healthy fats for cardiovascular health.";
         } else {
-          fallbackDailyCalories = analytics.avgDailyCalories || 2000;
+          fallbackDailyCalories = analytics.avgDailyCalories || 1900;
+          genderSpecificAdvice = "Maintain a balanced diet with adequate protein and nutrients.";
         }
         
         aiResponse = {
           predictions: {
             weeklyCalorieGoal: Math.round(fallbackDailyCalories * 7),
-            proteinTarget: Math.round(analytics.avgProtein || 60),
-            improvementAreas: ["AI analysis temporarily unavailable"],
-            trendAnalysis: "AI analysis is currently unavailable. Your current average is " + Math.round(analytics.avgDailyCalories || 0) + " calories per day."
+            proteinTarget: Math.round(analytics.avgProtein || (gender === GENDER.FEMALE ? 50 : 65)),
+            improvementAreas: ["AI analysis temporarily unavailable", "Continue tracking meals"],
+            trendAnalysis: `Based on your ${genderString} profile, your current average of ${Math.round(analytics.avgDailyCalories || 0)} calories per day. ${genderSpecificAdvice}`
           },
           recommendations: [
             {
-              category: "Data Available",
-              suggestion: "AI analysis is temporarily unavailable, but your nutrition data shows you're tracking meals.",
+              category: "Gender-Specific Nutrition",
+              suggestion: gender === GENDER.FEMALE ? 
+                "Focus on calcium and iron-rich foods for bone and energy health" : 
+                gender === GENDER.MALE ? 
+                "Prioritize lean proteins and heart-healthy fats for muscle and cardiovascular health" :
+                "Maintain a balanced diet with adequate nutrients",
               priority: "medium",
-              reasoning: "Continue tracking for personalized insights when AI service is restored."
+              reasoning: "Tailored advice based on your gender-specific nutritional needs."
+            },
+            {
+              category: "Data Tracking",
+              suggestion: "AI analysis is temporarily unavailable, but continue tracking meals for better insights.",
+              priority: "low",
+              reasoning: "Consistent meal tracking improves AI prediction accuracy."
             }
           ],
           insights: {
-            healthScore: 75,
-            balanceAssessment: "AI analysis temporarily unavailable. Continue tracking meals for insights."
+            healthScore: HEALTH_SCORES.DEFAULT_WITH_DATA,
+            balanceAssessment: `Based on your ${genderString} profile: ${genderSpecificAdvice} Continue tracking for personalized insights.`
           }
         };
       } else {
-        // Gender-aware default response for users with no meal data (0/"0" = female, 1/"1" = male)
-        const gender = currentUser.gender; // 0 or "0" = female, 1 or "1" = male
-        let defaultDailyCalories;
-        if (gender == 0 || gender === '0') { // Female
-          defaultDailyCalories = 1800; // Mid-range for females
-        } else if (gender == 1 || gender === '1') { // Male
-          defaultDailyCalories = 2000; // Mid-range for males
+        // Gender-aware default response for users with no meal data
+        const gender = parseInt(currentUser.gender);
+        let defaultDailyCalories, genderWelcomeMessage, genderRecommendations;
+        
+        if (gender === GENDER.FEMALE) {
+          defaultDailyCalories = CALORIE_LIMITS.FEMALE.DEFAULT;
+          genderWelcomeMessage = "As a female user, focus on calcium for bone health and iron for energy.";
+          genderRecommendations = [
+            {
+              category: "Bone Health",
+              suggestion: "Include calcium-rich foods like dairy, leafy greens, and fortified foods.",
+              priority: "high",
+              reasoning: "Calcium is essential for maintaining strong bones, especially important for women."
+            },
+            {
+              category: "Energy & Iron",
+              suggestion: "Add iron-rich foods like lean meats, beans, and spinach to your meals.",
+              priority: "medium",
+              reasoning: "Women have higher iron needs to maintain energy levels and prevent deficiency."
+            }
+          ];
+        } else if (gender === GENDER.MALE) {
+          defaultDailyCalories = CALORIE_LIMITS.MALE.DEFAULT;
+          genderWelcomeMessage = "As a male user, focus on lean proteins for muscle maintenance and heart-healthy fats.";
+          genderRecommendations = [
+            {
+              category: "Muscle Health",
+              suggestion: "Include lean proteins like chicken, fish, and legumes in each meal.",
+              priority: "high",
+              reasoning: "Men typically have higher muscle mass and protein needs for maintenance."
+            },
+            {
+              category: "Heart Health",
+              suggestion: "Choose heart-healthy fats from nuts, olive oil, and fatty fish.",
+              priority: "medium",
+              reasoning: "Heart disease prevention is crucial, with omega-3s supporting cardiovascular health."
+            }
+          ];
         } else {
-          defaultDailyCalories = 1900; // Neutral default
+          defaultDailyCalories = 1900;
+          genderWelcomeMessage = "Focus on balanced nutrition with adequate protein and nutrients.";
+          genderRecommendations = [
+            {
+              category: "Balanced Nutrition",
+              suggestion: "Aim for a variety of foods from all food groups.",
+              priority: "medium",
+              reasoning: "A balanced approach ensures you get all essential nutrients."
+            }
+          ];
         }
         
         aiResponse = {
           predictions: {
             weeklyCalorieGoal: defaultDailyCalories * 7,
-            proteinTarget: 60,
-            improvementAreas: ["Start meal tracking", "Focus on balanced nutrition"],
-            trendAnalysis: "No meal data available yet. Start tracking your nutrition to see personalized insights!"
+            proteinTarget: gender === GENDER.FEMALE ? 50 : gender === GENDER.MALE ? 65 : 60,
+            improvementAreas: ["Start meal tracking", `Focus on ${genderString}-specific nutrition`],
+            trendAnalysis: `Welcome! ${genderWelcomeMessage} Start tracking your nutrition to see personalized insights!`
           },
           recommendations: [
             {
@@ -222,12 +280,7 @@ export const getAIPredictionsController = async (req, res) => {
               priority: "high",
               reasoning: "Building a meal history is the first step to personalized nutrition insights."
             },
-            {
-              category: "Health",
-              suggestion: "Include protein-rich foods in each meal for muscle health.",
-              priority: "medium",
-              reasoning: "Adequate protein is especially important for maintaining muscle mass and strength."
-            },
+            ...genderRecommendations,
             {
               category: "Consistency",
               suggestion: "Try to eat meals at regular times each day.",
@@ -236,8 +289,8 @@ export const getAIPredictionsController = async (req, res) => {
             }
           ],
           insights: {
-            healthScore: 50,
-            balanceAssessment: "Welcome to nutrition tracking! Upload your meals to get personalized insights."
+            healthScore: HEALTH_SCORES.DEFAULT_NO_DATA,
+            balanceAssessment: `Welcome to gender-specific nutrition tracking! ${genderWelcomeMessage} Upload your meals to get personalized insights.`
           }
         };
       }
@@ -254,7 +307,6 @@ export const getAIPredictionsController = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error generating AI predictions:", error);
     
     res.status(500).json({ 
       error: "Failed to generate AI predictions",

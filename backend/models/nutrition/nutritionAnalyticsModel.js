@@ -3,6 +3,14 @@ import { dbConfig } from "../../config/db.js";
 
 // Get nutrition analytics for a specific time period
 export const getNutritionAnalytics = async (userId, days = 7) => {
+  // Input validation
+  if (!userId || typeof userId !== 'number') {
+    throw new Error('Valid userId is required');
+  }
+  if (!days || days < 1 || days > 365) {
+    throw new Error('Days must be between 1 and 365');
+  }
+
   let connection;
   try {
     connection = await mssql.connect(dbConfig);

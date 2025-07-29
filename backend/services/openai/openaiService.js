@@ -157,51 +157,57 @@ export const generateNutritionPredictionsNew = async (nutritionData) => {
           }
 
           Focus on:
-          - STRICT adherence to gender-specific nutrition needs for elderly users
-          - MANDATORY gender-based calorie ranges: Males 1800-2400, Females 1600-2000
+          - MANDATORY gender-specific nutrition needs and recommendations
+          - Gender-based calorie ranges: Males 1800-2400, Females 1600-2000  
+          - Gender-specific nutrient requirements and health priorities
           - Weekly calorie goals should be 7x daily target (11,200-16,800 total)
-          - Evidence-based nutrition advice tailored to gender
-          - Practical, actionable suggestions
-          - Encouraging tone while being informative
+          - Evidence-based nutrition advice tailored specifically to the user's gender
+          - Practical, actionable suggestions based on gender and current intake
+          - Encouraging tone while being informative and gender-aware
           
-          IMPORTANT: Always respect gender-specific calorie limits. Never exceed 2000 calories daily for females or go below 1800 for males.`
+          CRITICAL: Always respect gender-specific calorie limits and nutrient needs. Never exceed 2000 calories daily for females or go below 1800 for males.`
         },
         {
           role: "user",
-          content: `Analyze this nutrition data and provide predictions:
+          content: `Analyze this nutrition data and provide gender-specific predictions:
 
-          User's Nutrition Summary:
+          User's Nutrition Profile:
           - Gender: ${nutritionData.gender || 'unknown'}
           - Daily average calories: ${nutritionData.avgCalories || 0}
           - Daily average protein: ${nutritionData.avgProtein || 0}g
-          - Daily average carbs: ${nutritionData.avgCarbs || 0}g
+          - Daily average carbs: ${nutritionData.avgCarbs || 0}g  
           - Daily average fat: ${nutritionData.avgFat || 0}g
           - Total meals tracked: ${nutritionData.totalMeals || 0}
           - Analysis period: ${nutritionData.days || 7} days
 
-          CRITICAL: Use gender-specific calorie recommendations based on the user's gender above.
+          CRITICAL: Provide gender-specific nutrition analysis based on the user's gender above.
 
-          MANDATORY Gender-Specific Guidelines for elderly nutrition:
+          MANDATORY Gender-Specific Guidelines:
           
           If Gender is MALE or male:
           - MUST set daily calorie target between 1800-2400 calories ONLY
           - Weekly calorie goal = daily target × 7 (12,600-16,800 range)
-          - Protein target: 56-75g daily
-          - Focus: Heart health, prostate health, muscle maintenance
+          - Protein target: 56-75g daily (higher muscle mass needs)
+          - Focus areas: Heart health, prostate health, muscle maintenance
+          - Key nutrients: Lycopene, zinc, omega-3 fatty acids
+          - Recommendations should address: Lean protein sources, heart-healthy fats, adequate fiber
           
           If Gender is FEMALE or female:
           - MUST set daily calorie target between 1600-2000 calories ONLY  
           - Weekly calorie goal = daily target × 7 (11,200-14,000 range)
-          - Protein target: 46-65g daily
-          - Focus: Bone health (calcium, vitamin D), iron, heart health
+          - Protein target: 46-65g daily (lean muscle maintenance)
+          - Focus areas: Bone health, iron levels, heart health, hormonal balance
+          - Key nutrients: Calcium, vitamin D, iron, folate, magnesium
+          - Recommendations should address: Iron-rich foods, bone-strengthening nutrients, heart health
           
           VALIDATION RULES:
-          - If gender is female/FEMALE: weeklyCalorieGoal must be ≤ 14,000 (2000×7)
-          - If gender is male/MALE: weeklyCalorieGoal must be ≥ 12,600 (1800×7)
-          - Consider user's current intake when setting realistic goals within gender ranges
-          - If user's current intake is very low, suggest gradual increases within gender limits
+          - If gender is female: weeklyCalorieGoal must be ≤ 14,000 (2000×7)
+          - If gender is male: weeklyCalorieGoal must be ≥ 12,600 (1800×7)
+          - Consider user's current intake patterns when setting realistic goals within gender limits
+          - If current intake is outside gender range, suggest gradual adjustments
+          - All recommendations must be gender-appropriate and evidence-based
 
-          Based on this data and STRICT gender-specific needs, provide personalized nutrition predictions and recommendations.`
+          Generate insights that specifically address the nutritional needs and health priorities for this user's gender, incorporating their current eating patterns and meal data.`
         }
       ],
       max_tokens: 2000,

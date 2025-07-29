@@ -21,17 +21,11 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const AIPredictions = ({ isAuthenticated }) => {
+export const AIPredictionsEnhanced = ({ isAuthenticated }) => {
   const [predictions, setPredictions] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [hasGenerated, setHasGenerated] = useState(false);
-
-  // Remove auto-loading effect
-  // useEffect(() => {
-  //   if (!isAuthenticated) return;
-  //   fetchPredictions();
-  // }, [isAuthenticated]);
 
   const fetchPredictions = async () => {
     if (!isAuthenticated) return;
@@ -46,7 +40,6 @@ export const AIPredictions = ({ isAuthenticated }) => {
     } catch (err) {
       console.error('Failed to fetch AI predictions:', err);
       
-      // Handle specific error cases
       if (err.message.includes('User not authenticated')) {
         setError('Please log in to view AI predictions');
       } else if (err.message.includes('Failed to fetch meal')) {
@@ -74,36 +67,36 @@ export const AIPredictions = ({ isAuthenticated }) => {
     return (
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader className="text-center pb-8">
-          <div className="mx-auto w-16 h-16 bg-black rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center mb-4">
             <Brain className="h-8 w-8 text-white" />
           </div>
-          <CardTitle className="text-xl text-black">
+          <CardTitle className="text-2xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
             AI Nutrition Insights
           </CardTitle>
-          <CardDescription className="text-base">
+          <CardDescription className="text-lg">
             Get personalized nutrition recommendations powered by AI
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center pb-8">
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-muted-foreground">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
               <div className="flex flex-col items-center space-y-2">
-                <Sparkles className="h-6 w-6 text-black" />
+                <Sparkles className="h-8 w-8 text-purple-500" />
                 <span>Personalized analysis of your eating patterns</span>
               </div>
               <div className="flex flex-col items-center space-y-2">
-                <Target className="h-6 w-6 text-black" />
+                <Target className="h-8 w-8 text-blue-500" />
                 <span>Smart recommendations based on your goals</span>
               </div>
               <div className="flex flex-col items-center space-y-2">
-                <TrendingUp className="h-6 w-6 text-black" />
+                <TrendingUp className="h-8 w-8 text-green-500" />
                 <span>Track your nutritional progress over time</span>
               </div>
             </div>
             <Button 
               onClick={generateInsights}
               size="lg"
-              className="bg-black hover:bg-gray-800 text-white"
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
               <Brain className="mr-2 h-5 w-5" />
               Generate AI Insights
@@ -120,10 +113,10 @@ export const AIPredictions = ({ isAuthenticated }) => {
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
               <Brain className="h-5 w-5 text-white animate-pulse" />
             </div>
-            <CardTitle className="text-black">
+            <CardTitle className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               AI Nutrition Insights
             </CardTitle>
           </div>
@@ -131,9 +124,9 @@ export const AIPredictions = ({ isAuthenticated }) => {
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 space-y-4">
             <div className="relative">
-              <div className="w-16 h-16 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
+              <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <Zap className="h-6 w-6 text-black" />
+                <Zap className="h-6 w-6 text-purple-600" />
               </div>
             </div>
             <div className="text-center space-y-2">
@@ -152,10 +145,10 @@ export const AIPredictions = ({ isAuthenticated }) => {
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
               <Brain className="h-5 w-5 text-white" />
             </div>
-            <CardTitle className="text-black">
+            <CardTitle className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               AI Nutrition Insights
             </CardTitle>
           </div>
@@ -199,15 +192,15 @@ export const AIPredictions = ({ isAuthenticated }) => {
   };
 
   const getHealthScoreColor = (score) => {
-    if (score >= 80) return "text-black";
-    if (score >= 60) return "text-gray-700";
-    return "text-gray-500";
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const getHealthScoreGradient = (score) => {
-    if (score >= 80) return "from-black to-gray-800";
-    if (score >= 60) return "from-gray-700 to-gray-900";
-    return "from-gray-500 to-gray-700";
+    if (score >= 80) return "from-green-500 to-emerald-500";
+    if (score >= 60) return "from-yellow-500 to-orange-500";
+    return "from-red-500 to-pink-500";
   };
 
   const healthScore = predictions.insights?.healthScore || 0;
@@ -218,11 +211,11 @@ export const AIPredictions = ({ isAuthenticated }) => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
               <Brain className="h-5 w-5 text-white" />
             </div>
             <div>
-              <CardTitle className="text-black">
+              <CardTitle className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 AI Nutrition Insights
               </CardTitle>
               <CardDescription>
@@ -255,21 +248,21 @@ export const AIPredictions = ({ isAuthenticated }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-base">
-                    <Trophy className="h-4 w-4 text-black" />
+                  <CardTitle className="flex items-center space-x-2 text-lg">
+                    <Trophy className="h-5 w-5 text-yellow-500" />
                     <span>Health Score</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center space-x-4">
-                    <div className={`relative w-12 h-12 rounded-full bg-gradient-to-br ${getHealthScoreGradient(healthScore)} flex items-center justify-center`}>
-                      <span className="text-lg font-bold text-white">{healthScore}</span>
+                    <div className={`relative w-16 h-16 rounded-full bg-gradient-to-br ${getHealthScoreGradient(healthScore)} flex items-center justify-center`}>
+                      <span className="text-2xl font-bold text-white">{healthScore}</span>
                     </div>
                     <div>
-                      <p className={`text-xl font-bold ${getHealthScoreColor(healthScore)}`}>
+                      <p className={`text-2xl font-bold ${getHealthScoreColor(healthScore)}`}>
                         {healthScore}/100
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm text-muted-foreground">
                         {healthScore >= 80 ? "Excellent!" : healthScore >= 60 ? "Good progress" : "Room for improvement"}
                       </p>
                     </div>
@@ -279,21 +272,21 @@ export const AIPredictions = ({ isAuthenticated }) => {
 
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-base">
-                    <Target className="h-4 w-4 text-black" />
+                  <CardTitle className="flex items-center space-x-2 text-lg">
+                    <Target className="h-5 w-5 text-blue-500" />
                     <span>Daily Calorie Goal</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center">
-                      <Zap className="h-5 w-5 text-white" />
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                      <Zap className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-xl font-bold text-black">
+                      <p className="text-2xl font-bold text-blue-600">
                         {dailyCalorieGoal}
                       </p>
-                      <p className="text-xs text-muted-foreground">calories per day</p>
+                      <p className="text-sm text-muted-foreground">calories per day</p>
                     </div>
                   </div>
                 </CardContent>
@@ -304,13 +297,13 @@ export const AIPredictions = ({ isAuthenticated }) => {
             {predictions.insights?.balanceAssessment && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-base">
-                    <Heart className="h-4 w-4 text-black" />
+                  <CardTitle className="flex items-center space-x-2">
+                    <Heart className="h-5 w-5 text-red-500" />
                     <span>Nutritional Balance</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed">
                     {predictions.insights.balanceAssessment}
                   </p>
                 </CardContent>
@@ -321,8 +314,8 @@ export const AIPredictions = ({ isAuthenticated }) => {
             {predictions.predictions?.improvementAreas && predictions.predictions.improvementAreas.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-base">
-                    <Target className="h-4 w-4 text-black" />
+                  <CardTitle className="flex items-center space-x-2">
+                    <Target className="h-5 w-5 text-purple-500" />
                     <span>Focus Areas</span>
                   </CardTitle>
                 </CardHeader>
@@ -331,7 +324,7 @@ export const AIPredictions = ({ isAuthenticated }) => {
                     {predictions.predictions.improvementAreas.map((area, index) => (
                       <span 
                         key={index}
-                        className="px-2 py-1 bg-gray-100 text-black text-xs rounded-full border border-gray-200"
+                        className="px-3 py-1 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 text-sm rounded-full border border-purple-200"
                       >
                         {area}
                       </span>
@@ -347,21 +340,21 @@ export const AIPredictions = ({ isAuthenticated }) => {
               <div className="space-y-4">
                 {predictions.recommendations.slice(0, 6).map((rec, index) => (
                   <Card key={index} className={`transition-all hover:shadow-md ${
-                    rec.priority === 'high' ? 'border-red-200 bg-red-50/30' :
-                    rec.priority === 'medium' ? 'border-yellow-200 bg-yellow-50/30' :
-                    'border-green-200 bg-green-50/30'
+                    rec.priority === 'high' ? 'border-red-200 bg-red-50/50' :
+                    rec.priority === 'medium' ? 'border-yellow-200 bg-yellow-50/50' :
+                    'border-green-200 bg-green-50/50'
                   }`}>
-                    <CardContent className="pt-3">
+                    <CardContent className="pt-4">
                       <div className="flex items-start space-x-3">
                         <div className="mt-0.5">
                           {getPriorityIcon(rec.priority)}
                         </div>
-                        <div className="flex-1 space-y-1">
+                        <div className="flex-1 space-y-2">
                           <div className="flex items-center space-x-2">
                             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                               {rec.category}
                             </span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium ${
+                            <span className={`text-xs px-2 py-1 rounded-full capitalize font-medium ${
                               rec.priority === 'high' ? 'bg-red-100 text-red-700' :
                               rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
                               'bg-green-100 text-green-700'
@@ -369,10 +362,10 @@ export const AIPredictions = ({ isAuthenticated }) => {
                               {rec.priority} priority
                             </span>
                           </div>
-                          <h4 className="font-semibold text-foreground text-sm">
+                          <h4 className="font-semibold text-foreground">
                             {rec.suggestion}
                           </h4>
-                          <p className="text-xs text-muted-foreground leading-relaxed">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             {rec.reasoning}
                           </p>
                         </div>
@@ -396,13 +389,13 @@ export const AIPredictions = ({ isAuthenticated }) => {
             {predictions.predictions?.trendAnalysis ? (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-base">
-                    <TrendingUp className="h-4 w-4 text-black" />
+                  <CardTitle className="flex items-center space-x-2">
+                    <TrendingUp className="h-5 w-5 text-green-500" />
                     <span>Trend Analysis</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed">
                     {predictions.predictions.trendAnalysis}
                   </p>
                 </CardContent>
@@ -421,24 +414,24 @@ export const AIPredictions = ({ isAuthenticated }) => {
             {predictions.dataAnalyzed && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Analysis Summary</CardTitle>
+                  <CardTitle className="text-lg">Analysis Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div className="text-center">
-                      <div className="text-xl font-bold text-black">
+                      <div className="text-2xl font-bold text-blue-600">
                         {predictions.dataAnalyzed.daysOfData}
                       </div>
                       <div className="text-muted-foreground">Days analyzed</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-xl font-bold text-black">
+                      <div className="text-2xl font-bold text-green-600">
                         {predictions.dataAnalyzed.totalMeals}
                       </div>
                       <div className="text-muted-foreground">Meals processed</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-base font-medium text-black">
+                      <div className="text-lg font-medium text-purple-600">
                         {new Date(predictions.dataAnalyzed.generatedAt).toLocaleDateString()}
                       </div>
                       <div className="text-muted-foreground">Last updated</div>

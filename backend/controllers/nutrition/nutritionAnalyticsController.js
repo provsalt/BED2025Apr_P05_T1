@@ -1,4 +1,5 @@
 import { getNutritionAnalytics, getDailyNutritionBreakdown, getCaloriesTrend } from "../../models/nutrition/nutritionAnalyticsModel.js";
+import { logger } from "../../utils/logger.js";
 
 /**
  * @openapi
@@ -70,11 +71,14 @@ export const getNutritionAnalyticsController = async (req, res) => {
     
     res.status(200).json({ 
       message: "Analytics retrieved successfully", 
-      analytics: analytics 
+      analytics: analytics || {}
     });
   } catch (error) {
-    console.error("Error fetching nutrition analytics:", error);
-    res.status(500).json({ error: "Failed to fetch nutrition analytics" });
+        logger.error("Error fetching nutrition analytics:", error);
+    res.status(500).json({ 
+      error: "Failed to fetch nutrition analytics",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -116,11 +120,14 @@ export const getDailyBreakdownController = async (req, res) => {
     
     res.status(200).json({ 
       message: "Daily breakdown retrieved successfully", 
-      breakdown: breakdown 
+      breakdown: breakdown || []
     });
   } catch (error) {
-    console.error("Error fetching daily breakdown:", error);
-    res.status(500).json({ error: "Failed to fetch daily breakdown" });
+    logger.error("Error fetching daily breakdown:", error);
+    res.status(500).json({ 
+      error: "Failed to fetch daily breakdown",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -162,10 +169,13 @@ export const getCaloriesTrendController = async (req, res) => {
     
     res.status(200).json({ 
       message: "Trend data retrieved successfully", 
-      trend: trend 
+      trend: trend || []
     });
   } catch (error) {
-    console.error("Error fetching calories trend:", error);
-    res.status(500).json({ error: "Failed to fetch calories trend" });
+    logger.error("Error fetching calories trend:", error);
+    res.status(500).json({ 
+      error: "Failed to fetch calories trend",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
