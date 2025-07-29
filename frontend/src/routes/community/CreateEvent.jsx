@@ -169,7 +169,13 @@ export const CreateEventPage = () => {
               onDrop={handleDrop}
               onDragOver={e => e.preventDefault()}
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
-              style={{ borderColor: images.length ? "#4f46e5" : "#d1d5db" }}
+              style={{ borderColor: (() => {
+                if (images.length) {
+                  return "#4f46e5";
+                } else {
+                  return "#d1d5db";
+                }
+              })() }}
             >
               <Upload className="w-6 h-6 mb-1 text-gray-500" />
               <p className="text-xs text-gray-500">
@@ -209,13 +215,33 @@ export const CreateEventPage = () => {
               </div>
             )}
           </div>
-          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>{isSubmitting ? "Submitting..." : "Submit"}</Button>
+          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>
+            {(() => {
+              if (isSubmitting) {
+                return "Submitting...";
+              } else {
+                return "Submit";
+              }
+            })()}
+          </Button>
         </form>
         <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
           <DialogContent className="rounded-xl">
             <DialogHeader>
-              <DialogTitle className={dialog.type === 'error' ? 'text-red-700' : 'text-green-700'}>
-                {dialog.type === 'error' ? 'Error' : 'Success'}
+              <DialogTitle className={(() => {
+                if (dialog.type === 'error') {
+                  return 'text-red-700';
+                } else {
+                  return 'text-green-700';
+                }
+              })()}>
+                {(() => {
+                  if (dialog.type === 'error') {
+                    return 'Error';
+                  } else {
+                    return 'Success';
+                  }
+                })()}
               </DialogTitle>
             </DialogHeader>
             <div className="py-2">{dialog.message}</div>

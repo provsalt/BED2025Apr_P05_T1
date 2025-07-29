@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { MapPin, Clock, User, Calendar, Tag, ChevronLeft, ChevronRight, ArrowLeft, AlertCircle, CheckCircle, CalendarX } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export function EventDetail() {
   const { id } = useParams();
@@ -10,6 +12,8 @@ export function EventDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  const [dialog, setDialog] = useState({ open: false, type: '', message: '' });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -105,6 +109,26 @@ export function EventDetail() {
     }
   };
 
+  const handleDeleteEvent = async () => {
+    setDeleting(true);
+    try {
+      const result = await fetcher(`/community/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (result.success) {
+        setDialog({ open: true, type: 'success', message: 'Event deleted successfully!' });
+      } else {
+        setDialog({ open: true, type: 'error', message: result.message || 'Failed to delete event' });
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      setDialog({ open: true, type: 'error', message: 'Failed to delete event. Please try again.' });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-3xl mx-auto mt-8 px-2 md:px-0 pb-7">
       <div className="mb-4 flex items-center gap-1 text-sm text-muted-foreground cursor-pointer -ml-2">
@@ -117,11 +141,7 @@ export function EventDetail() {
       </div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-bold capitalize">{event.name}</h1>
-        <div className="flex gap-2 items-center">
-          {/* Delete Button */}
-          <Button variant="destructive" size="sm" className="h-8 px-3 cursor-pointer rounded-md">
-            Delete Event
-          </Button>
+                <div className="flex gap-2 items-center">
           {/* Approval Status */}
           {(() => {
             if (event.approved_by_admin_id) {
@@ -238,8 +258,75 @@ export function EventDetail() {
           <div className="font-semibold text-gray-800 capitalize">{organizerName}</div>
           <div className="text-xs text-gray-500">Event Organizer</div>
         </div>
-        <Button className="h-10 px-6 cursor-pointer">Edit Event</Button>
+        <div className="flex gap-2">
+          <Button className="h-10 px-6 cursor-pointer">Edit Event</Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="destructive" 
+                className="h-10 px-6 cursor-pointer"
+                disabled={deleting}
+              >
+                {(() => {
+                  if (deleting) {
+                    return 'Deleting...';
+                  } else {
+                    return 'Delete Event';
+                  }
+                })()}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="rounded-xl max-w-md mx-auto">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this event? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel asChild>
+                  <Button className="cursor-pointer" variant="outline">Cancel</Button>
+                </AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button className="cursor-pointer" variant="destructive" onClick={handleDeleteEvent}>Delete Event</Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
+      
+      {/* Dialog */}
+      <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
+        <DialogContent className="rounded-xl">
+          <DialogHeader>
+                      <DialogTitle className={(() => {
+            if (dialog.type === 'error') {
+              return 'text-red-700';
+            } else {
+              return 'text-green-700';
+            }
+          })()}>
+            {(() => {
+              if (dialog.type === 'error') {
+                return 'Error';
+              } else {
+                return 'Success';
+              }
+            })()}
+          </DialogTitle>
+          </DialogHeader>
+          <div className="py-2">{dialog.message}</div>
+          <DialogFooter>
+            <Button className="cursor-pointer" onClick={() => {
+              setDialog(d => ({ ...d, open: false }));
+              if (dialog.type === 'success') {
+                navigate('/community/myevents');
+              }
+            }}>Okay</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

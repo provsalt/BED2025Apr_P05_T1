@@ -82,6 +82,7 @@ export async function getAllApprovedEvents() {
                 FROM CommunityEvent
                 JOIN Users ON CommunityEvent.user_id = Users.id
                 WHERE CommunityEvent.approved_by_admin_id IS NOT NULL
+                AND (CommunityEvent.date > CAST(GETDATE() AS DATE) OR (CommunityEvent.date = CAST(GETDATE() AS DATE) AND CommunityEvent.time > CAST(GETDATE() AS TIME)))
                 ORDER BY CommunityEvent.date ASC, CommunityEvent.time ASC
             `);
         

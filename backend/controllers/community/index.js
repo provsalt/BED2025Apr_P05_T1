@@ -1,10 +1,9 @@
 import express from "express";
-import { createEvent, deleteEvent, getApprovedEvents } from "./communityEventController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import { validateSchema } from '../../middleware/validateSchema.js';
 import { CommunityInformation } from '../../utils/validation/community.js';
 import { genericUploadMiddleware } from '../../middleware/upload.js';
-import { getApprovedEvents, getMyEvents, getEventById } from "./communityEventController.js";
+import { getApprovedEvents, getMyEvents, getEventById, createEvent, deleteEvent } from "./communityEventController.js";
 
 const router = express.Router();
 
