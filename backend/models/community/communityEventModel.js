@@ -103,6 +103,39 @@ export async function getAllApprovedEvents() {
     }
 }
 
+// GET: Get all community events created by a specific user
+export async function getCommunityEventsByUserId(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
+            .input('userId', sql.Int, userId)
+            .query(`
+                SELECT CommunityEvent.*, Users.name as created_by_name,
+                  (SELECT TOP 1 image_url FROM CommunityEventImage WHERE community_event_id = CommunityEvent.id ORDER BY uploaded_at ASC) as image_url
+                FROM CommunityEvent
+                JOIN Users ON CommunityEvent.user_id = Users.id
+                WHERE CommunityEvent.user_id = @userId
+                ORDER BY CommunityEvent.date DESC, CommunityEvent.time DESC
+            `);
+        return {
+            success: true,
+            events: result.recordset
+        };
+    } catch (error) {
+        console.error('Error getting user events:', error);
+        return {
+            success: false,
+            message: 'Failed to get user events',
+            error: error.message
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
 // GET: Get all images for a community event
 export async function getCommunityEventImages(eventId) {
     let connection;
@@ -135,7 +168,7 @@ export async function getCommunityEventById(eventId) {
                 SELECT CommunityEvent.*, Users.name as created_by_name
                 FROM CommunityEvent
                 JOIN Users ON CommunityEvent.user_id = Users.id
-                WHERE CommunityEvent.id = @eventId AND CommunityEvent.approved_by_admin_id IS NOT NULL
+                WHERE CommunityEvent.id = @eventId
             `);
         if (result.recordset.length === 0) {
             return { success: false, message: 'Event not found' };
