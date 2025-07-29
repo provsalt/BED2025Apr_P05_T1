@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
@@ -9,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { UserContext } from '../../provider/UserContext.js';
 
 export const CreateEventPage = () => {
+  const navigate = useNavigate();
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,20 +19,20 @@ export const CreateEventPage = () => {
   const fileInputRef = useRef(null);
   const userContext = React.useContext(UserContext);
 
+
+
   // Handle file selection
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter(file =>
       ["image/jpeg", "image/png", "image/webp", "image/jpg"].includes(file.type) && file.size <= 30 * 1024 * 1024
     );
-    // Prevent duplicates across all selections
+    // Allow all valid files to be added 
     const newImages = [...images];
     const newPreviews = [...imagePreviews];
     validFiles.forEach(file => {
-      if (!newImages.some(img => img.name === file.name && img.size === file.size)) {
-        newImages.push(file);
-        newPreviews.push(URL.createObjectURL(file));
-      }
+      newImages.push(file);
+      newPreviews.push(URL.createObjectURL(file));
     });
     setImages(newImages);
     setImagePreviews(newPreviews);
@@ -71,8 +73,14 @@ export const CreateEventPage = () => {
     const date = e.target.date.value;
     const time = e.target.time.value;
     const description = e.target.description.value.trim();
-    if (!eventName || !location || !category || !date || !time || !description || images.length === 0) {
-      setDialog({ open: true, type: 'error', message: 'Please fill in all required fields and upload at least one image.' });
+    if (!eventName || !location || !category || !date || !time || !description) {
+      setDialog({ open: true, type: 'error', message: 'Please fill in all required fields.' });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (images.length === 0) {
+      setDialog({ open: true, type: 'error', message: 'Please upload at least one image for your event.' });
       setIsSubmitting(false);
       return;
     }
@@ -169,7 +177,12 @@ export const CreateEventPage = () => {
               onDrop={handleDrop}
               onDragOver={e => e.preventDefault()}
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
-              style={{ borderColor: images.length ? "#4f46e5" : "#d1d5db" }}
+              style={{ borderColor: (() => {
+                if (images.length) {
+                  return "#4f46e5";
+                }
+                return "#d1d5db";
+              })() }}
             >
               <Upload className="w-6 h-6 mb-1 text-gray-500" />
               <p className="text-xs text-gray-500">
@@ -209,19 +222,39 @@ export const CreateEventPage = () => {
               </div>
             )}
           </div>
-          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>{isSubmitting ? "Submitting..." : "Submit"}</Button>
+          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>{(() => {
+            if (isSubmitting) {
+              return "Submitting...";
+            }
+            return "Submit";
+          })()}</Button>
         </form>
         <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
           <DialogContent className="rounded-xl">
             <DialogHeader>
-              <DialogTitle className={dialog.type === 'error' ? 'text-red-700' : 'text-green-700'}>
-                {dialog.type === 'error' ? 'Error' : 'Success'}
+              <DialogTitle className={(() => {
+                if (dialog.type === 'error') {
+                  return 'text-red-700';
+                }
+                return 'text-green-700';
+              })()}>
+                {(() => {
+                  if (dialog.type === 'error') {
+                    return 'Error';
+                  }
+                  return 'Success';
+                })()}
               </DialogTitle>
             </DialogHeader>
-            <div className="py-2">{dialog.message}</div>
-            <DialogFooter>
-              <Button className="cursor-pointer" onClick={() => setDialog(d => ({ ...d, open: false }))}>Okay</Button>
-            </DialogFooter>
+             <div className="py-2">{dialog.message}</div>
+             <DialogFooter>
+               <Button className="cursor-pointer" onClick={() => {
+                 setDialog(d => ({ ...d, open: false }));
+                 if (dialog.type === 'success') {
+                   navigate('/community/myevents');
+                 }
+               }}>Okay</Button>
+             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
