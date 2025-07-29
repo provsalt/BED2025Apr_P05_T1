@@ -21,6 +21,18 @@ export const ChatMessages = ({ messages: initialMessages, currentUserId, chatId 
               msg: event.message,
               sender: event.sender,
             }]);
+          } else if (event.type === "message_updated") {
+            setMessages((prevMessages) => 
+              prevMessages.map((msg) => 
+                msg.id === event.messageId 
+                  ? { ...msg, msg: event.message }
+                  : msg
+              )
+            );
+          } else if (event.type === "message_deleted") {
+            setMessages((prevMessages) => 
+              prevMessages.filter((msg) => msg.id !== event.messageId)
+            );
           }
         }
       });
@@ -39,6 +51,22 @@ export const ChatMessages = ({ messages: initialMessages, currentUserId, chatId 
     }
   }, [messages]);
 
+  const handleMessageUpdated = (messageId, newMessage) => {
+    setMessages((prevMessages) => 
+      prevMessages.map((msg) => 
+        msg.id === messageId 
+          ? { ...msg, msg: newMessage }
+          : msg
+      )
+    );
+  };
+
+  const handleMessageDeleted = (messageId) => {
+    setMessages((prevMessages) => 
+      prevMessages.filter((msg) => msg.id !== messageId)
+    );
+  };
+
   return (
     <div
       ref={containerRef}
@@ -51,7 +79,11 @@ export const ChatMessages = ({ messages: initialMessages, currentUserId, chatId 
           messages.map((msg) => (
             <Message
               key={msg.id}
+              messageId={msg.id}
+              chatId={chatId}
               isSender={msg.sender === currentUserId}
+              onMessageUpdated={handleMessageUpdated}
+              onMessageDeleted={handleMessageDeleted}
             >
               {msg.msg}
             </Message>

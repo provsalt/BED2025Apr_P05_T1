@@ -41,8 +41,7 @@ export const MealsList = () => {
     try {
       const res = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/search?name=${encodeURIComponent(searchTerm.trim())}`);
       setSearchResults(res.meals || []);
-    } catch (err) {
-      setError(err.message || "Failed to search meals");
+    } catch {
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -74,8 +73,24 @@ export const MealsList = () => {
   // Only show searchResults after a search, otherwise show all meals
   const displayMeals = hasSearched ? searchResults : meals;
 
-  if (loading) return <div>Loading meals...</div>;
-  if (error) return <div style={{ color: "red" }}>{error}</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center py-20">
+      <div className="text-gray-500 text-lg">Loading meals...</div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <div className="text-red-500 text-lg mb-4">Failed to load meals</div>
+      <div className="text-gray-500 text-sm mb-4">{error}</div>
+      <Button 
+        onClick={() => window.location.reload()} 
+        className="cursor-pointer"
+      >
+        Try Again
+      </Button>
+    </div>
+  );
   if (!meals.length) return (
     <div className="flex flex-col items-center justify-center py-20 text-gray-500 text-xl font-semibold">
       <div>No Meals Scanned</div>

@@ -6,6 +6,7 @@ import {
     updateRoute,
     deleteRoute
 } from '../../models/transport/routeModel.js';
+import { ErrorFactory } from '../../utils/AppError.js';
 
 /**
  * @openapi
@@ -37,21 +38,20 @@ import {
  *       500:
  *         description: Internal server error.
  */
-export const createRouteController = async (req, res) => {
-  const { name, start_station, end_station } = req.body;
-    const userId = req.user.id;
-
-    const stationCodes = transportModel.getStationCodes();
-    if (!stationCodes.includes(start_station) || !stationCodes.includes(end_station)) {
-        return res.status(400).json({ error: 'Invalid station code.' });
-    }
-
+export const createRouteController = async (req, res, next) => {
     try {
+        const { name, start_station, end_station } = req.body;
+        const userId = req.user.id;
+
+        const stationCodes = transportModel.getStationCodes();
+        if (!stationCodes.includes(start_station) || !stationCodes.includes(end_station)) {
+            throw ErrorFactory.validation("Invalid station code provided");
+        }
+
         const newRoute = await createRoute(userId, name, start_station, end_station);
         res.status(201).json(newRoute);
     } catch (error) {
-        console.error('Error creating route:', error);
-        res.status(500).json({ error: 'Failed to create route.' });
+        next(error);
     }
 };
 
@@ -78,17 +78,16 @@ export const createRouteController = async (req, res) => {
  *       500:
  *         description: Internal server error.
  */
-export const getRouteController = async (req, res) => {
+export const getRouteController = async (req, res, next) => {
     try {
         const routeId = req.params.id;
         const route = await getRouteById(routeId);
         if (!route) {
-            return res.status(404).json({ error: 'Route not found.' });
+            throw ErrorFactory.notFound("Route");
         }
         res.status(200).json(route);
     } catch (error) {
-        console.error('Error getting route:', error);
-        res.status(500).json({ error: 'Failed to get route.' });
+        next(error);
     }
 };
 
@@ -107,15 +106,13 @@ export const getRouteController = async (req, res) => {
  *       500:
  *         description: Internal server error.
  */
-export const getUserRoutesController = async (req, res) => {
-    const userId = req.user.id;
-
+export const getUserRoutesController = async (req, res, next) => {
     try {
+        const userId = req.user.id;
         const routes = await getRoutesByUserId(userId);
         res.status(200).json(routes);
     } catch (error) {
-        console.error('Error getting user routes:', error);
-        res.status(500).json({ error: 'Failed to get user routes.' });
+        next(error);
     }
 };
 
@@ -157,24 +154,23 @@ export const getUserRoutesController = async (req, res) => {
  *       500:
  *         description: Internal server error.
  */
-export const updateRouteController = async (req, res) => {
-    const routeId = req.params.id;
-    const { name, start_station, end_station } = req.body;
-
-    const stationCodes = transportModel.getStationCodes();
-    if (!stationCodes.includes(start_station) || !stationCodes.includes(end_station)) {
-        return res.status(400).json({ error: 'Invalid station code.' });
-    }
-
+export const updateRouteController = async (req, res, next) => {
     try {
+        const routeId = req.params.id;
+        const { name, start_station, end_station } = req.body;
+
+        const stationCodes = transportModel.getStationCodes();
+        if (!stationCodes.includes(start_station) || !stationCodes.includes(end_station)) {
+            throw ErrorFactory.validation("Invalid station code provided");
+        }
+
         const success = await updateRoute(routeId, name, start_station, end_station);
         if (!success) {
-            return res.status(404).json({ error: 'Route not found or not updated.' });
+            throw ErrorFactory.notFound("Route");
         }
-        res.status(200).json({ message: 'Route updated successfully.' });
+        res.status(200).json({ message: "Route updated successfully." });
     } catch (error) {
-        console.error('Error updating route:', error);
-        res.status(500).json({ error: 'Failed to update route.' });
+        next(error);
     }
 };
 
@@ -201,17 +197,15 @@ export const updateRouteController = async (req, res) => {
  *       500:
  *         description: Internal server error.
  */
-export const deleteRouteController = async (req, res) => {
-    const routeId = req.params.id;
-
+export const deleteRouteController = async (req, res, next) => {
     try {
+        const routeId = req.params.id;
         const success = await deleteRoute(routeId);
         if (!success) {
-            return res.status(404).json({ error: 'Route not found.' });
+            throw ErrorFactory.notFound("Route");
         }
-        res.status(200).json({ message: 'Route deleted successfully.' });
+        res.status(200).json({ message: "Route deleted successfully." });
     } catch (error) {
-        console.error('Error deleting route:', error);
-        res.status(500).json({ error: 'Failed to delete route.' });
+        next(error);
     }
 };

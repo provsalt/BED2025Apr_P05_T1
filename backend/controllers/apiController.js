@@ -9,6 +9,7 @@ import announcementsRouter from "./announcements/index.js";
 import analyticsRouter from "./analytics/index.js";
 import communityRouter from "./community/index.js";
 import adminRouter from "./admin/index.js";
+import supportRouter from "./support/index.js";
 import homeRouter from "./home/index.js";
 
 /**
@@ -26,6 +27,7 @@ export const ApiController = () => {
   router.use("/community", communityRouter);
   router.use("/transport", transportRouter);
   router.use("/admin", adminRouter);
+  router.use("/support", supportRouter);
   router.use("/analytics", analyticsRouter);
   router.use("/home", homeRouter);
   return router;

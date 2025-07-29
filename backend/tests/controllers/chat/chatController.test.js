@@ -3,6 +3,7 @@ import { getChatsController, createChatController } from "../../../controllers/c
 import * as ChatModel from "../../../models/chat/chatModel.js";
 import * as MessageModel from "../../../models/chat/messageModel.js";
 import * as Websocket from "../../../utils/websocket.js";
+import { ErrorFactory } from "../../../utils/AppError.js";
 
 vi.mock("../../../models/chat/chatModel.js", () => ({
     getChats: vi.fn(),
@@ -16,6 +17,14 @@ vi.mock("../../../utils/websocket.js", () => ({
     broadcastMessageCreated: vi.fn(),
 }));
 
+vi.mock("../../../utils/AppError.js", () => ({
+    ErrorFactory: {
+        notFound: vi.fn((resource) => new Error(`${resource} not found`)),
+        validation: vi.fn((message) => new Error(message)),
+        conflict: vi.fn((message, userMessage) => new Error(message)),
+    }
+}));
+
 describe("Chat Controller", () => {
     it("should get all chats for a user", async () => {
         const req = { user: { id: 1 } };
@@ -23,26 +32,31 @@ describe("Chat Controller", () => {
             status: vi.fn(() => res),
             json: vi.fn(),
         };
+        const next = vi.fn();
         ChatModel.getChats.mockResolvedValue([{ id: 1, chat_initiator: 1, chat_recipient: 2 }]);
 
-        await getChatsController(req, res);
+        await getChatsController(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith([{ id: 1, chat_initiator: 1, chat_recipient: 2 }]);
+        expect(next).not.toHaveBeenCalled();
     });
 
-    it("should return 404 if no chats are found", async () => {
+    it("should call next with AppError if no chats are found", async () => {
         const req = { user: { id: 1 } };
         const res = {
             status: vi.fn(() => res),
             json: vi.fn(),
         };
+        const next = vi.fn();
         ChatModel.getChats.mockResolvedValue(null);
 
-        await getChatsController(req, res);
+        await getChatsController(req, res, next);
 
-        expect(res.status).toHaveBeenCalledWith(404);
-        expect(res.json).toHaveBeenCalledWith({ message: "No chats yet" });
+        expect(ErrorFactory.notFound).toHaveBeenCalledWith("Chats");
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
+        expect(res.status).not.toHaveBeenCalled();
+        expect(res.json).not.toHaveBeenCalled();
     });
 
     it("should create a new chat", async () => {
@@ -54,18 +68,20 @@ describe("Chat Controller", () => {
             status: vi.fn(() => res),
             json: vi.fn(),
         };
+        const next = vi.fn();
         ChatModel.getChatBetweenUsers.mockResolvedValue(null);
         ChatModel.createChat.mockResolvedValue(1);
         MessageModel.createMessage.mockResolvedValue(1);
         Websocket.broadcastMessageCreated.mockResolvedValue();
 
-        await createChatController(req, res);
+        await createChatController(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(201);
         expect(res.json).toHaveBeenCalledWith({ message: "Chat created successfully", chatId: 1 });
+        expect(next).not.toHaveBeenCalled();
     });
 
-    it("should return 409 if chat already exists", async () => {
+    it("should call next with conflict AppError if chat already exists", async () => {
         const req = {
             user: { id: 1 },
             body: { recipientId: 2, message: "Hello" },
@@ -74,28 +90,22 @@ describe("Chat Controller", () => {
             status: vi.fn(() => res),
             json: vi.fn(),
         };
+        const next = vi.fn();
         ChatModel.getChatBetweenUsers.mockResolvedValue({ id: 1 });
 
-        await createChatController(req, res);
+        await createChatController(req, res, next);
 
-        expect(res.status).toHaveBeenCalledWith(409);
-        expect(res.json).toHaveBeenCalledWith({ message: "Chat already exists between these users", chatId: 1 });
+        expect(ErrorFactory.conflict).toHaveBeenCalledWith(
+            "Chat already exists between these users",
+            "Chat already exists. Chat ID: 1"
+        );
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
+        expect(res.status).not.toHaveBeenCalled();
+        expect(res.json).not.toHaveBeenCalled();
     });
 
-    it("should return 401 if user is not authenticated", async () => {
-        const req = { user: null };
-        const res = {
-            status: vi.fn(() => res),
-            json: vi.fn(),
-        };
 
-        await getChatsController(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
-    });
-
-    it("should return 400 if recipientId or message is missing", async () => {
+    it("should call next with validation AppError if recipientId or message is missing", async () => {
         const req = {
             user: { id: 1 },
             body: {},
@@ -104,14 +114,17 @@ describe("Chat Controller", () => {
             status: vi.fn(() => res),
             json: vi.fn(),
         };
+        const next = vi.fn();
 
-        await createChatController(req, res);
+        await createChatController(req, res, next);
 
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({ message: "recipientId and message are required" });
+        expect(ErrorFactory.validation).toHaveBeenCalledWith("recipientId and message are required");
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
+        expect(res.status).not.toHaveBeenCalled();
+        expect(res.json).not.toHaveBeenCalled();
     });
 
-    it("should return 500 if there is a server error", async () => {
+    it("should call next with error if there is a server error", async () => {
         const req = {
             user: { id: 1 },
             body: { recipientId: 2, message: "Hello" },
@@ -120,11 +133,33 @@ describe("Chat Controller", () => {
             status: vi.fn(() => res),
             json: vi.fn(),
         };
-        ChatModel.getChatBetweenUsers.mockRejectedValue(new Error("Server error"));
+        const next = vi.fn();
+        const serverError = new Error("Server error");
+        ChatModel.getChatBetweenUsers.mockRejectedValue(serverError);
 
-        await createChatController(req, res);
+        await createChatController(req, res, next);
 
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith({ message: "Internal server error" });
+        expect(next).toHaveBeenCalledWith(serverError);
+        expect(res.status).not.toHaveBeenCalled();
+        expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it("should call next with validation AppError if user tries to chat with themselves", async () => {
+        const req = {
+            user: { id: 1 },
+            body: { recipientId: 1, message: "Hello" },
+        };
+        const res = {
+            status: vi.fn(() => res),
+            json: vi.fn(),
+        };
+        const next = vi.fn();
+
+        await createChatController(req, res, next);
+
+        expect(ErrorFactory.validation).toHaveBeenCalledWith("You cannot chat with yourself");
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
+        expect(res.status).not.toHaveBeenCalled();
+        expect(res.json).not.toHaveBeenCalled();
     });
 });

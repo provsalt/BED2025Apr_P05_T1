@@ -28,7 +28,7 @@ export async function fetcher(url, opts = {}) {
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `Error fetching: ${errorText}`
+      errorText,
     );
   }
 

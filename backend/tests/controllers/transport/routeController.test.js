@@ -9,9 +9,10 @@ import {
 } from "../../../controllers/transport/routeController.js";
 import * as transportModel from "../../../models/transport/transportModel.js";
 import * as routeModel from "../../../models/transport/routeModel.js";
+import {AppError} from "../../../utils/AppError.js";
 
 describe("Route Controller", () => {
-    let req, res;
+    let req, res, next;
 
     beforeEach(() => {
         req = {
@@ -23,6 +24,7 @@ describe("Route Controller", () => {
             status: vi.fn().mockReturnThis(),
             json: vi.fn()
         };
+        next = vi.fn();
     });
 
     afterEach(() => {
@@ -36,7 +38,7 @@ describe("Route Controller", () => {
             vi.spyOn(transportModel.default, "getStationCodes").mockReturnValue(["A", "B", "C"]);
             vi.spyOn(routeModel, "createRoute").mockResolvedValue(newRoute);
 
-            await createRouteController(req, res);
+            await createRouteController(req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(201);
             expect(res.json).toHaveBeenCalledWith(newRoute);
@@ -46,18 +48,18 @@ describe("Route Controller", () => {
             req.body = { name: "Work", start_station: "INVALID", end_station: "B" };
             vi.spyOn(transportModel.default, "getStationCodes").mockReturnValue(["A", "B", "C"]);
 
-            await createRouteController(req, res);
+            await createRouteController(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(400);
-            expect(res.json).toHaveBeenCalledWith({ error: "Invalid station code." });
+
+            expect(next).toHaveBeenCalledWith(expect.any(AppError));
         });
 
         it("should return 400 if name, start or end station is missing", async () => {
             req.body = { start_station: "A" };
 
-            await createRouteController(req, res);
+            await createRouteController(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(400);
+            expect(next).toHaveBeenCalledWith(expect.any(AppError));
         });
     });
 
@@ -67,7 +69,7 @@ describe("Route Controller", () => {
             const route = { id: 1, start_station: "A", end_station: "B", user_id: 1 };
             vi.spyOn(routeModel, "getRouteById").mockResolvedValue(route);
 
-            await getRouteController(req, res);
+            await getRouteController(req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(route);
@@ -77,9 +79,9 @@ describe("Route Controller", () => {
             req.params.id = 1;
             vi.spyOn(routeModel, "getRouteById").mockResolvedValue(null);
 
-            await getRouteController(req, res);
+            await getRouteController(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(404);
+            expect(next).toHaveBeenCalledWith(expect.any(AppError));
         });
     });
 
@@ -88,7 +90,7 @@ describe("Route Controller", () => {
             const routes = [{ id: 1, start_station: "A", end_station: "B", user_id: 1 }];
             vi.spyOn(routeModel, "getRoutesByUserId").mockResolvedValue(routes);
 
-            await getUserRoutesController(req, res);
+            await getUserRoutesController(req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(routes);
@@ -113,10 +115,10 @@ describe("Route Controller", () => {
             req.body = { name: "Home", start_station: "INVALID", end_station: "D" };
             vi.spyOn(transportModel.default, "getStationCodes").mockReturnValue(["A", "B", "C", "D"]);
 
-            await updateRouteController(req, res);
+            await updateRouteController(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(400);
-            expect(res.json).toHaveBeenCalledWith({ error: "Invalid station code." });
+
+            expect(next).toHaveBeenCalledWith(expect.any(AppError));
         });
 
         it("should return 404 if route to update not found", async () => {
@@ -125,9 +127,10 @@ describe("Route Controller", () => {
             vi.spyOn(transportModel.default, "getStationCodes").mockReturnValue(["A", "B", "C", "D"]);
             vi.spyOn(routeModel, "updateRoute").mockResolvedValue(false);
 
-            await updateRouteController(req, res);
+            await updateRouteController(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(404);
+            // expect(res.status).toHaveBeenCalledWith(404);
+            expect(next).toHaveBeenCalledWith(expect.any(AppError));
         });
     });
 
@@ -136,7 +139,7 @@ describe("Route Controller", () => {
             req.params.id = 1;
             vi.spyOn(routeModel, "deleteRoute").mockResolvedValue(true);
 
-            await deleteRouteController(req, res);
+            await deleteRouteController(req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith({ message: "Route deleted successfully." });
@@ -146,9 +149,10 @@ describe("Route Controller", () => {
             req.params.id = 1;
             vi.spyOn(routeModel, "deleteRoute").mockResolvedValue(false);
 
-            await deleteRouteController(req, res);
+            await deleteRouteController(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(404);
+            // expect(res.status).toHaveBeenCalledWith(404);
+            expect(next).toHaveBeenCalledWith(expect.any(AppError));
         });
     });
 });

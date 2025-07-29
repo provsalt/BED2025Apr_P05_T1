@@ -9,42 +9,53 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { UserContext } from '../../provider/UserContext.js';
 
 export const CreateEventPage = () => {
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialog, setDialog] = useState({ open: false, type: '', message: '' });
   const [category, setCategory] = useState("");
   const fileInputRef = useRef(null);
   const userContext = React.useContext(UserContext);
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        setDialog({ open: true, type: 'error', message: 'Please select a valid image file' });
-        return;
+  // Handle file selection
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    const validFiles = files.filter(file =>
+      ["image/jpeg", "image/png", "image/webp", "image/jpg"].includes(file.type) && file.size <= 30 * 1024 * 1024
+    );
+    // Prevent duplicates across all selections
+    const newImages = [...images];
+    const newPreviews = [...imagePreviews];
+    validFiles.forEach(file => {
+      if (!newImages.some(img => img.name === file.name && img.size === file.size)) {
+        newImages.push(file);
+        newPreviews.push(URL.createObjectURL(file));
       }
-      if (file.size > 30 * 1024 * 1024) {
-        setDialog({ open: true, type: 'error', message: 'Image size should be less than 30MB' });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImageFile(file);
-        setImagePreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
+    });
+    setImages(newImages);
+    setImagePreviews(newPreviews);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  // Remove an image before submit
+  const removeImage = (idx) => {
+    const newImages = images.filter((_, i) => i !== idx);
+    const newPreviews = imagePreviews.filter((_, i) => i !== idx);
+    setImages(newImages);
+    setImagePreviews(newPreviews);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // Drag and drop support
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    handleImageChange({ target: { files } });
+  };
+
+  // Form submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setIsSubmitting(true);
 
     //check if user logged in
@@ -55,50 +66,40 @@ export const CreateEventPage = () => {
     }
     
     // Get form values
-    const eventName = event.target.name.value.trim();
-    const location = event.target.location.value.trim();
-    const date = event.target.date.value;
-    const time = event.target.time.value;
-    const description = event.target.description.value.trim();
-    if (!eventName || !location || !category || !date || !time || !description || !imageFile) {
-      setDialog({ open: true, type: 'error', message: 'Please fill in all required fields' });
+    const eventName = e.target.name.value.trim();
+    const location = e.target.location.value.trim();
+    const date = e.target.date.value;
+    const time = e.target.time.value;
+    const description = e.target.description.value.trim();
+    if (!eventName || !location || !category || !date || !time || !description || images.length === 0) {
+      setDialog({ open: true, type: 'error', message: 'Please fill in all required fields and upload at least one image.' });
       setIsSubmitting(false);
       return;
     }
 
-    //date cannnot be in the past
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const inputDate = new Date(date);
-    inputDate.setHours(0,0,0,0);
-    if (inputDate < today) {
-      setDialog({ open: true, type: 'error', message: 'Date cannot be in the past' });
+    //date time cannot be in the past
+    const eventDateTime = new Date(`${date}T${time}:00`);
+    if (eventDateTime < new Date()) {
+      setDialog({ open: true, type: 'error', message: 'Date/time cannot be in the past' });
       setIsSubmitting(false);
       return;
     }
     
-    const formData = new FormData(event.target);
-    formData.set('category', category);
-    let timeValue = formData.get('time');
-    if (timeValue && timeValue.length > 5) {
-      timeValue = timeValue.slice(0, 5);
-      formData.set('time', timeValue);
-    }
-    formData.set('image', imageFile);
+    const formData = new FormData(e.target);
+    images.forEach((file) => formData.append("images", file));
+
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
       const result = await fetcher(`${backendUrl}/api/community/create`, {
-        method: 'POST',
-        body: formData
+        method: "POST",
+        body: formData,
       });
-
       if (result.success) {
-        event.target.reset();
-        setImageFile(null);
-        setImagePreview(null);
-        setCategory("");
+        setDialog({ open: true, type: "success", message: "Event created!" });
+        setImages([]);
+        setImagePreviews([]);
+        e.target.reset();
         if (fileInputRef.current) fileInputRef.current.value = "";
-        setDialog({ open: true, type: 'success', message: 'Event created!' });
       } else {
         let errorMessage;
         if (result.errors) {
@@ -108,10 +109,10 @@ export const CreateEventPage = () => {
         } else {
           errorMessage = "Failed to create event";
         }
-        setDialog({ open: true, type: 'error', message: errorMessage });
+        setDialog({ open: true, type: "error", message: errorMessage });
       }
     } catch (err) {
-      setDialog({ open: true, type: 'error', message: 'Network error. Please check if the server is running and try again.' });
+      setDialog({ open: true, type: "error", message: "Network error. Please try again." });
     } finally {
       setIsSubmitting(false);
     }
@@ -161,60 +162,60 @@ export const CreateEventPage = () => {
             <Label htmlFor="description" className="mb-2 inline-block">Description *</Label>
             <Textarea id="description" name="description" placeholder="Enter description" rows={3} />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="eventImage" className="text-sm font-medium text-gray-700">
-              Event Image *
-            </Label>
-            <div className="space-y-3">
-              <div className="flex items-center justify-center w-full">
-                <label
-                  htmlFor="eventImage"
-                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-                >
-                  <div className="flex flex-col items-center justify-center p-2">
-                    <Upload className="w-6 h-6 mb-1 text-gray-500" />
-                    <p className="text-xs text-gray-500">
-                      <span className="font-semibold">Click to upload</span> image
-                    </p>
-                    <p className="text-xs text-gray-500">PNG, JPG up to 30MB</p>
-                  </div>
-                  <input
-                    id="eventImage"
-                    name="image"
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    onChange={handleImageUpload}
-                  />
-                </label>
-              </div>
-              {imagePreview && (
-                <div className="relative">
-                  <img
-                    src={imagePreview}
-                    alt="Event preview"
-                    className="w-full h-32 object-cover rounded-lg border"
-                  />
-                  <button
-                    type="button"
-                    onClick={removeImage}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+          <div>
+            <Label className="mb-2 inline-block">Event Images *</Label>
+            <div
+              className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+              onDrop={handleDrop}
+              onDragOver={e => e.preventDefault()}
+              onClick={() => fileInputRef.current && fileInputRef.current.click()}
+              style={{ borderColor: images.length ? "#4f46e5" : "#d1d5db" }}
+            >
+              <Upload className="w-6 h-6 mb-1 text-gray-500" />
+              <p className="text-xs text-gray-500">
+                <span className="font-semibold">Click or drag images here</span>
+              </p>
+              <p className="text-xs text-gray-400">PNG, JPG, WEBP up to 30MB each</p>
+              <input
+                id="eventImages"
+                name="images"
+                type="file"
+                className="hidden"
+                accept="image/*"
+                multiple
+                ref={fileInputRef}
+                onChange={handleImageChange}
+              />
             </div>
+            {imagePreviews.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-3">
+                {imagePreviews.map((src, idx) => (
+                  <div key={idx} className="relative group">
+                    <img
+                      src={src}
+                      alt={`Preview ${idx + 1}`}
+                      className="w-24 h-24 object-cover rounded border"
+                    />
+                    <button
+                      type="button"
+                      onClick={e => { e.stopPropagation(); removeImage(idx); }}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-80 hover:opacity-100 cursor-pointer"
+                      title="Remove image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>{(() => { if (isSubmitting) { return "Submitting..."; } else { return "Submit"; } })()}</Button>
+          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>{isSubmitting ? "Submitting..." : "Submit"}</Button>
         </form>
-
         <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
           <DialogContent className="rounded-xl">
             <DialogHeader>
               <DialogTitle className={dialog.type === 'error' ? 'text-red-700' : 'text-green-700'}>
-                {(() => { if (dialog.type === 'error') { return 'Error'; } else { return 'Success'; } })()}
+                {dialog.type === 'error' ? 'Error' : 'Success'}
               </DialogTitle>
             </DialogHeader>
             <div className="py-2">{dialog.message}</div>
