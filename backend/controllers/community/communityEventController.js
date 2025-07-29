@@ -67,13 +67,9 @@ import { v4 as uuidv4 } from 'uuid';
  *                   type: array
  *                   items:
  *                     type: string
- *                   description: Array of URLs to access the uploaded images (e.g. /api/s3?key=community-events/{userId}/{uuid})
+ *                   description: Array of URLs to access the uploaded images
  *       400:
- *         description: Bad request (validation or missing fields). 
- *           - The combination of date and time cannot be in the past (event must be scheduled for a future date/time).
- *           - Invalid time format. Please use HH:mm or HH:mm:ss.
- *           - Time is required.
- *           - At least one image is required.
+ *         description: Bad request (validation or missing fields)
  *       401:
  *         description: Unauthorized - User not authenticated
  *       500:
@@ -178,18 +174,14 @@ export const createEvent = async (req, res) => {
  *                       date:
  *                         type: string
  *                         format: date
- *                         description: Event date (YYYY-MM-DD)
  *                       time:
  *                         type: string
- *                         description: Event time (HH:mm:ss format)
  *                       description:
  *                         type: string
  *                       created_by_name:
  *                         type: string
- *                         description: Name of the event creator
  *                       image_url:
  *                         type: string
- *                         description: URL to access the cover image
  *       500:
  *         description: Internal server error
  */
@@ -299,15 +291,12 @@ export const getMyEvents = async (req, res) => {
  *                     date:
  *                       type: string
  *                       format: date
- *                       description: Event date (YYYY-MM-DD)
  *                     time:
  *                       type: string
- *                       description: Event time (HH:mm:ss format)
  *                     description:
  *                       type: string
  *                     created_by_name:
  *                       type: string
- *                       description: Name of the organiser
  *                     images:
  *                       type: array
  *                       items:
@@ -317,11 +306,9 @@ export const getMyEvents = async (req, res) => {
  *                             type: integer
  *                           image_url:
  *                             type: string
- *                             description: URL to access the image (e.g. /api/s3?key=community-events/{userId}/{uuid})
  *                           uploaded_at:
  *                             type: string
  *                             format: date-time
- *                       description: All images for the event. The first image is used as the cover by convention.
  *       400:
  *         description: Invalid event ID
  *       404:
@@ -399,7 +386,7 @@ export const getEventById = async (req, res) => {
  *                  - New event images (JPEG, PNG, WEBP, JPG up to 30MB each). 
  *                  - Multiple images supported.  
  *                  - Filenames are automatically sanitized.
- *                  - Optional - if not provided, existing images remain unchanged.
+ *                  - if not provided, existing images remain unchanged.
  *               keepImageIds:
  *                 type: array
  *                 items:
@@ -407,7 +394,7 @@ export const getEventById = async (req, res) => {
  *                 description: 
  *                  - Array of existing image IDs to keep.
  *                  - Images not in this list will be deleted.
- *                  - Optional - if not provided, all existing images are kept.
+ *                  - if not provided, all existing images are kept.
  *     responses:
  *       200:
  *         description: Community event updated successfully
@@ -424,17 +411,14 @@ export const getEventById = async (req, res) => {
  *                   type: array
  *                   items:
  *                     type: string
- *                   description: Array of URLs to access the newly uploaded images (if any)
+ *                   description: Array of URLs to access the newly uploaded images
  *                 deletedImages:
  *                   type: array
  *                   items:
  *                     type: string
- *                   description: Array of URLs of images that were deleted (if any)
+ *                   description: Array of URLs of images that were deleted
  *       400:
- *         description: Bad request (validation or missing fields). 
- *           - The combination of date and time cannot be in the past (event must be scheduled for a future date/time).
- *           - Invalid time format. Please use HH:mm or HH:mm:ss.
- *           - Time is required.
+ *         description: Bad request (validation or missing fields)
  *       401:
  *         description: Unauthorized - User not authenticated
  *       403:
