@@ -18,6 +18,7 @@ import { getUserMiddleware } from "../../middleware/getUser.js";
 import {genericUploadMiddleware} from "../../middleware/upload.js";
 import { compressImage } from "../../middleware/compression.js";
 import { authRateLimit } from "../../middleware/rateLimit.js";
+import { loginAnalyticsTracker } from "../../middleware/loginAnalyticsTracker.js";
 import {
   bulkUpdateUserRolesController,
   getUsersByRoleController,
@@ -37,7 +38,7 @@ router.get("/", getUserMiddleware, authorizeRole(["Admin"]), getAllUsersControll
 router.post("/login", authRateLimit, validateSchema(z.object({
   email: z.email().max(255),
   password: Password
-})), loginUserController);
+})), loginAnalyticsTracker, loginUserController);
 router.get("/me", getUserMiddleware, getCurrentUserController);
 
 // Shun Xiang user's login history and password change under 

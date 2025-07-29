@@ -29,6 +29,10 @@ vi.mock('../../../models/user/userModel.js', () => ({
     deleteUser: vi.fn(),
 }));
 
+vi.mock('../../../models/analytics/analyticsModel.js', () => ({
+    trackLoginAttempt: vi.fn(),
+}));
+
 vi.mock('../../../models/admin/adminModel.js', () => ({
   deleteUser: vi.fn()
 }));
@@ -91,6 +95,7 @@ import {
   updateUserProfilePicture,
   insertLoginHistory
 } from '../../../models/user/userModel.js';
+import { trackLoginAttempt } from '../../../models/analytics/analyticsModel.js';
 import { deleteUser as adminDeleteUser } from '../../../models/admin/adminModel.js';
 import { uploadFile, deleteFile } from '../../../services/s3Service.js';
 import { User, Password } from '../../../utils/validation/user.js';

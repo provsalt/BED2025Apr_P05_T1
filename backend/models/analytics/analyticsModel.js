@@ -247,3 +247,154 @@ export const getNewUserSignupsSummary = async (days = 30) => {
   const result = await request.query(query);
   return result.recordset[0] || null;
 };
+
+/**
+ * Get login analytics by user ID
+ */
+export const getLoginAnalyticsByUserId = async (userId, startDate = null, endDate = null) => {
+  const db = await sql.connect(dbConfig);
+  let query = `
+    SELECT 
+      user_id,
+      attempted_email,
+      COUNT(*) as total_attempts,
+      SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as successful_attempts,
+      SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) as failed_attempts,
+      MAX(login_time) as last_attempt,
+      failure_reason,
+      ip_address,
+      user_agent
+    FROM UserLoginHistory
+    WHERE user_id = @userId
+  `;
+  
+  const request = db.request();
+  request.input("userId", sql.Int, userId);
+  
+  if (startDate && endDate) {
+    query += ` AND login_time >= @startDate AND login_time <= @endDate`;
+    request.input("startDate", sql.DateTime, startDate);
+    request.input("endDate", sql.DateTime, endDate);
+  }
+  
+  query += `
+    GROUP BY user_id, attempted_email, failure_reason, ip_address, user_agent
+    ORDER BY last_attempt DESC
+  `;
+  
+  const result = await request.query(query);
+  return result.recordset;
+};
+
+/**
+ * Get overall login analytics summary for admin dashboard
+ */
+export const getLoginAnalyticsSummary = async (days = 30) => {
+  const db = await sql.connect(dbConfig);
+  const query = `
+    SELECT 
+      COUNT(*) as total_attempts,
+      SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as total_successful,
+      SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) as total_failed,
+      COUNT(DISTINCT user_id) as unique_users,
+      COUNT(DISTINCT attempted_email) as unique_emails,
+      COUNT(DISTINCT ip_address) as unique_ips,
+      AVG(CAST(success as FLOAT)) * 100 as success_rate,
+      MAX(login_time) as last_attempt,
+      MIN(login_time) as first_attempt
+    FROM UserLoginHistory
+    WHERE login_time >= DATEADD(DAY, -@days, GETDATE())
+  `;
+  
+  const request = db.request();
+  request.input("days", sql.Int, days);
+  
+  const result = await request.query(query);
+  return result.recordset[0] || null;
+};
+
+/**
+ * Get login attempts by day for charts
+ */
+export const getLoginAttemptsByDay = async (days = 30) => {
+  const db = await sql.connect(dbConfig);
+  const query = `
+    SELECT 
+      CAST(login_time AS DATE) as date,
+      COUNT(*) as total_attempts,
+      SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as successful_attempts,
+      SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) as failed_attempts,
+      COUNT(DISTINCT user_id) as unique_users
+    FROM UserLoginHistory
+    WHERE login_time >= DATEADD(DAY, -@days, GETDATE())
+    GROUP BY CAST(login_time AS DATE)
+    ORDER BY date DESC
+  `;
+  
+  const request = db.request();
+  request.input("days", sql.Int, days);
+  
+  const result = await request.query(query);
+  return result.recordset;
+};
+
+/**
+ * Get top users with most login attempts
+ */
+export const getTopUsersByLoginAttempts = async (limit = 10, days = 30) => {
+  const db = await sql.connect(dbConfig);
+  const query = `
+    SELECT 
+      u.id,
+      u.name,
+      u.email,
+      COUNT(ulh.id) as total_attempts,
+      SUM(CASE WHEN ulh.success = 1 THEN 1 ELSE 0 END) as successful_attempts,
+      SUM(CASE WHEN ulh.success = 0 THEN 1 ELSE 0 END) as failed_attempts,
+      MAX(ulh.login_time) as last_attempt,
+      AVG(CAST(ulh.success as FLOAT)) * 100 as success_rate
+    FROM Users u
+    LEFT JOIN UserLoginHistory ulh ON u.id = ulh.user_id 
+      AND ulh.login_time >= DATEADD(DAY, -@days, GETDATE())
+    GROUP BY u.id, u.name, u.email
+    HAVING COUNT(ulh.id) > 0
+    ORDER BY total_attempts DESC
+    OFFSET 0 ROWS FETCH NEXT @limit ROWS ONLY
+  `;
+  
+  const request = db.request();
+  request.input("days", sql.Int, days);
+  request.input("limit", sql.Int, limit);
+  
+  const result = await request.query(query);
+  return result.recordset;
+};
+
+/**
+ * Get suspicious login attempts (multiple failures from same IP/email)
+ */
+export const getSuspiciousLoginAttempts = async (hours = 24, minFailures = 3) => {
+  const db = await sql.connect(dbConfig);
+  const query = `
+    SELECT 
+      attempted_email,
+      ip_address,
+      COUNT(*) as failed_attempts,
+      MAX(login_time) as last_attempt,
+      failure_reason,
+      user_agent
+    FROM UserLoginHistory
+    WHERE success = 0 
+      AND login_time >= DATEADD(HOUR, -@hours, GETDATE())
+    GROUP BY attempted_email, ip_address, failure_reason, user_agent
+    HAVING COUNT(*) >= @minFailures
+    ORDER BY failed_attempts DESC
+  `;
+  
+  const request = db.request();
+  request.input("hours", sql.Int, hours);
+  request.input("minFailures", sql.Int, minFailures);
+  
+  const result = await request.query(query);
+  return result.recordset;
+};

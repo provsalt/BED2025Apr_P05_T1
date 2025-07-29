@@ -218,55 +218,18 @@ export const updateUserController = async (req, res, next) => {
 export const loginUserController = async (req, res, next) => {
   try {
     const body = req.body;
-    const ipAddress = req.ip || req.connection.remoteAddress;
-    const userAgent = req.headers["user-agent"];
 
     const user = await getUserByEmail(body.email);
-    let success = false;
-    let failureReason = null;
-
     if (!user) {
-      failureReason = "user_not_found";
-      
-      // Track failed login attempt
-      await trackLoginAttempt({
-        userId: null,
-        attemptedEmail: body.email,
-        success: false,
-        ipAddress,
-        userAgent,
-        failureReason
-      });
-      return next(new AppError('Invalid email or password', 401));
+      throw ErrorFactory.unauthorized("Invalid email or password");
     }
-
+    
     const isPasswordValid = await bcrypt.compare(body.password, user.password);
 
     if (!isPasswordValid) {
-      failureReason = "wrong_password";
-      
-      // Track failed login attempt
-      await trackLoginAttempt({
-        userId: user.id,
-        attemptedEmail: body.email,
-        success: false,
-        ipAddress,
-        userAgent,
-        failureReason
-      });
-      return next(new AppError('Invalid email or password', 401));
+      throw ErrorFactory.unauthorized("Invalid email or password");
     }
-
-    // Track successful login attempt
-    await trackLoginAttempt({
-      userId: user.id,
-      attemptedEmail: body.email,
-      success: true,
-      ipAddress,
-      userAgent,
-      failureReason: null
-    });
-
+    
     await insertLoginHistory(user.id);
 
     const secret = new TextEncoder().encode(process.env.SECRET || "");
@@ -277,12 +240,24 @@ export const loginUserController = async (req, res, next) => {
       .setExpirationTime("1d")
       .sign(secret);
     
-    // On success:
-    res.status(200).json({ user: user.id });
+    res.status(200).json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        profile_picture_url: user.profile_picture_url,
+        gender: user.gender,
+        date_of_birth: user.date_of_birth,
+        language: user.language,
+        role: user.role
+      },
+      token: tok
+    });
   } catch (error) {
     next(error);
   }
 }
+  
 
 /**
  * @openapi
