@@ -50,7 +50,7 @@ import { v4 as uuidv4 } from 'uuid';
  *                  - Filenames are automatically sanitized.
  *     responses:
  *       201:
- *         description: Community event created successfully
+ *         description: Community event created successfully and pending admin approval
  *         content:
  *           application/json:
  *             schema:
@@ -60,6 +60,7 @@ import { v4 as uuidv4 } from 'uuid';
  *                   type: boolean
  *                 message:
  *                   type: string
+ *                   description: Success message indicating event is pending approval
  *                 eventId:
  *                   type: integer
  *                   description: ID of the created event
@@ -97,8 +98,7 @@ export const createEvent = async (req, res) => {
         const eventData = {
             ...rest,
             time,
-            user_id: userId,
-            approved_by_admin_id: 1 // For testing, set to admin ID 1 (to be removed when admin approval is done)
+            user_id: userId
         };
         const eventResult = await createCommunityEvent(eventData);
         if (!eventResult.success) {
@@ -130,7 +130,7 @@ export const createEvent = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: 'Community event created successfully',
+            message: 'Community event created successfully and pending admin approval',
             eventId: eventResult.eventId,
             images: imageUrls
         });
