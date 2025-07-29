@@ -320,15 +320,28 @@ export async function deleteUnwantedImages(eventId, userId, keepImageIds) {
         }
 
         // Get all images for this event that are NOT in keepImageIds
-        const keepIdsParam = keepImageIds.join(',');
-        const imagesToDelete = await connection.request()
-            .input('eventId', sql.Int, eventId)
-            .query(`
-                SELECT id, image_url 
-                FROM CommunityEventImage 
-                WHERE community_event_id = @eventId 
-                AND id NOT IN (${keepIdsParam})
-            `);
+        let imagesToDelete;
+        if (keepImageIds.length === 0) {
+            // If no images to keep, delete all images for this event
+            imagesToDelete = await connection.request()
+                .input('eventId', sql.Int, eventId)
+                .query(`
+                    SELECT id, image_url 
+                    FROM CommunityEventImage 
+                    WHERE community_event_id = @eventId
+                `);
+        } else {
+            // If there are images to keep, delete only the unwanted ones
+            const keepIdsParam = keepImageIds.join(',');
+            imagesToDelete = await connection.request()
+                .input('eventId', sql.Int, eventId)
+                .query(`
+                    SELECT id, image_url 
+                    FROM CommunityEventImage 
+                    WHERE community_event_id = @eventId 
+                    AND id NOT IN (${keepIdsParam})
+                `);
+        }
 
         const deletedUrls = [];
 

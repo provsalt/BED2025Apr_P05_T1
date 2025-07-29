@@ -1,5 +1,6 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, deleteCommunityEvent, getCommunityEventImageUrls, updateCommunityEvent, deleteUnwantedImages } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, deleteCommunityEvent, getCommunityEventImageUrls, updateCommunityEvent, deleteUnwantedImagesdeleteUnwantedImages, getCommunityEventImages } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, updateCommunityEvent } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
 import { ErrorFactory } from "../../utils/AppError.js";
 
@@ -102,7 +103,6 @@ export const createEvent = async (req, res, next) => {
             user_id: userId,
             approved_by_admin_id: 1 // For testing, set to admin ID 1 (to be removed when admin approval is done)
         };
-        // Save to database
         const eventResult = await createCommunityEvent(eventData);
         if (!eventResult.success) {
           await deleteFile(imageKey);
@@ -478,13 +478,33 @@ export const updateEvent = async (req, res) => {
         if (keepImageIds) {
             try {
                 let keepIds;
-                if (Array.isArray(keepImageIds)) {
+                if (typeof keepImageIds === 'string') {
+                    try {
+                        keepIds = JSON.parse(keepImageIds);
+                    } catch (parseError) {
+                        console.error('Error parsing keepImageIds:', parseError);
+                        keepIds = [];
+                    }
+                } else if (Array.isArray(keepImageIds)) {
                     keepIds = keepImageIds;
                 } else {
                     keepIds = [keepImageIds];
                 }
                 const deleteResult = await deleteUnwantedImages(eventId, userId, keepIds);
                 if (deleteResult.success) {
+                    // Delete files from S3 for each deleted URL
+                    for (const imageUrl of deleteResult.deletedUrls) {
+                        try {
+                            // Extract the key from the image URL
+                            const keyMatch = imageUrl.match(/\/api\/s3\?key=(.+)/);
+                            if (keyMatch) {
+                                const key = decodeURIComponent(keyMatch[1]);
+                                await deleteFile(key);
+                            }
+                        } catch (s3Error) {
+                            console.error('Error deleting file from S3:', imageUrl, s3Error);
+                        }
+                    }
                     deletedImageUrls.push(...deleteResult.deletedUrls);
                 }
             } catch (error) {
