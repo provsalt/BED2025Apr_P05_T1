@@ -464,5 +464,121 @@ describe('communityEventModel', () => {
     });
   });
 
+  describe('updateCommunityEvent', () => {
+    it('returns success on successful update', async () => {
+      mockRequest.query.mockResolvedValue({ rowsAffected: [1] });
+      const result = await model.updateCommunityEvent(1, {
+        name: 'Updated Event',
+        location: 'Updated Location',
+        category: 'arts',
+        date: '2025-07-21',
+        time: '14:00:00',
+        description: 'Updated description'
+      }, 1);
+      expect(result).toEqual({ success: true, message: expect.any(String) });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
 
-});
+    it('returns error when event not found or user has no permission', async () => {
+      mockRequest.query.mockResolvedValue({ rowsAffected: [0] });
+      const result = await model.updateCommunityEvent(999, {
+        name: 'Updated Event'
+      }, 1);
+      expect(result).toEqual({
+        success: false,
+        message: 'Event not found or you do not have permission to edit this event'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error on db error', async () => {
+      mockRequest.query.mockRejectedValue(new Error('DB fail'));
+      const result = await model.updateCommunityEvent(1, { name: 'Test' }, 1);
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/Failed/);
+      expect(result.error).toBe('DB fail');
+    });
+
+    it('returns error if connect fails', async () => {
+      const mssql = await import('mssql');
+      mssql.default.connect.mockRejectedValue(new Error('Connect fail'));
+      model = await import('../../../models/community/communityEventModel.js');
+      const result = await model.updateCommunityEvent(1, { name: 'Test' }, 1);
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/Failed/);
+      expect(result.error).toBe('Connect fail');
+    });
+  });
+
+  describe('deleteUnwantedImages', () => {
+    it('returns success when images are deleted', async () => {
+      // Mock event ownership check
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{ id: 1 }]
+      });
+      // Mock images to delete query
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [
+          { id: 1, image_url: '/api/s3?key=image1' },
+          { id: 2, image_url: '/api/s3?key=image2' }
+        ]
+      });
+      // Mock delete queries (called twice for 2 images)
+      mockRequest.query.mockResolvedValue({});
+
+      const result = await model.deleteUnwantedImages(1, 1, [3, 4]); // Keep images 3,4, delete 1,2
+      expect(result).toEqual({
+        success: true,
+        message: '2 images deleted successfully',
+        deletedUrls: ['/api/s3?key=image1', '/api/s3?key=image2']
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error when user does not own the event', async () => {
+      mockRequest.query.mockResolvedValue({ recordset: [] });
+      const result = await model.deleteUnwantedImages(1, 999, [1, 2]);
+      expect(result).toEqual({
+        success: false,
+        message: 'Event not found or you do not have permission to delete images from this event'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns success when no images to delete', async () => {
+      // Mock event ownership check
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{ id: 1 }]
+      });
+      // Mock images to delete query (empty)
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+
+      const result = await model.deleteUnwantedImages(1, 1, [1, 2]); // Keep all images
+      expect(result).toEqual({
+        success: true,
+        message: '0 images deleted successfully',
+        deletedUrls: []
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error on db error', async () => {
+      mockRequest.query.mockRejectedValue(new Error('DB fail'));
+      const result = await model.deleteUnwantedImages(1, 1, [1, 2]);
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/Failed/);
+      expect(result.error).toBe('DB fail');
+    });
+
+    it('returns error if connect fails', async () => {
+      const mssql = await import('mssql');
+      mssql.default.connect.mockRejectedValue(new Error('Connect fail'));
+      model = await import('../../../models/community/communityEventModel.js');
+      const result = await model.deleteUnwantedImages(1, 1, [1, 2]);
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/Failed/);
+      expect(result.error).toBe('Connect fail');
+    });
+  });
+
+}); 

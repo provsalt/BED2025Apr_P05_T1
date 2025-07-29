@@ -1,6 +1,7 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, deleteCommunityEvent, getCommunityEventImageUrls } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, deleteCommunityEvent, getCommunityEventImageUrls, updateCommunityEvent, deleteUnwantedImages } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
+import { ErrorFactory } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -340,6 +341,198 @@ export const getEventById = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @openapi
+ * /api/community/{id}:
+ *   put:
+ *     tags:
+ *       - Community
+ *     summary: Update a community event
+ *     description: Allows a user to update their own community event. The event must belong to the authenticated user.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The event ID to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Event name
+ *               location:
+ *                 type: string
+ *                 description: Event location
+ *               category:
+ *                 type: string
+ *                 enum: [sports, arts, culinary, learn]
+ *                 description: Event category
+ *               date:
+ *                 type: string
+ *                 format: date
+ *                 description: Event date (YYYY-MM-DD)
+ *               time:
+ *                 type: string
+ *                 description: Event time (HH:mm or HH:mm:ss format)
+ *               description:
+ *                 type: string
+ *                 description: Event description
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description:
+ *                  - New event images (JPEG, PNG, WEBP, JPG up to 30MB each).
+ *                  - Multiple images supported.
+ *                  - Filenames are automatically sanitized.
+ *                  - Optional - if not provided, existing images remain unchanged.
+ *               keepImageIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 description:
+ *                  - Array of existing image IDs to keep.
+ *                  - Images not in this list will be deleted.
+ *                  - Optional - if not provided, all existing images are kept.
+ *     responses:
+ *       200:
+ *         description: Community event updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 newImages:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: Array of URLs to access the newly uploaded images (if any)
+ *                 deletedImages:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: Array of URLs of images that were deleted (if any)
+ *       400:
+ *         description: Bad request (validation or missing fields).
+ *           - The combination of date and time cannot be in the past (event must be scheduled for a future date/time).
+ *           - Invalid time format. Please use HH:mm or HH:mm:ss.
+ *           - Time is required.
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *       403:
+ *         description: Forbidden - User does not have permission to edit this event
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Internal server error
+ */
+export const updateEvent = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const eventId = parseInt(req.params.id, 10);
+
+        if (!eventId || isNaN(eventId)) {
+            return res.status(400).json({ success: false, message: 'Invalid event ID' });
+        }
+
+        // Ensure time is in HH:mm:ss format to match db
+        let { time, keepImageIds, ...rest } = req.body;
+        if (time && /^\d{2}:\d{2}$/.test(time)) {
+            time = time + ":00";
+        }
+
+        const eventData = {
+            ...rest,
+            time
+        };
+
+        // Update the event
+        const updateResult = await updateCommunityEvent(eventId, eventData, userId);
+        if (!updateResult.success) {
+            if (updateResult.message.includes('not found') || updateResult.message.includes('permission')) {
+                return res.status(403).json(updateResult);
+            }
+            return res.status(500).json(updateResult);
+        }
+
+        // Handle image management
+        const files = req.files || [];
+        const newImageUrls = [];
+        const deletedImageUrls = [];
+
+        // Delete images that are not in keepImageIds
+        if (keepImageIds) {
+            try {
+                let keepIds;
+                if (Array.isArray(keepImageIds)) {
+                    keepIds = keepImageIds;
+                } else {
+                    keepIds = [keepImageIds];
+                }
+                const deleteResult = await deleteUnwantedImages(eventId, userId, keepIds);
+                if (deleteResult.success) {
+                    deletedImageUrls.push(...deleteResult.deletedUrls);
+                }
+            } catch (error) {
+                console.error('Error deleting unwanted images:', error);
+            }
+        }
+
+        // Handle new images if provided
+        if (files.length > 0) {
+            for (let file of files) {
+                // Sanitize filename to avoid encoding issues
+                const sanitizedFilename = file.originalname
+                    .replace(/[^\w.-]/g, '_') // Replace special characters with underscore
+                    .replace(/_+/g, '_') // Replace multiple underscores with single
+                    .substring(0, 100); // Limit length
+
+                const imageKey = `community-events/${userId}/${uuidv4()}_${sanitizedFilename}`;
+
+                try {
+                    await uploadFile(file, imageKey);
+                    const imageUrl = `/api/s3?key=${imageKey}`;
+                    const imageResult = await addCommunityEventImage(eventId, imageUrl);
+                    if (imageResult.success) {
+                        newImageUrls.push(imageUrl);
+                    }
+                } catch (error) {
+                    console.error('Error processing file:', file.originalname, error);
+                }
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Community event updated successfully',
+            newImages: newImageUrls,
+            deletedImages: deletedImageUrls
+        });
+    } catch (error) {
+        console.error('Error in updateEvent controller:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+        });
+    }
+};
+
+
 
 
 /**
