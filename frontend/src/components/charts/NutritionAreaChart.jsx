@@ -53,55 +53,28 @@ export function NutritionAreaChart() {
       const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90
       const response = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/nutrition/analytics/daily?days=${days}`)
       
-      console.log("=== NUTRITION API RESPONSE ===")
-      console.log("Full response:", response)
-      console.log("Breakdown array:", response.breakdown)
-      console.log("Number of days returned:", response.breakdown?.length || 0)
-      
       if (response.breakdown?.length > 0) {
-        console.log("Sample day data:", response.breakdown[0])
-        console.log("Date range:", {
-          first: response.breakdown[0]?.date,
-          last: response.breakdown[response.breakdown.length - 1]?.date
-        })
+        // Transform the data for the chart
+        const transformedData = response.breakdown.map((day) => ({
+          date: day.date,
+          calories: Math.round(day.calories || 0),
+          protein: Math.round(day.protein || 0),
+          carbs: Math.round(day.carbohydrates || day.carbs || 0),
+          fat: Math.round(day.fat || 0)
+        }))
+
+        // Sort by date from earliest to latest
+        transformedData.sort((a, b) => new Date(a.date) - new Date(b.date))
+        setChartData(transformedData)
+        setError(null)
+      } else {
+        setChartData([])
+        setError("No nutrition data available for the selected period")
       }
-      
-      // Transform the data for the chart
-      const transformedData = response.breakdown?.map((day) => ({
-        date: day.date,
-        calories: Math.round(day.calories || 0),
-        protein: Math.round(day.protein || 0),
-        carbs: Math.round(day.carbohydrates || day.carbs || 0), // Backend uses 'carbohydrates'
-        fat: Math.round(day.fat || 0)
-      })) || []
-
-      console.log("Transformed data:", transformedData)
-
-      // Sort by date from earliest to latest
-      transformedData.sort((a, b) => new Date(a.date) - new Date(b.date))
-
-      console.log("Sorted data:", transformedData)
-
-      setChartData(transformedData)
-      setError(null)
     } catch (err) {
       console.error('Failed to fetch nutrition data:', err)
       setError(err.message)
-      // Fallback sample data with proper date format
-      const fallbackData = []
-      const today = new Date()
-      const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90
-      
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date(today)
-        date.setDate(date.getDate() - i)
-        fallbackData.push({
-          date: date.toISOString().split('T')[0],
-          calories: Math.floor(Math.random() * 800) + 1200, // 1200-2000
-          protein: Math.floor(Math.random() * 50) + 50, // 50-100
-        })
-      }
-      setChartData(fallbackData)
+      setChartData([])
     } finally {
       setLoading(false)
     }
@@ -134,7 +107,7 @@ export function NutritionAreaChart() {
           <CardTitle>Nutrition Trends</CardTitle>
           <CardDescription>
             Your daily calories and protein intake over time
-            {error && <span className="text-destructive block text-sm mt-1">Using sample data: {error}</span>}
+            {error && <span className="text-destructive block text-sm mt-1">{error}</span>}
           </CardDescription>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>

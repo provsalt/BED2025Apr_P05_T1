@@ -1,65 +1,15 @@
-import { useState, useEffect } from "react";
-import { fetcher } from "@/lib/fetcher";
-import { 
-  Brain, 
-  Target, 
-  TrendingUp, 
-  Lightbulb, 
-  Activity, 
-  AlertCircle, 
-  CheckCircle2, 
-  Clock, 
-  Camera,
-  Sparkles,
-  Zap,
-  Heart,
-  Trophy,
-  RefreshCw
-} from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Brain, Sparkles, Target, TrendingUp, Zap, Heart, 
+  CheckCircle2, AlertCircle, Clock, Camera
+} from "lucide-react";
+import { useAIPredictions } from "@/hooks/useNutrition";
 
 export const AIPredictions = ({ isAuthenticated }) => {
-  const [predictions, setPredictions] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [hasGenerated, setHasGenerated] = useState(false);
-
-  // Remove auto-loading effect
-  // useEffect(() => {
-  //   if (!isAuthenticated) return;
-  //   fetchPredictions();
-  // }, [isAuthenticated]);
-
-  const fetchPredictions = async () => {
-    if (!isAuthenticated) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const data = await fetcher('/nutrition/ai-predictions?days=7');
-      setPredictions(data);
-      setHasGenerated(true);
-    } catch (err) {
-      console.error('Failed to fetch AI predictions:', err);
-      
-      // Handle specific error cases
-      if (err.message.includes('User not authenticated')) {
-        setError('Please log in to view AI predictions');
-      } else if (err.message.includes('Failed to fetch meal')) {
-        setError('No nutrition data available yet. Upload some meals to get AI insights!');
-      } else if (err.message.includes('Rate limit')) {
-        setError('Too many requests. Please try again in a few minutes.');
-      } else {
-        setError('Unable to load AI predictions at the moment');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { predictions, loading, error, hasGenerated, fetchPredictions } = useAIPredictions();
 
   const generateInsights = () => {
     fetchPredictions();
