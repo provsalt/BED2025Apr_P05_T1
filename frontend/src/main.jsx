@@ -22,9 +22,10 @@ import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
 import {CreateEventPage} from "@/routes/community/CreateEvent.jsx";
 import {EditEventPage} from "@/routes/community/EditEvent.jsx";
-import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
-import {MedicationEditForm}  from '@/routes/medical/medicalEditForm.jsx';
+import {MedicalDashboard} from '@/routes/medical/medicalHomePage.jsx';
+import {MedicationEditForm} from '@/routes/medical/medicalEditForm.jsx';
 import {MedicationQuestionnaire} from '@/routes/medical/MedicationQuestionnaire.jsx';
+import {HealthSummary} from '@/routes/medical/HealthSummary.jsx';
 import {TransportHomePage} from "@/routes/transport/TransportHomePage.jsx";
 import {TransportMap} from "@/routes/transport/TransportMap.jsx";
 import {RouteList} from "@/routes/transport/RouteList.jsx";
@@ -62,6 +63,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/medical/reminders" element={<MedicationRemindersList />} />
                   <Route path="/medical/edit/:id" element={<MedicationEditForm />} />
                   <Route path="/medical/questionnaire" element={<MedicationQuestionnaire />} />
+                  <Route path="/medical/health-summary" element={<HealthSummary />} />
                   <Route path="/admin" element={
                     <AdminProtectedRoute>
                       <AdminDashboard />

@@ -5,15 +5,18 @@ import { useNavigate } from 'react-router';
 
 export const MedicalDashboard = () => {
   const navigate = useNavigate();
+  
   return (
     <div className="flex flex-col flex-1 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-8">Medical Care Center</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/medical/create')}>
+          <Card 
+            className="hover:shadow-lg transition-shadow cursor-pointer" 
+            onClick={() => navigate('/medical/create')}>
             <CardContent className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mb-4">
                 <Pill className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-gray-800 mb-3">Create Medication Reminder</h3>
@@ -23,9 +26,12 @@ export const MedicalDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/medical/reminders')}>
+          <Card 
+            className="hover:shadow-lg transition-shadow cursor-pointer" 
+            onClick={() => navigate('/medical/reminders')}>
+              
             <CardContent className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mb-4">
                 <FileText className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-gray-800 mb-3">View My Reminders</h3>
@@ -35,9 +41,11 @@ export const MedicalDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card 
+            className="hover:shadow-lg transition-shadow cursor-pointer" 
+            onClick={() => navigate('/medical/health-summary')}>
             <CardContent className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mb-4">
                 <BarChart3 className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-gray-800 mb-3">Health Review</h3>
@@ -47,9 +55,11 @@ export const MedicalDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/medical/questionnaire')}>
+          <Card 
+            className="hover:shadow-lg transition-shadow cursor-pointer" 
+            onClick={() => navigate('/medical/questionnaire')}>
             <CardContent className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mb-4">
                 <HelpCircle className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-gray-800 mb-3">Wellness Questionnaire</h3>
@@ -62,4 +72,4 @@ export const MedicalDashboard = () => {
       </div>
     </div>
   );
-}
+};
