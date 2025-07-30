@@ -523,6 +523,28 @@ describe('signUpForEvent', () => {
     expect(next.mock.calls[0][0].message).toBe('Event is not approved');
   });
 
+  it('should throw validation error if user tries to sign up for their own event', async () => {
+    const mockResult = { success: false, message: 'You cannot sign up for your own event' };
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'signUpForCommunityEvent').mockResolvedValue(mockResult);
+    
+    await signUpForEvent(req, res, next);
+    
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(next.mock.calls[0][0].message).toBe('You cannot sign up for your own event');
+  });
+
+  it('should throw validation error if event is in the past', async () => {
+    const mockResult = { success: false, message: 'Event is in the past' };
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'signUpForCommunityEvent').mockResolvedValue(mockResult);
+    
+    await signUpForEvent(req, res, next);
+    
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(next.mock.calls[0][0].message).toBe('Event is in the past');
+  });
+
   it('should pass error to next on database error', async () => {
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'signUpForCommunityEvent').mockRejectedValue(new Error('DB error'));

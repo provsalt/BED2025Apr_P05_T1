@@ -1,7 +1,7 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
 import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, updateCommunityEvent, deleteUnwantedImages, getCommunityEventImages, signUpForCommunityEvent, getUserSignedUpEvents, cancelCommunityEventSignup } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
-import { ErrorFactory } from "../../utils/AppError.js";
+import { ErrorFactory, AppError } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -598,11 +598,19 @@ export const signUpForEvent = async (req, res, next) => {
             res.status(201).json(result);
         } else {
             if (result.message === 'User is already signed up for this event') {
-                throw ErrorFactory.validation(result.message);
+                const error = new AppError(result.message, 400, "validation", result.message);
+                throw error;
             } else if (result.message === 'Event not found') {
                 throw ErrorFactory.notFound("Event");
             } else if (result.message === 'Event is not approved') {
-                throw ErrorFactory.validation(result.message);
+                const error = new AppError(result.message, 400, "validation", result.message);
+                throw error;
+            } else if (result.message === 'Event is in the past') {
+                const error = new AppError(result.message, 400, "validation", result.message);
+                throw error;
+            } else if (result.message === 'You cannot sign up for your own event') {
+                const error = new AppError(result.message, 400, "validation", result.message);
+                throw error;
             } else {
                 throw ErrorFactory.database("Failed to sign up for event", result.message);
             }

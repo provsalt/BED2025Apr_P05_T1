@@ -470,6 +470,69 @@ describe('communityEventModel', () => {
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
+    it('returns error if user tries to sign up for their own event', async () => {
+      // Mock the check for existing signup (no existing signup)
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+      // Mock the event check (event exists approved, but user created the event)
+      mockRequest.query.mockResolvedValueOnce({ 
+        recordset: [{ id: 1, name: 'Test Event', approved_by_admin_id: 1, user_id: 1 }] 
+      });
+       
+      const result = await model.signUpForCommunityEvent(1, 1);
+      expect(result).toEqual({ 
+        success: false, 
+        message: 'You cannot sign up for your own event'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error if event is in the past', async () => {
+      // Mock the check for existing signup (no existing signup)
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+      // Mock the event check (event exists and is approved, but date/time is in the past)
+      mockRequest.query.mockResolvedValueOnce({ 
+        recordset: [{ 
+          id: 1, 
+          name: 'Past Event', 
+          approved_by_admin_id: 1, 
+          user_id: 2,
+          date: new Date('2025-01-01'), // Past date
+          time: new Date('1970-01-01T10:00:00.000Z') // Past time
+        }] 
+      });
+       
+      const result = await model.signUpForCommunityEvent(1, 1);
+      expect(result).toEqual({ 
+        success: false, 
+        message: 'Event is in the past'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error if event is happening now (current time)', async () => {
+      // Mock the check for existing signup (no existing signup)
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+      // Mock the event check (event exists and is approved, but date/time is current)
+      const now = new Date();
+      mockRequest.query.mockResolvedValueOnce({ 
+        recordset: [{ 
+          id: 1, 
+          name: 'Current Event', 
+          approved_by_admin_id: 1, 
+          user_id: 2,
+          date: now,
+          time: now
+        }] 
+      });
+       
+      const result = await model.signUpForCommunityEvent(1, 1);
+      expect(result).toEqual({ 
+        success: false, 
+        message: 'Event is in the past'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
     it('returns error on db error', async () => {
       mockRequest.query.mockRejectedValue(new Error('DB fail'));
       const result = await model.signUpForCommunityEvent(1, 1);
@@ -548,41 +611,6 @@ describe('communityEventModel', () => {
     it('returns error on db error', async () => {
       mockRequest.query.mockRejectedValue(new Error('DB fail'));
       const result = await model.getUserSignedUpEvents(1);
-      expect(result.success).toBe(false);
-      expect(result.message).toBe('Database error occurred');
-    });
-  });
-
-  describe('checkUserSignupStatus', () => {
-    it('returns success with signed up status', async () => {
-      mockRequest.query.mockResolvedValue({ 
-        recordset: [{ user_id: 1, community_event_id: 1, signed_up_at: '2025-01-01' }] 
-      });
-      
-      const result = await model.checkUserSignupStatus(1, 1);
-      expect(result).toEqual({ 
-        success: true, 
-        isSignedUp: true,
-        signupData: { user_id: 1, community_event_id: 1, signed_up_at: '2025-01-01' }
-      });
-      expect(mockConnection.close).toHaveBeenCalled();
-    });
-
-    it('returns success with not signed up status', async () => {
-      mockRequest.query.mockResolvedValue({ recordset: [] });
-      
-      const result = await model.checkUserSignupStatus(1, 999);
-      expect(result).toEqual({ 
-        success: true, 
-        isSignedUp: false,
-        signupData: null
-      });
-      expect(mockConnection.close).toHaveBeenCalled();
-    });
-
-    it('returns error on db error', async () => {
-      mockRequest.query.mockRejectedValue(new Error('DB fail'));
-      const result = await model.checkUserSignupStatus(1, 1);
       expect(result.success).toBe(false);
       expect(result.message).toBe('Database error occurred');
     });

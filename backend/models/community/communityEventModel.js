@@ -247,31 +247,40 @@ export async function signUpForCommunityEvent(userId, eventId) {
         connection = await sql.connect(dbConfig);
         
         //check if user is already signed up for this event
-        const signupCheck = await checkUserSignupStatus(userId, eventId);
-        if (!signupCheck.success) {
-            return {
-                success: false,
-                message: 'Database error occurred'
-            };
-        }
+        const signupResult = await connection.request()
+            .input('userId', sql.Int, userId)
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                SELECT user_id, community_event_id, signed_up_at
+                FROM CommunityEventSignup 
+                WHERE user_id = @userId AND community_event_id = @eventId
+            `);
         
-        if (signupCheck.isSignedUp) {
+        if (signupResult.recordset.length > 0) {
             return {
                 success: false,
                 message: 'User is already signed up for this event'
             };
         }
         
-        //check if event exists
-        const eventCheck = await getCommunityEventById(eventId);
-        if (!eventCheck.success) {
+        // Check if event exists
+        const eventResult = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                SELECT CommunityEvent.*, Users.name as created_by_name
+                FROM CommunityEvent
+                JOIN Users ON CommunityEvent.user_id = Users.id
+                WHERE CommunityEvent.id = @eventId
+            `);
+        
+        if (eventResult.recordset.length === 0) {
             return {
                 success: false,
                 message: 'Event not found'
             };
         }
         
-        const event = eventCheck.event;
+        const event = eventResult.recordset[0];
         if (!event.approved_by_admin_id) {
             return {
                 success: false,
@@ -279,14 +288,51 @@ export async function signUpForCommunityEvent(userId, eventId) {
             };
         }
         
+        // Check if event is in the past
+        const eventDate = event.date;
+        const eventTime = event.time;
+        
+
+        const eventDateObj = new Date(eventDate);
+        const eventTimeObj = new Date(eventTime);
+        
+        // Set the time components from eventTimeObj to eventDateObj
+        eventDateObj.setHours(eventTimeObj.getHours());
+        eventDateObj.setMinutes(eventTimeObj.getMinutes());
+        eventDateObj.setSeconds(eventTimeObj.getSeconds());
+        eventDateObj.setMilliseconds(eventTimeObj.getMilliseconds());
+        
+        const eventDateTime = eventDateObj;
+        const currentDateTime = new Date();
+        
+        //check if event is in the past
+        if (eventDateTime <= currentDateTime) {
+            return {
+                success: false,
+                message: 'Event is in the past'
+            };
+        }
+        
+        //dont allow user to sign up for their own event
+        if (event.user_id === userId) {
+            return {
+                success: false,
+                message: 'You cannot sign up for your own event'
+            };
+        }
+        
         // Insert the signup record
-        await connection.request()
-            .input('userId', sql.Int, userId)
-            .input('eventId', sql.Int, eventId)
-            .query(`
-                INSERT INTO CommunityEventSignup (user_id, community_event_id)
-                VALUES (@userId, @eventId)
-            `);
+        try {
+            await connection.request()
+                .input('userId', sql.Int, userId)
+                .input('eventId', sql.Int, eventId)
+                .query(`
+                    INSERT INTO CommunityEventSignup (user_id, community_event_id)
+                    VALUES (@userId, @eventId)
+                `);     
+        } catch (insertError) {
+            throw insertError;
+        }
         
         return {
             success: true,
@@ -428,13 +474,14 @@ export async function deleteUnwantedImages(eventId, userId, keepImageIds) {
     };
 };
 
-// GET: Check if a user is signed up for a specific event 
-export async function checkUserSignupStatus(userId, eventId) {
+// DELETE: Cancel a user's signup for a community event
+export async function cancelCommunityEventSignup(userId, eventId) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
         
-        const result = await connection.request()
+        // Check if user is signed up for this event
+        const signupResult = await connection.request()
             .input('userId', sql.Int, userId)
             .input('eventId', sql.Int, eventId)
             .query(`
@@ -443,41 +490,7 @@ export async function checkUserSignupStatus(userId, eventId) {
                 WHERE user_id = @userId AND community_event_id = @eventId
             `);
         
-        return {
-            success: true,
-            isSignedUp: result.recordset.length > 0,
-            signupData: result.recordset[0] || null
-        };
-        
-    } catch (error) {
-        console.error('Error in checkUserSignupStatus:', error);
-        return {
-            success: false,
-            message: 'Database error occurred'
-        };
-    } finally {
-        if (connection) {
-            await connection.close();
-        }
-    }
-}
-
-// DELETE: Cancel a user's signup for a community event
-export async function cancelCommunityEventSignup(userId, eventId) {
-    let connection;
-    try {
-        connection = await sql.connect(dbConfig);
-        
-        //check if user is signed up for this event
-        const signupCheck = await checkUserSignupStatus(userId, eventId);
-        if (!signupCheck.success) {
-            return {
-                success: false,
-                message: 'Database error occurred'
-            };
-        }
-        
-        if (!signupCheck.isSignedUp) {
+        if (signupResult.recordset.length === 0) {
             return {
                 success: false,
                 message: 'User is not signed up for this event'
