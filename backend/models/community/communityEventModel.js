@@ -190,7 +190,133 @@ export async function getCommunityEventById(eventId) {
     }
 }
 
-// GET: Get all pending community events (for admin approval)
+// PUT: Update a community event (only by the creator)
+export async function updateCommunityEvent(eventId, eventData, userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        
+        // Update the event, filtering by user_id to ensure ownership
+        const result = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .input('userId', sql.Int, userId)
+            .input('name', sql.NVarChar(100), eventData.name)
+            .input('location', sql.NVarChar(100), eventData.location)
+            .input('category', sql.NVarChar(50), eventData.category)
+            .input('date', sql.Date, eventData.date)
+            .input('time', sql.VarChar(8), eventData.time)
+            .input('description', sql.NVarChar(500), eventData.description)
+            .query(`
+                UPDATE CommunityEvent 
+                SET name = @name, location = @location, category = @category, 
+                    date = @date, time = @time, description = @description
+                WHERE id = @eventId AND user_id = @userId
+            `);
+
+        // Check if any rows were affected
+        if (result.rowsAffected[0] === 0) {
+            return {
+                success: false,
+                message: 'Event not found or you do not have permission to edit this event'
+            };
+        }
+
+        return {
+            success: true,
+            message: 'Community event updated successfully'
+        };
+    } catch (error) {
+        console.error('Error updating community event:', error);
+        return {
+            success: false,
+            message: 'Failed to update community event',
+            error: error.message
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
+// DELETE: Delete unwanted images from a community event
+export async function deleteUnwantedImages(eventId, userId, keepImageIds) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        
+        // First verify the user owns the event
+        const eventCheck = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .input('userId', sql.Int, userId)
+            .query(`
+                SELECT id FROM CommunityEvent 
+                WHERE id = @eventId AND user_id = @userId
+            `);
+        
+        if (eventCheck.recordset.length === 0) {
+            return {
+                success: false,
+                message: 'Event not found or you do not have permission to delete images from this event'
+            };
+        }
+
+        // Get all images for this event that are NOT in keepImageIds
+        let imagesToDelete;
+        if (keepImageIds.length === 0) {
+            // If no images to keep, delete all images for this event
+            imagesToDelete = await connection.request()
+                .input('eventId', sql.Int, eventId)
+                .query(`
+                    SELECT id, image_url 
+                    FROM CommunityEventImage 
+                    WHERE community_event_id = @eventId
+                `);
+        } else {
+            // If there are images to keep, delete only the unwanted ones
+            const keepIdsParam = keepImageIds.join(',');
+            imagesToDelete = await connection.request()
+                .input('eventId', sql.Int, eventId)
+                .query(`
+                    SELECT id, image_url 
+                    FROM CommunityEventImage 
+                    WHERE community_event_id = @eventId 
+                    AND id NOT IN (${keepIdsParam})
+                `);
+        }
+
+        const deletedUrls = [];
+
+        // Delete each unwanted image
+        for (const image of imagesToDelete.recordset) {
+            await connection.request()
+                .input('imageId', sql.Int, image.id)
+                .query(`
+                    DELETE FROM CommunityEventImage WHERE id = @imageId
+                `);
+            deletedUrls.push(image.image_url);
+        }
+
+        return {
+            success: true,
+            message: `${deletedUrls.length} images deleted successfully`,
+            deletedUrls: deletedUrls
+        };
+    } catch (error) {
+        console.error('Error deleting unwanted images:', error);
+        return {
+            success: false,
+            message: 'Failed to delete unwanted images',
+            error: error.message
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    };
+};
+
+// GET: Get all community events pending (for admin approval)
 export async function getPendingEvents() {
     let connection;
     try {
@@ -223,7 +349,7 @@ export async function getPendingEvents() {
     }
 }
 
-// PUT: Approve a community event
+// PUT: Approve a community event (as an admin)
 export async function approveCommunityEvent(eventId, adminId) {
     let connection;
     try {
@@ -275,14 +401,14 @@ export async function rejectCommunityEvent(eventId) {
                 WHERE id = @eventId AND approved_by_admin_id IS NULL;
                 SELECT @@ROWCOUNT as affectedRows;
             `);
-        
+
         if (result.recordset[0].affectedRows === 0) {
             return {
                 success: false,
                 message: 'Event not found or already approved'
             };
         }
-        
+
         return {
             success: true,
             message: 'Community event rejected successfully'
@@ -300,4 +426,3 @@ export async function rejectCommunityEvent(eventId) {
         }
     }
 }
-
