@@ -4,7 +4,7 @@ import { getUserMiddleware } from "../../middleware/getUser.js";
 import { validateSchema } from '../../middleware/validateSchema.js';
 import { CommunityInformation } from '../../utils/validation/community.js';
 import { genericUploadMiddleware } from '../../middleware/upload.js';
-import { getApprovedEvents, getEventById } from "./communityEventController.js";
+import { getApprovedEvents, getMyEvents, getEventById } from "./communityEventController.js";
 
 const router = express.Router();
 
@@ -16,8 +16,12 @@ router.post(
   validateSchema(CommunityInformation),
   createEvent
 );
+
 // GET /api/community - Get all approved community events
 router.get("/", getUserMiddleware, getApprovedEvents);
+
+// GET /api/community/myevents - Get all community events created by the authenticated user
+router.get("/myevents", getUserMiddleware, getMyEvents);
 
 // GET /api/community/:id - Get details for a single community event
 router.get("/:id", getUserMiddleware, getEventById);

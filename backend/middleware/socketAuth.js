@@ -1,11 +1,12 @@
 import { jwtVerify } from 'jose';
+import { logError } from '../utils/logger.js';
 
 export const socketAuthMiddleware = async (socket, next) => {
   try {
     const token = socket.handshake.auth.token || socket.handshake.query.token;
 
     if (!token) {
-      return next(new Error('Authentication token required'));
+      return next(new Error("Authentication token required"));
     }
 
     const secret = new TextEncoder().encode(process.env.SECRET || "");
@@ -14,7 +15,7 @@ export const socketAuthMiddleware = async (socket, next) => {
     });
 
     if (payload.exp && payload.exp < Date.now() / 1000) {
-      return next(new Error('Token expired'));
+      return next(new Error("Token expired"));
     }
 
     socket.userId = payload.sub;
@@ -22,7 +23,10 @@ export const socketAuthMiddleware = async (socket, next) => {
 
     next();
   } catch (error) {
-    console.error('Socket authentication error:', error);
-    next(new Error('Invalid authentication token'));
+    logError(error, null, {
+      context: "socket_authentication",
+      socketId: socket.id,
+      clientAddress: socket.handshake.address
+    });
   }
 };

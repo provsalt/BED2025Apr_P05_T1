@@ -1,5 +1,5 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventById } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -193,6 +193,54 @@ export const createEvent = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
+/**
+ * @openapi
+ * /api/community:
+ *   get:
+ *     tags:
+ *       - Community
+ *     summary: Get all approved community events
+ *     description: Returns all approved community events, sorted by date and time.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of approved community events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                       time:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       created_by_name:
+ *                         type: string
+ *                       image_url:
+ *                         type: string
+ *                         description: URL to access the cover image
+ *       500:
+ *         description: Internal server error
+ */
 export const getApprovedEvents = async (req, res) => {
   try {
     const result = await getAllApprovedEvents();
@@ -204,6 +252,60 @@ export const getApprovedEvents = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
+}; 
+
+/**
+ * @openapi
+ * /api/community/mine:
+ *   get:
+ *     tags:
+ *       - Community
+ *     summary: Get all community events created by the authenticated user
+ *     description: Returns all community events created by the current user.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user's community events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       400:
+ *         description: User ID is required
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+export const getMyEvents = async (req, res) => {
+    try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ success: false, message: 'Unauthorized: User not authenticated' });
+        }
+        const userId = req.user.id;
+        // validate user
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'User ID is required'});
+        }
+
+        const result = await getCommunityEventsByUserId(userId);
+        if (result.success) {
+            res.status(200).json(result);
+        } else {
+            res.status(500).json(result);
+        }
+    } catch (error) {
+        console.error('Error in getMyEvents controller:', error);
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
 }; 
 
 /**
@@ -290,4 +392,4 @@ export const getEventById = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
-}; 
+};

@@ -1,7 +1,7 @@
 import {getChats, createChat, getChatBetweenUsers} from "../../models/chat/chatModel.js";
 import {createMessage} from "../../models/chat/messageModel.js";
 import {broadcastMessageCreated} from "../../utils/websocket.js";
-import express from "express";
+import { ErrorFactory } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -29,18 +29,18 @@ import express from "express";
 /**
  * getChats fetches the list of users a user has had chatted with
  */
-export const getChatsController = async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({"message": "Unauthorized"});
-  }
+export const getChatsController = async (req, res, next) => {
+  try {
+    const chats = await getChats(req.user.id);
 
-  const chats = await getChats(req.user.id)
-
-  if (!chats) {
-    return res.status(404).json({"message": "No chats yet"})
+    if (!chats) {
+      throw ErrorFactory.notFound("Chats");
+    }
+    res.status(200).json(chats);
+  } catch (error) {
+    next(error);
   }
-  res.status(200).json(chats)
-}
+};
 
 /**
  * @openapi
@@ -83,26 +83,26 @@ export const getChatsController = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-export const createChatController = async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({"message": "Unauthorized"});
-  }
-
-  const { recipientId, message } = req.body;
-
-  if (!recipientId || !message) {
-    return res.status(400).json({"message": "recipientId and message are required"});
-  }
-
+export const createChatController = async (req, res, next) => {
   try {
+    const { recipientId, message } = req.body;
+
+    if (!recipientId || !message) {
+      throw ErrorFactory.validation("recipientId and message are required");
+    }
+
+    if (recipientId === req.user.id) {
+      throw ErrorFactory.validation("You cannot chat with yourself");
+    }
+
     // Check if chat already exists between the two users
     const existingChat = await getChatBetweenUsers(req.user.id, recipientId);
     
     if (existingChat) {
-      return res.status(409).json({
-        "message": "Chat already exists between these users",
-        "chatId": existingChat.id
-      });
+      throw ErrorFactory.conflict(
+        "Chat already exists between these users",
+        `Chat already exists. Chat ID: ${existingChat.id}`
+      );
     }
 
     const chatId = await createChat(req.user.id, recipientId);
@@ -115,7 +115,6 @@ export const createChatController = async (req, res) => {
       "chatId": chatId
     });
   } catch (error) {
-    console.error("Error creating chat:", error);
-    res.status(500).json({"message": "Internal server error"});
+    next(error);
   }
-}
+};

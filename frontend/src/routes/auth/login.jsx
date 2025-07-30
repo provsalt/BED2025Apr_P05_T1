@@ -54,7 +54,7 @@ export const Login = () => {
       
       // Redirect based on role
       if (payload.role === 'Admin') {
-        setTimeout(() => navigate("/admin/dashboard"), 1500);
+        setTimeout(() => navigate("/admin"), 1500);
       } else {
         setTimeout(() => navigate("/"), 1500);
       }

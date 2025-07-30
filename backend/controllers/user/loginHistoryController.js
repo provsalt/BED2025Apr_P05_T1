@@ -1,4 +1,5 @@
 import { getLoginHistoryByUserId } from "../../models/user/userModel.js";
+import { ErrorFactory } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -24,17 +25,22 @@ import { getLoginHistoryByUserId } from "../../models/user/userModel.js";
  *       500:
  *         description: Failed to retrieve login history
  */
-export const getUserLoginHistoryController = async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-  const userId = req.user.id;
-  const limit = req.query.limit ? parseInt(req.query.limit, 10) : 10;
-
+export const getUserLoginHistoryController = async (req, res, next) => {
   try {
+    if (!req.user) {
+      throw ErrorFactory.unauthorized("Unauthorized");
+    }
+    
+    const userId = req.user.id;
+    const limit = req.query.limit ? parseInt(req.query.limit, 10) : 10;
+
+    if (req.query.limit && (isNaN(limit) || limit < 1 || limit > 100)) {
+      throw ErrorFactory.validation("Limit must be a number between 1 and 100");
+    }
+
     const logins = await getLoginHistoryByUserId(userId, limit);
     res.status(200).json(logins);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to retrieve login history" });
+  } catch (error) {
+    next(error);
   }
 };

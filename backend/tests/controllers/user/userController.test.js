@@ -72,6 +72,16 @@ vi.mock('crypto', () => ({
   randomUUID: vi.fn(() => 'mock-uuid')
 }));
 
+vi.mock('../../../utils/AppError.js', () => ({
+  ErrorFactory: {
+    validation: vi.fn((message) => new Error(message)),
+    notFound: vi.fn((resource) => new Error(`${resource} not found`)),
+    unauthorized: vi.fn((message) => new Error(message)),
+    forbidden: vi.fn((message) => new Error(message)),
+    external: vi.fn((system, message, userMessage) => new Error(message)),
+  }
+}));
+
 import {
   createUser,
   getAllUsers,
@@ -85,9 +95,10 @@ import { deleteUser as adminDeleteUser } from '../../../models/admin/adminModel.
 import { uploadFile, deleteFile } from '../../../services/s3Service.js';
 import { User, Password } from '../../../utils/validation/user.js';
 import bcrypt from 'bcryptjs';
+import { ErrorFactory } from '../../../utils/AppError.js';
 
 describe('User Controller', () => {
-  let req, res;
+  let req, res, next;
 
   beforeEach(() => {
     req = {
@@ -100,29 +111,34 @@ describe('User Controller', () => {
       status: vi.fn().mockReturnThis(),
       json: vi.fn().mockReturnThis()
     };
+    next = vi.fn();
     vi.clearAllMocks();
     process.env.SECRET = 'test-secret';
     process.env.BACKEND_URL = 'http://localhost:3000';
   });
 
   describe('getCurrentUserController', () => {
-    it('should return 401 if user is not authenticated', async () => {
+    it('should call next with unauthorized AppError if user is not authenticated', async () => {
       req.user = null;
 
-      await getCurrentUserController(req, res);
+      await getCurrentUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
+      expect(ErrorFactory.unauthorized).toHaveBeenCalledWith("Unauthorized");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
-    it('should return 404 if user is not found', async () => {
+    it('should call next with notFound AppError if user is not found', async () => {
       getUser.mockResolvedValue(null);
 
-      await getCurrentUserController(req, res);
+      await getCurrentUserController(req, res, next);
 
       expect(getUser).toHaveBeenCalledWith(1);
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+      expect(ErrorFactory.notFound).toHaveBeenCalledWith("User");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it('should return user data successfully', async () => {
@@ -137,7 +153,7 @@ describe('User Controller', () => {
       };
       getUser.mockResolvedValue(mockUser);
 
-      await getCurrentUserController(req, res);
+      await getCurrentUserController(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
@@ -149,41 +165,44 @@ describe('User Controller', () => {
         date_of_birth: '1990-01-01',
         language: 'English'
       });
+      expect(next).not.toHaveBeenCalled();
     });
 
-    it('should handle database errors', async () => {
-      getUser.mockRejectedValue(new Error('Database error'));
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    it('should call next with error if there is a server error', async () => {
+      const serverError = new Error('Database error');
+      getUser.mockRejectedValue(serverError);
 
-      await getCurrentUserController(req, res);
+      await getCurrentUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Failed to fetch current user" });
-      expect(consoleSpy).toHaveBeenCalledWith("Fetch current user failed:", expect.any(Error));
-      
-      consoleSpy.mockRestore();
+      expect(next).toHaveBeenCalledWith(serverError);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
   describe('getUserController', () => {
-    it('should return 400 for invalid user ID', async () => {
+    it('should call next with validation AppError for invalid user ID', async () => {
       req.params.id = 'invalid';
 
-      await getUserController(req, res);
+      await getUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: "Invalid user ID" });
+      expect(ErrorFactory.validation).toHaveBeenCalledWith("Invalid user ID");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
-    it('should return 404 if user is not found', async () => {
+    it('should call next with notFound AppError if user is not found', async () => {
       req.params.id = '1';
       getUser.mockResolvedValue(null);
 
-      await getUserController(req, res);
+      await getUserController(req, res, next);
 
       expect(getUser).toHaveBeenCalledWith(1);
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+      expect(ErrorFactory.notFound).toHaveBeenCalledWith("User");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it('should return user data successfully', async () => {
@@ -191,22 +210,22 @@ describe('User Controller', () => {
       const mockUser = { id: 1, name: 'John Doe', email: 'john@example.com' };
       getUser.mockResolvedValue(mockUser);
 
-      await getUserController(req, res);
+      await getUserController(req, res, next);
 
       expect(res.json).toHaveBeenCalledWith(mockUser);
+      expect(next).not.toHaveBeenCalled();
     });
 
-    it('should handle database errors', async () => {
+    it('should call next with error if there is a server error', async () => {
       req.params.id = '1';
-      getUser.mockRejectedValue(new Error('Database error'));
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const serverError = new Error('Database error');
+      getUser.mockRejectedValue(serverError);
 
-      await getUserController(req, res);
+      await getUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Error fetching user" });
-      
-      consoleSpy.mockRestore();
+      expect(next).toHaveBeenCalledWith(serverError);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
@@ -216,13 +235,15 @@ describe('User Controller', () => {
       req.body = { name: 'Updated Name' };
     });
 
-    it('should return 404 if user is not found', async () => {
+    it('should call next with notFound AppError if user is not found', async () => {
       getUser.mockResolvedValue(null);
 
-      await updateUserController(req, res);
+      await updateUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+      expect(ErrorFactory.notFound).toHaveBeenCalledWith("User");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it('should update user successfully', async () => {
@@ -235,7 +256,7 @@ describe('User Controller', () => {
       getUser.mockResolvedValue(mockUser);
       updateUser.mockResolvedValue(true);
 
-      await updateUserController(req, res);
+      await updateUserController(req, res, next);
 
       expect(updateUser).toHaveBeenCalledWith(1, {
         name: 'Updated Name',
@@ -244,6 +265,7 @@ describe('User Controller', () => {
         date_of_birth: '1990-01-01'
       });
       expect(res.json).toHaveBeenCalledWith({ message: "User updated successfully" });
+      expect(next).not.toHaveBeenCalled();
     });
 
     it('should handle invalid date_of_birth', async () => {
@@ -257,34 +279,35 @@ describe('User Controller', () => {
       getUser.mockResolvedValue(mockUser);
       updateUser.mockResolvedValue(true);
 
-      await updateUserController(req, res);
+      await updateUserController(req, res, next);
 
       expect(updateUser).toHaveBeenCalledWith(1, expect.objectContaining({
         date_of_birth: '1990-01-01'
       }));
     });
 
-    it('should return 400 if update fails', async () => {
+    it('should call next with external AppError if update fails', async () => {
       const mockUser = { id: 1, email: 'john@example.com', password: 'hashedpassword' };
       getUser.mockResolvedValue(mockUser);
       updateUser.mockResolvedValue(false);
 
-      await updateUserController(req, res);
+      await updateUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: "Failed to update user" });
+      expect(ErrorFactory.external).toHaveBeenCalledWith("Database", "Failed to update user", "Update operation failed");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
-    it('should handle database errors', async () => {
-      getUser.mockRejectedValue(new Error('Database error'));
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    it('should call next with error if there is a server error', async () => {
+      const serverError = new Error('Database error');
+      getUser.mockRejectedValue(serverError);
 
-      await updateUserController(req, res);
+      await updateUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Failed to update user" });
-      
-      consoleSpy.mockRestore();
+      expect(next).toHaveBeenCalledWith(serverError);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
@@ -296,36 +319,28 @@ describe('User Controller', () => {
       };
     });
 
-    it('should return 400 for invalid input data', async () => {
-      req.body.email = 'invalid-email';
-
-      await loginUserController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Invalid user data",
-        details: expect.any(Array)
-      });
-    });
-
-    it('should return 401 if user is not found', async () => {
+    it('should call next with unauthorized AppError if user is not found', async () => {
       getUserByEmail.mockResolvedValue(null);
 
-      await loginUserController(req, res);
+      await loginUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({ error: "Invalid email or password" });
+      expect(ErrorFactory.unauthorized).toHaveBeenCalledWith("Invalid email or password");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
-    it('should return 401 if password is invalid', async () => {
+    it('should call next with unauthorized AppError if password is invalid', async () => {
       const mockUser = { id: 1, password: 'hashedpassword' };
       getUserByEmail.mockResolvedValue(mockUser);
       bcrypt.compare.mockResolvedValue(false);
 
-      await loginUserController(req, res);
+      await loginUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({ error: "Invalid email or password" });
+      expect(ErrorFactory.unauthorized).toHaveBeenCalledWith("Invalid email or password");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it('should login successfully', async () => {
@@ -343,7 +358,7 @@ describe('User Controller', () => {
       getUserByEmail.mockResolvedValue(mockUser);
       bcrypt.compare.mockResolvedValue(true);
 
-      await loginUserController(req, res);
+      await loginUserController(req, res, next);
 
       expect(insertLoginHistory).toHaveBeenCalledWith(1);
       expect(res.status).toHaveBeenCalledWith(200);
@@ -360,6 +375,7 @@ describe('User Controller', () => {
         },
         token: 'mock-jwt-token'
       });
+      expect(next).not.toHaveBeenCalled();
     });
   });
 
@@ -374,21 +390,6 @@ describe('User Controller', () => {
       };
     });
 
-    it('should return 400 for invalid user data', async () => {
-      User.safeParse.mockReturnValue({
-        success: false,
-        error: { issues: ['Invalid data'] }
-      });
-
-      await createUserController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Invalid user data",
-        details: ['Invalid data']
-      });
-    });
-
     it('should create user successfully', async () => {
       const mockNewUser = {
         id: 1,
@@ -400,10 +401,9 @@ describe('User Controller', () => {
         language: 'English',
         role: 'User'
       };
-      User.safeParse.mockReturnValue({ success: true, data: req.body });
       createUser.mockResolvedValue(mockNewUser);
 
-      await createUserController(req, res);
+      await createUserController(req, res, next);
 
       expect(createUser).toHaveBeenCalledWith(req.body);
       expect(res.status).toHaveBeenCalledWith(201);
@@ -411,16 +411,18 @@ describe('User Controller', () => {
         user: mockNewUser,
         token: 'mock-jwt-token'
       });
+      expect(next).not.toHaveBeenCalled();
     });
 
-    it('should handle database errors', async () => {
-      User.safeParse.mockReturnValue({ success: true, data: req.body });
-      createUser.mockRejectedValue(new Error('Database error'));
+    it('should call next with error if there is a server error', async () => {
+      const serverError = new Error('Database error');
+      createUser.mockRejectedValue(serverError);
 
-      await createUserController(req, res);
+      await createUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Error creating user" });
+      expect(next).toHaveBeenCalledWith(serverError);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
@@ -439,13 +441,15 @@ describe('User Controller', () => {
       };
     });
 
-    it('should return 400 if no file uploaded', async () => {
+    it('should call next with validation AppError if no file uploaded', async () => {
       req.file = null;
 
-      await uploadUserProfilePictureController(req, res);
+      await uploadUserProfilePictureController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: "No file uploaded" });
+      expect(ErrorFactory.validation).toHaveBeenCalledWith("No file uploaded");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it('should upload profile picture successfully', async () => {
@@ -454,7 +458,7 @@ describe('User Controller', () => {
       uploadFile.mockResolvedValue();
       updateUserProfilePicture.mockResolvedValue(true);
 
-      await uploadUserProfilePictureController(req, res);
+      await uploadUserProfilePictureController(req, res, next);
 
       expect(uploadFile).toHaveBeenCalledWith(req.file, 'uploads/mock-uuid');
       expect(updateUserProfilePicture).toHaveBeenCalledWith(1, 'http://localhost:3000/api/s3?key=uploads/mock-uuid');
@@ -463,6 +467,7 @@ describe('User Controller', () => {
         message: "Upload successful",
         url: 'http://localhost:3000/api/s3?key=uploads/mock-uuid'
       });
+      expect(next).not.toHaveBeenCalled();
     });
 
     it('should delete old profile picture before uploading new one', async () => {
@@ -474,33 +479,34 @@ describe('User Controller', () => {
       uploadFile.mockResolvedValue();
       updateUserProfilePicture.mockResolvedValue(true);
 
-      await uploadUserProfilePictureController(req, res);
+      await uploadUserProfilePictureController(req, res, next);
 
       expect(deleteFile).toHaveBeenCalledWith('/uploads/old-uuid');
     });
 
-    it('should handle upload errors', async () => {
-      getUser.mockRejectedValue(new Error('Database error'));
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    it('should call next with error if there is a server error', async () => {
+      const serverError = new Error('Database error');
+      getUser.mockRejectedValue(serverError);
 
-      await uploadUserProfilePictureController(req, res);
+      await uploadUserProfilePictureController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Failed to upload image" });
-      
-      consoleSpy.mockRestore();
+      expect(next).toHaveBeenCalledWith(serverError);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
   describe('deleteUserProfilePictureController', () => {
-    it('should return 404 if user has no profile picture', async () => {
+    it('should call next with notFound AppError if user has no profile picture', async () => {
       const mockUser = { id: 1, profile_picture_url: null };
       getUser.mockResolvedValue(mockUser);
 
-      await deleteUserProfilePictureController(req, res);
+      await deleteUserProfilePictureController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "No profile picture to delete" });
+      expect(ErrorFactory.notFound).toHaveBeenCalledWith("Profile picture");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it('should delete profile picture successfully', async () => {
@@ -512,24 +518,24 @@ describe('User Controller', () => {
       deleteFile.mockResolvedValue();
       updateUserProfilePicture.mockResolvedValue(true);
 
-      await deleteUserProfilePictureController(req, res);
+      await deleteUserProfilePictureController(req, res, next);
 
       expect(deleteFile).toHaveBeenCalledWith('uploads/test-uuid');
       expect(updateUserProfilePicture).toHaveBeenCalledWith(1, null);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ message: "Profile picture deleted successfully" });
+      expect(next).not.toHaveBeenCalled();
     });
 
-    it('should handle delete errors', async () => {
-      getUser.mockRejectedValue(new Error('Database error'));
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    it('should call next with error if there is a server error', async () => {
+      const serverError = new Error('Database error');
+      getUser.mockRejectedValue(serverError);
 
-      await deleteUserProfilePictureController(req, res);
+      await deleteUserProfilePictureController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Failed to delete profile picture" });
-      
-      consoleSpy.mockRestore();
+      expect(next).toHaveBeenCalledWith(serverError);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
@@ -539,28 +545,32 @@ describe('User Controller', () => {
       req.user.id = 1;
     });
 
-    it('should return 400 for invalid user ID', async () => {
+    it('should call next with validation AppError for invalid user ID', async () => {
       req.params.id = 'invalid';
 
-      await deleteUserController(req, res);
+      await deleteUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: "Invalid user ID" });
+      expect(ErrorFactory.validation).toHaveBeenCalledWith("Invalid user ID");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
-    it('should return 400 if trying to delete own account', async () => {
+    it('should call next with validation AppError if trying to delete own account', async () => {
       req.params.id = '1';
 
-      await deleteUserController(req, res);
+      await deleteUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: "Cannot delete your own account" });
+      expect(ErrorFactory.validation).toHaveBeenCalledWith("Cannot delete your own account");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it('should delete user successfully', async () => {
       adminDeleteUser.mockResolvedValue();
 
-      await deleteUserController(req, res);
+      await deleteUserController(req, res, next);
 
       expect(adminDeleteUser).toHaveBeenCalledWith(2);
       expect(res.status).toHaveBeenCalledWith(200);
@@ -568,30 +578,29 @@ describe('User Controller', () => {
         message: "User deleted successfully",
         deletedUserId: 2
       });
+      expect(next).not.toHaveBeenCalled();
     });
 
-    it('should return 404 if user not found', async () => {
+    it('should call next with notFound AppError if user not found', async () => {
       adminDeleteUser.mockRejectedValue(new Error('User not found'));
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      await deleteUserController(req, res);
+      await deleteUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
-      
-      consoleSpy.mockRestore();
+      expect(ErrorFactory.notFound).toHaveBeenCalledWith("User");
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
-    it('should handle database errors', async () => {
-      adminDeleteUser.mockRejectedValue(new Error('Database error'));
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    it('should call next with error if there is a server error', async () => {
+      const serverError = new Error('Database error');
+      adminDeleteUser.mockRejectedValue(serverError);
 
-      await deleteUserController(req, res);
+      await deleteUserController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Error deleting user" });
-      
-      consoleSpy.mockRestore();
+      expect(next).toHaveBeenCalledWith(serverError);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
@@ -603,32 +612,33 @@ describe('User Controller', () => {
       ];
       getAllUsers.mockResolvedValue(mockUsers);
 
-      await getAllUsersController(req, res);
+      await getAllUsersController(req, res, next);
 
       expect(getAllUsers).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockUsers);
+      expect(next).not.toHaveBeenCalled();
     });
 
-    it('should handle database errors', async () => {
-      getAllUsers.mockRejectedValue(new Error('Database error'));
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    it('should call next with error if there is a server error', async () => {
+      const serverError = new Error('Database error');
+      getAllUsers.mockRejectedValue(serverError);
 
-      await getAllUsersController(req, res);
+      await getAllUsersController(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Error fetching users" });
-      
-      consoleSpy.mockRestore();
+      expect(next).toHaveBeenCalledWith(serverError);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 });
 
 describe('requestUserDeletionController', () => {
-  let req, res, requestUserDeletion;
+  let req, res, next, requestUserDeletion;
   beforeEach(async () => {
     req = { user: { id: 1 } };
     res = { status: vi.fn().mockReturnThis(), json: vi.fn().mockReturnThis() };
+    next = vi.fn();
     vi.clearAllMocks();
     requestUserDeletion = (await import('../../../models/user/userModel.js')).requestUserDeletion;
   });
@@ -636,33 +646,39 @@ describe('requestUserDeletionController', () => {
   it('should return 200 if deletion request is successful', async () => {
     requestUserDeletion.mockResolvedValue(true);
     const { requestUserDeletionController } = await import('../../../controllers/user/userController.js');
-    await requestUserDeletionController(req, res);
+    await requestUserDeletionController(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ message: 'Account deletion request submitted' });
+    expect(next).not.toHaveBeenCalled();
   });
 
-  it('should return 400 if deletion request fails', async () => {
+  it('should call next with external AppError if deletion request fails', async () => {
     requestUserDeletion.mockResolvedValue(false);
     const { requestUserDeletionController } = await import('../../../controllers/user/userController.js');
-    await requestUserDeletionController(req, res);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Failed to request account deletion' });
+    await requestUserDeletionController(req, res, next);
+    expect(ErrorFactory.external).toHaveBeenCalledWith("Database", "Failed to request account deletion", "Request submission failed");
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(res.status).not.toHaveBeenCalled();
+    expect(res.json).not.toHaveBeenCalled();
   });
 
-  it('should return 500 on server error', async () => {
-    requestUserDeletion.mockRejectedValue(new Error('DB error'));
+  it('should call next with error on server error', async () => {
+    const serverError = new Error('DB error');
+    requestUserDeletion.mockRejectedValue(serverError);
     const { requestUserDeletionController } = await import('../../../controllers/user/userController.js');
-    await requestUserDeletionController(req, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Server error' });
+    await requestUserDeletionController(req, res, next);
+    expect(next).toHaveBeenCalledWith(serverError);
+    expect(res.status).not.toHaveBeenCalled();
+    expect(res.json).not.toHaveBeenCalled();
   });
 });
 
 describe('cancelUserDeletionController', () => {
-  let req, res, cancelUserDeletionRequest;
+  let req, res, next, cancelUserDeletionRequest;
   beforeEach(async () => {
     req = { user: { id: 1 } };
     res = { status: vi.fn().mockReturnThis(), json: vi.fn().mockReturnThis() };
+    next = vi.fn();
     vi.clearAllMocks();
     cancelUserDeletionRequest = (await import('../../../models/user/userModel.js')).cancelUserDeletionRequest;
   });
@@ -670,24 +686,29 @@ describe('cancelUserDeletionController', () => {
   it('should return 200 if cancellation is successful', async () => {
     cancelUserDeletionRequest.mockResolvedValue(true);
     const { cancelUserDeletionController } = await import('../../../controllers/user/userController.js');
-    await cancelUserDeletionController(req, res);
+    await cancelUserDeletionController(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ message: 'Account deletion request cancelled' });
+    expect(next).not.toHaveBeenCalled();
   });
 
-  it('should return 400 if cancellation fails', async () => {
+  it('should call next with external AppError if cancellation fails', async () => {
     cancelUserDeletionRequest.mockResolvedValue(false);
     const { cancelUserDeletionController } = await import('../../../controllers/user/userController.js');
-    await cancelUserDeletionController(req, res);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Failed to cancel deletion request' });
+    await cancelUserDeletionController(req, res, next);
+    expect(ErrorFactory.external).toHaveBeenCalledWith("Database", "Failed to cancel deletion request", "Cancellation failed");
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(res.status).not.toHaveBeenCalled();
+    expect(res.json).not.toHaveBeenCalled();
   });
 
-  it('should return 500 on server error', async () => {
-    cancelUserDeletionRequest.mockRejectedValue(new Error('DB error'));
+  it('should call next with error on server error', async () => {
+    const serverError = new Error('DB error');
+    cancelUserDeletionRequest.mockRejectedValue(serverError);
     const { cancelUserDeletionController } = await import('../../../controllers/user/userController.js');
-    await cancelUserDeletionController(req, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Server error' });
+    await cancelUserDeletionController(req, res, next);
+    expect(next).toHaveBeenCalledWith(serverError);
+    expect(res.status).not.toHaveBeenCalled();
+    expect(res.json).not.toHaveBeenCalled();
   });
 });

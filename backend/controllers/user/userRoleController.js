@@ -1,4 +1,5 @@
-import { updateUserRole, getUsersByRole, bulkUpdateUserRoles } from "../../models/admin/adminModel.js";
+import {bulkUpdateUserRoles, getUsersByRole, updateUserRole} from "../../models/admin/adminModel.js";
+import {ErrorFactory} from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -37,38 +38,37 @@ import { updateUserRole, getUsersByRole, bulkUpdateUserRoles } from "../../model
  *       500:
  *         description: Error updating user role
  */
-export const updateUserRoleController = async (req, res) => {
-    const { id: userId } = req.params; // Fix: use 'id' from params, not 'userId'
-    const { role } = req.body;
+export const updateUserRoleController = async (req, res, next) => {
+  try {
+    const {id: userId} = req.params; // Fix: use 'id' from params, not 'userId'
+    const {role} = req.body;
 
     // Validate input
     if (!userId || isNaN(userId)) {
-        return res.status(400).json({ error: "Invalid user ID" });
+      throw ErrorFactory.validation("Invalid user ID");
     }
 
     if (!role || !['User', 'Admin'].includes(role)) {
-        return res.status(400).json({ error: "Invalid role. Must be 'User' or 'Admin'" });
+      throw ErrorFactory.validation("Invalid role. Must be 'User' or 'Admin'");
     }
 
     // Prevent admin from demoting themselves
     if (parseInt(userId) === req.user.id && role !== 'Admin') {
-        return res.status(400).json({ error: "Cannot change your own admin role" });
+      throw ErrorFactory.validation("Cannot change your own admin role");
     }
 
-    try {
-        await updateUserRole(parseInt(userId), role);
-        res.status(200).json({ 
-            message: `User role updated to ${role} successfully`,
-            userId: parseInt(userId),
-            newRole: role
-        });
-    } catch (error) {
-        console.error("Error updating user role:", error);
-        if (error.message.includes("not found")) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        res.status(500).json({ error: "Error updating user role" });
+    await updateUserRole(parseInt(userId), role);
+    res.status(200).json({
+      message: `User role updated to ${role} successfully`,
+      userId: parseInt(userId),
+      newRole: role
+    });
+  } catch (error) {
+    if (error.message.includes("not found")) {
+      return next(ErrorFactory.notFound("User"));
     }
+    next(error);
+  }
 };
 
 /**
@@ -103,21 +103,25 @@ export const updateUserRoleController = async (req, res) => {
  *       500:
  *         description: Error fetching users by role
  */
-export const getUsersByRoleController = async (req, res) => {
-    let { role } = req.params;
+export const getUsersByRoleController = async (req, res, next) => {
+  try {
+    let {role} = req.params;
+    
+    if (!role) {
+      throw ErrorFactory.validation("Invalid role. Must be 'user' or 'admin'");
+    }
+    
     role = role.charAt(0).toUpperCase() + role.slice(1)
 
-    if (!role || !['User', 'Admin'].includes(role)) {
-        return res.status(400).json({ error: "Invalid role. Must be 'user' or 'admin'" });
+    if (!['User', 'Admin'].includes(role)) {
+      throw ErrorFactory.validation("Invalid role. Must be 'user' or 'admin'");
     }
 
-    try {
-        const users = await getUsersByRole(role);
-        res.status(200).json(users);
-    } catch (error) {
-        console.error("Error fetching users by role:", error);
-        res.status(500).json({ error: "Error fetching users by role" });
-    }
+    const users = await getUsersByRole(role);
+    res.status(200).json(users);
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -155,35 +159,34 @@ export const getUsersByRoleController = async (req, res) => {
  *       500:
  *         description: Error updating user roles
  */
-export const bulkUpdateUserRolesController = async (req, res) => {
-    const { userRoleUpdates } = req.body;
+export const bulkUpdateUserRolesController = async (req, res, next) => {
+  try {
+    const {userRoleUpdates} = req.body;
 
     // Validate input
     if (!Array.isArray(userRoleUpdates) || userRoleUpdates.length === 0) {
-        return res.status(400).json({ error: "Invalid user role updates array" });
+      throw ErrorFactory.validation("Invalid user role updates array");
     }
 
     // Validate each update
     for (const update of userRoleUpdates) {
-        if (!update.userId || !update.role || !['User', 'Admin'].includes(update.role)) {
-            return res.status(400).json({ error: "Invalid update format. Each update must have userId and valid role" });
-        }
-        
-        // Prevent admin from demoting themselves
-        if (update.userId === req.user.id && update.role !== 'Admin') {
-            return res.status(400).json({ error: "Cannot change your own admin role" });
-        }
+      if (!update.userId || !update.role || !['User', 'Admin'].includes(update.role)) {
+        throw ErrorFactory.validation("Invalid update format. Each update must have userId and valid role");
+      }
+
+      // Prevent admin from demoting themselves
+      if (update.userId === req.user.id && update.role !== 'Admin') {
+        throw ErrorFactory.validation("Cannot change your own admin role");
+      }
     }
 
-    try {
-        const updatedCount = await bulkUpdateUserRoles(userRoleUpdates);
-        res.status(200).json({ 
-            message: `${updatedCount} user roles updated successfully`,
-            updatedCount,
-            updates: userRoleUpdates
-        });
-    } catch (error) {
-        console.error("Error bulk updating user roles:", error);
-        res.status(500).json({ error: "Error updating user roles" });
-    }
+    const updatedCount = await bulkUpdateUserRoles(userRoleUpdates);
+    res.status(200).json({
+      message: `${updatedCount} user roles updated successfully`,
+      updatedCount,
+      updates: userRoleUpdates
+    });
+  } catch (error) {
+    next(error);
+  }
 };

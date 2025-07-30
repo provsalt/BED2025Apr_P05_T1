@@ -1,59 +1,38 @@
+import { ErrorFactory } from "../utils/AppError.js";
+
 export function validateSchema(schema) {
-  return async (req, res, next) => {
+  return (req, res, next) => {
+    // throws a ZodError if validation fails. this will be caught by the global error handler
     try {
-      const result = await schema.safeParseAsync(req.body);
-      if (!result.success) {
-        const message =
-          result.error?.errors && result.error.errors.length > 0
-            ? result.error.errors[0].message
-            : 'Invalid request data';
-        return res.status(400).json({
-          success: false,
-          message,
-        });
-      }
-      
+      schema.parse(req.body);
+
       next();
     } catch (error) {
-      console.error('Validation error:', error);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-      });
+      throw ErrorFactory.validation("Invalid body data", error)
     }
   };
 }
 
 export function validateQuery(schema) {
   return (req, res, next) => {
-    const result = schema.safeParse(req.query);
-    if (!result.success) {
-      const message =
-        result.error?.errors && result.error.errors.length > 0
-          ? result.error.errors[0].message
-          : 'Invalid query parameters';
-      return res.status(400).json({
-        success: false,
-        message,
-      });
+    try {
+      schema.parse(req.query);
+
+      next();
+    } catch (error) {
+      throw ErrorFactory.validation("invalid query parameters", error)
     }
-    next();
   };
 }
 
 export function validateParams(schema) {
   return (req, res, next) => {
-    const result = schema.safeParse(req.params);
-    if (!result.success) {
-      const message =
-        result.error?.errors && result.error.errors.length > 0
-          ? result.error.errors[0].message
-          : 'Invalid path parameters';
-      return res.status(400).json({
-        success: false,
-        message,
-      });
+    try {
+      schema.parse(req.query);
+
+      next();
+    } catch (error) {
+      throw ErrorFactory.validation("invalid path parameters", error)
     }
-    next();
   };
 } 

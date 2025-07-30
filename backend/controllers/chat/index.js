@@ -14,11 +14,11 @@ import {
 
 const router = Router();
 
-router.get("/", getUserMiddleware, getChatsController);
-router.post("/", getUserMiddleware, createChatController);
-router.get("/:chatId", getUserMiddleware, getChatMessagesController);
-router.post("/:chatId", getUserMiddleware, createMessageController);
-router.put("/:chatId/:messageId", getUserMiddleware, updateMessageController);
-router.delete("/:chatId/:messageId", getUserMiddleware, deleteMessageController);
+router.get("/", getChatsController);
+router.post("/", createChatController);
+router.get("/:chatId", getChatMessagesController);
+router.post("/:chatId", createMessageController);
+router.put("/:chatId/:messageId", updateMessageController);
+router.delete("/:chatId/:messageId", deleteMessageController);
 
 export default router;
