@@ -1,7 +1,6 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
 import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, deleteCommunityEvent, getCommunityEventImageUrls } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
-import { ErrorFactory } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -81,13 +80,13 @@ import { ErrorFactory } from "../../utils/AppError.js";
  *       500:
  *         description: Internal server error
  */
-export const createEvent = async (req, res) => {
+export const createEvent = async (req, res, next) => {
     try {
         const userId = req.user.id;
 
         const files = req.files || [];
         if (files.length === 0) {
-            return res.status(400).json({ success: false, message: 'At least one image is required.' });
+            throw ErrorFactory.validation("At least one image is required.");
         }
 
         // Ensure time is in HH:mm:ss format t match db
@@ -105,9 +104,8 @@ export const createEvent = async (req, res) => {
         // Save to database
         const eventResult = await createCommunityEvent(eventData);
         if (!eventResult.success) {
-            // If database fails, cleanup uploaded image
-            await deleteFile(imageKey);
-            return res.status(500).json(eventResult);
+          await deleteFile(imageKey);
+          throw ErrorFactory.database("Failed to create community event", eventResult.message);
         }
 
         // Handle multiple images
@@ -140,78 +138,9 @@ export const createEvent = async (req, res) => {
             images: imageUrls
         });
     } catch (error) {
-        console.error('Error in createEvent controller:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: error.message
-        });
+        next(error);
     }
 }; 
-
-/**
- * @openapi
- * /api/community:
- *   get:
- *     tags:
- *       - Community
- *     summary: Get all approved community events
- *     description: Returns all community events that have been approved by an admin.
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of approved community events
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 events:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                       name:
- *                         type: string
- *                       location:
- *                         type: string
- *                       category:
- *                         type: string
- *                       date:
- *                         type: string
- *                         format: date
- *                         description: Event date (YYYY-MM-DD format)
- *                       time:
- *                         type: string
- *                         description: Event time (HH:mm:ss format)
- *                       description:
- *                         type: string
- *                       created_by_name:
- *                         type: string
- *                       image_url:
- *                         type: string
- *                         description: URL to access the cover image
- *       500:
- *         description: Internal server error
- */
-
-export const getApprovedEvents = async (req, res) => {
-  try {
-    const result = await getAllApprovedEvents();
-    if (result.success) {
-      res.status(200).json(result);
-    } else {
-      res.status(500).json(result);
-    }
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
-  }
-};
 
 /**
  * @openapi
@@ -260,6 +189,46 @@ export const getApprovedEvents = async (req, res) => {
  *                       image_url:
  *                         type: string
  *                         description: URL to access the cover image
+ *       500:
+ *         description: Internal server error
+ */
+export const getApprovedEvents = async (req, res, next) => {
+  try {
+    const result = await getAllApprovedEvents();
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      throw ErrorFactory.database("Failed to get approved events", result.message);
+    }
+  } catch (error) {
+    next(error);
+  }
+}; 
+
+/**
+ * @openapi
+ * /api/community/mine:
+ *   get:
+ *     tags:
+ *       - Community
+ *     summary: Get all community events created by the authenticated user
+ *     description: Returns all community events created by the current user.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user's community events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     type: object
  *       400:
  *         description: User ID is required
  *       401:
@@ -267,26 +236,22 @@ export const getApprovedEvents = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-export const getMyEvents = async (req, res) => {
+export const getMyEvents = async (req, res, next) => {
     try {
-        if (!req.user || !req.user.id) {
-            return res.status(401).json({ success: false, message: 'Unauthorized: User not authenticated' });
-        }
         const userId = req.user.id;
-        // validate user
+        //validate user
         if (!userId) {
-            return res.status(400).json({ success: false, message: 'User ID is required'});
+            throw ErrorFactory.unauthorized("User not authenticated");
         }
 
         const result = await getCommunityEventsByUserId(userId);
         if (result.success) {
             res.status(200).json(result);
         } else {
-            res.status(500).json(result);
+            throw ErrorFactory.database("Failed to get user events", result.message);
         }
     } catch (error) {
-        console.error('Error in getMyEvents controller:', error);
-        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+        next(error);
     }
 };
 
@@ -359,20 +324,20 @@ export const getMyEvents = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-export const getEventById = async (req, res) => {
+export const getEventById = async (req, res, next) => {
   try {
     const eventId = parseInt(req.params.id, 10);
     if (!eventId || isNaN(eventId)) {
-      return res.status(400).json({ success: false, message: 'Invalid event ID' });
+      throw ErrorFactory.validation("Invalid event ID");
     }
     const result = await getCommunityEventById(eventId);
     if (result.success) {
       res.status(200).json(result);
     } else {
-      res.status(404).json(result);
+      throw ErrorFactory.notFound("Event");
     }
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    next(error);
   }
 };
 
