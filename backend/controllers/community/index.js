@@ -32,9 +32,6 @@ router.get("/", getUserMiddleware, getApprovedEvents);
 // GET /api/community/myevents - Get all community events created by the authenticated user
 router.get("/myevents", getUserMiddleware, getMyEvents);
 
-// GET /api/community/:id - Get details for a single community event
-router.get("/:id", getUserMiddleware, getEventById);
-
 // GET /api/community/pending - Get all pending community events for admin approval
 router.get("/pending", getUserMiddleware, authorizeRole(["Admin"]), getPendingCommunityEventsController);
 
@@ -43,5 +40,8 @@ router.post("/approve", getUserMiddleware, authorizeRole(["Admin"]), approveComm
 
 // POST /api/community/reject - Reject a community event
 router.post("/reject", getUserMiddleware, authorizeRole(["Admin"]), rejectCommunityEventController);
+
+// GET /api/community/:id - Get details for a single community event
+router.get("/:id", getUserMiddleware, getEventById);
 
 export default router; 
