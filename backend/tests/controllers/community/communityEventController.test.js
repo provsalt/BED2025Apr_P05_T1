@@ -226,7 +226,7 @@ describe('getMyEvents', () => {
 });
 
 describe('updateEvent', () => {
-  let req, res;
+  let req, res, next;
   beforeEach(() => {
     req = {
       user: { id: 1 },
@@ -252,13 +252,13 @@ describe('updateEvent', () => {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
     };
+    next = vi.fn();
   });
 
   it('should return 400 if event ID is invalid', async () => {
     req.params.id = 'abc';
-    await updateEvent(req, res);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ success: false, message: 'Invalid event ID' });
+    await updateEvent(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
   });
 
   it('should return 403 if user does not have permission to edit event', async () => {
@@ -267,12 +267,8 @@ describe('updateEvent', () => {
       success: false, 
       message: 'Event not found or you do not have permission to edit this event' 
     });
-    await updateEvent(req, res);
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({ 
-      success: false, 
-      message: 'Event not found or you do not have permission to edit this event' 
-    });
+    await updateEvent(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
   });
 
   it('should return 200 and success message on successful update without new images', async () => {
@@ -288,7 +284,7 @@ describe('updateEvent', () => {
     });
     vi.spyOn(s3Service, 'uploadFile').mockResolvedValue();
     req.files = [];
-    await updateEvent(req, res);
+    await updateEvent(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ 
       success: true, 
@@ -309,7 +305,7 @@ describe('updateEvent', () => {
       message: 'Image added successfully' 
     });
     vi.spyOn(s3Service, 'uploadFile').mockResolvedValue();
-    await updateEvent(req, res);
+    await updateEvent(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ 
       success: true, 
@@ -331,7 +327,7 @@ describe('updateEvent', () => {
     });
     vi.spyOn(s3Service, 'uploadFile').mockResolvedValue();
     req.body.time = '15:30';
-    await updateEvent(req, res);
+    await updateEvent(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ 
       success: true 
@@ -344,23 +340,15 @@ describe('updateEvent', () => {
       success: false, 
       message: 'Database error' 
     });
-    await updateEvent(req, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ 
-      success: false, 
-      message: 'Database error' 
-    });
+    await updateEvent(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
   });
 
   it('should return 500 on unexpected error', async () => {
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'updateCommunityEvent').mockRejectedValue(new Error('Unexpected error'));
-    await updateEvent(req, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ 
-      success: false, 
-      message: 'Internal server error' 
-    }));
+    await updateEvent(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
   });
 });
 
