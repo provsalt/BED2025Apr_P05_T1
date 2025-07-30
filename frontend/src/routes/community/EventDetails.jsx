@@ -141,12 +141,10 @@ export function EventDetails() {
             errorMessage = "This event could not be found. It may have been removed.";
           } else if (backendMessage === 'Event is not approved') {
             errorMessage = "This event is not yet approved by an admin";
-          } else if (backendMessage === 'Event is in the past') {
+          } else if (backendMessage === 'Event is in the past or happening now') {
             errorMessage = "This event has already passed";
           } else if (backendMessage === 'You cannot sign up for your own event') {
             errorMessage = "You cannot sign up for your own event";
-          } else if (backendMessage === 'Please check your input and try again') {
-            errorMessage = "Unable to sign up for the event. Please try again.";
           } else {
             errorMessage = backendMessage;
           }
@@ -162,9 +160,7 @@ export function EventDetails() {
     }
   };
 
-  const closeDialog = () => {
-    setDialog({ open: false, type: '', message: '' });
-  };
+  
 
   return (
     <div className="w-full max-w-3xl mx-auto mt-8 px-2 md:px-0 pb-7">
@@ -267,13 +263,13 @@ export function EventDetails() {
                 onClick={handleSignUp}
                 disabled={signUpLoading}
               >
-                {(() => {
-                  if (signUpLoading) {
-                    return "Signing up...";
-                  } else {
-                    return "Sign Up for Event";
-                  }
-                })()}
+                  {(() => {
+                   let buttonText = "Sign Up for Event";
+                   if (signUpLoading) {
+                     buttonText = "Signing up...";
+                   }
+                   return buttonText;
+                 })()}
               </Button>
             );
           }
@@ -284,21 +280,21 @@ export function EventDetails() {
       <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
         <DialogContent className="rounded-xl">
           <DialogHeader>
-            <DialogTitle className={(() => {
+            {(() => {
+              let titleClass = 'text-green-700';
+              let titleText = 'Success';
+              
               if (dialog.type === 'error') {
-                return 'text-red-700';
-              } else {
-                return 'text-green-700';
+                titleClass = 'text-red-700';
+                titleText = 'Error';
               }
-            })()}>
-              {(() => {
-                if (dialog.type === 'error') {
-                  return 'Error';
-                } else {
-                  return 'Success';
-                }
-              })()}
-            </DialogTitle>
+              
+              return (
+                <DialogTitle className={titleClass}>
+                  {titleText}
+                </DialogTitle>
+              );
+            })()}
           </DialogHeader>
           <div className="py-2">{dialog.message}</div>
           <DialogFooter>
