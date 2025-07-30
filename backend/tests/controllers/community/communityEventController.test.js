@@ -534,15 +534,15 @@ describe('signUpForEvent', () => {
     expect(next.mock.calls[0][0].message).toBe('You cannot sign up for your own event');
   });
 
-  it('should throw validation error if event is in the past', async () => {
-    const mockResult = { success: false, message: 'Event is in the past' };
+  it('should throw validation error if event is in the past or happening now', async () => {
+    const mockResult = { success: false, message: 'Event is in the past or happening now' };
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'signUpForCommunityEvent').mockResolvedValue(mockResult);
     
     await signUpForEvent(req, res, next);
     
     expect(next).toHaveBeenCalledWith(expect.any(Error));
-    expect(next.mock.calls[0][0].message).toBe('Event is in the past');
+    expect(next.mock.calls[0][0].message).toBe('Event is in the past or happening now');
   });
 
   it('should pass error to next on database error', async () => {

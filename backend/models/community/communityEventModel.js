@@ -292,26 +292,59 @@ export async function signUpForCommunityEvent(userId, eventId) {
         const eventDate = event.date;
         const eventTime = event.time;
         
-
         const eventDateObj = new Date(eventDate);
-        const eventTimeObj = new Date(eventTime);
         
-        // Set the time components from eventTimeObj to eventDateObj
-        eventDateObj.setHours(eventTimeObj.getHours());
-        eventDateObj.setMinutes(eventTimeObj.getMinutes());
-        eventDateObj.setSeconds(eventTimeObj.getSeconds());
-        eventDateObj.setMilliseconds(eventTimeObj.getMilliseconds());
+        // Parse the time 
+        if (eventTime) {
+            let hours, minutes, seconds;
+            
+            if (eventTime instanceof Date) {
+                const utcHours = eventTime.getUTCHours();
+                const utcMinutes = eventTime.getUTCMinutes();
+                const utcSeconds = eventTime.getUTCSeconds();
+                
+                hours = utcHours;
+                minutes = utcMinutes;
+                seconds = utcSeconds;
+            } else {
+                // If eventTime is a string, parse it
+                const timeString = eventTime.toString();
+                if (timeString.includes(':')) {
+                    const timeParts = timeString.split(':');
+                    if (timeParts.length >= 2) {
+                        hours = parseInt(timeParts[0], 10);
+                        minutes = parseInt(timeParts[1], 10);
+                        seconds = timeParts.length > 2 ? parseInt(timeParts[2], 10) : 0;
+                    }
+                }
+            }
+            
+            // Set the time if we successfully parsed it
+            if (hours !== undefined && minutes !== undefined) {
+                eventDateObj.setHours(hours, minutes, seconds || 0, 0);
+            }
+        }
         
         const eventDateTime = eventDateObj;
         const currentDateTime = new Date();
         
-        //check if event is in the past
-        if (eventDateTime <= currentDateTime) {
+        //convert both to UTC timestamps for accuracy
+        const eventTimestamp = eventDateTime.getTime();
+        const currentTimestamp = currentDateTime.getTime();
+        
+        //round both timestamps to the nearest minute (60 seconds * 1000 milliseconds)
+        const eventTimestampRounded = Math.floor(eventTimestamp / 60000) * 60000;
+        const currentTimestampRounded = Math.floor(currentTimestamp / 60000) * 60000;
+        
+        
+        //check if event is in the past or happening now (less than or equal to current time)
+        if (eventTimestampRounded <= currentTimestampRounded) {
             return {
                 success: false,
-                message: 'Event is in the past'
+                message: 'Event is in the past or happening now'
             };
         }
+        
         
         //dont allow user to sign up for their own event
         if (event.user_id === userId) {

@@ -486,7 +486,7 @@ describe('communityEventModel', () => {
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
-    it('returns error if event is in the past', async () => {
+    it('returns error if event is in the past or happening now', async () => {
       // Mock the check for existing signup (no existing signup)
       mockRequest.query.mockResolvedValueOnce({ recordset: [] });
       // Mock the event check (event exists and is approved, but date/time is in the past)
@@ -504,7 +504,7 @@ describe('communityEventModel', () => {
       const result = await model.signUpForCommunityEvent(1, 1);
       expect(result).toEqual({ 
         success: false, 
-        message: 'Event is in the past'
+        message: 'Event is in the past or happening now'
       });
       expect(mockConnection.close).toHaveBeenCalled();
     });
@@ -514,21 +514,22 @@ describe('communityEventModel', () => {
       mockRequest.query.mockResolvedValueOnce({ recordset: [] });
       // Mock the event check (event exists and is approved, but date/time is current)
       const now = new Date();
+      const currentTimeString = now.toTimeString().split(' ')[0]; // Get HH:MM:SS format
       mockRequest.query.mockResolvedValueOnce({ 
         recordset: [{ 
           id: 1, 
           name: 'Current Event', 
           approved_by_admin_id: 1, 
           user_id: 2,
-          date: now,
-          time: now
+          date: now.toISOString().split('T')[0], // Get YYYY-MM-DD format
+          time: currentTimeString
         }] 
       });
        
       const result = await model.signUpForCommunityEvent(1, 1);
       expect(result).toEqual({ 
         success: false, 
-        message: 'Event is in the past'
+        message: 'Event is in the past or happening now'
       });
       expect(mockConnection.close).toHaveBeenCalled();
     });

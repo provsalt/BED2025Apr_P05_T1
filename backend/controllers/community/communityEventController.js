@@ -605,7 +605,7 @@ export const signUpForEvent = async (req, res, next) => {
             } else if (result.message === 'Event is not approved') {
                 const error = new AppError(result.message, 400, "validation", result.message);
                 throw error;
-            } else if (result.message === 'Event is in the past') {
+            } else if (result.message === 'Event is in the past or happening now') {
                 const error = new AppError(result.message, 400, "validation", result.message);
                 throw error;
             } else if (result.message === 'You cannot sign up for your own event') {
