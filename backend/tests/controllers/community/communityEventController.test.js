@@ -232,7 +232,7 @@ describe('getMyEvents', () => {
 });
 
 describe('deleteEvent', () => {
-  let req, res;
+  let req, res, next;
   beforeEach(() => {
     req = {
       user: { id: 1 },
@@ -242,18 +242,15 @@ describe('deleteEvent', () => {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
     };
+    next = vi.fn();
   });
 
 
 
   it('should return 401 if user not authenticated', async () => {
     req.user = undefined;
-    await deleteEvent(req, res);
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-      success: false,
-      message: 'User not authenticated'
-    }));
+    await deleteEvent(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
   });
 
   it('should return 200 on successful deletion with images', async () => {
@@ -261,7 +258,7 @@ describe('deleteEvent', () => {
     vi.spyOn(model, 'getCommunityEventImageUrls').mockResolvedValue(['/api/s3?key=test1', '/api/s3?key=test2']);
     vi.spyOn(model, 'deleteCommunityEvent').mockResolvedValue(true);
 
-    await deleteEvent(req, res);
+    await deleteEvent(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: true,
@@ -274,7 +271,7 @@ describe('deleteEvent', () => {
     vi.spyOn(model, 'getCommunityEventImageUrls').mockResolvedValue([]);
     vi.spyOn(model, 'deleteCommunityEvent').mockResolvedValue(true);
 
-    await deleteEvent(req, res);
+    await deleteEvent(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: true,
@@ -287,12 +284,8 @@ describe('deleteEvent', () => {
     vi.spyOn(model, 'getCommunityEventImageUrls').mockResolvedValue([]);
     vi.spyOn(model, 'deleteCommunityEvent').mockResolvedValue(false);
 
-    await deleteEvent(req, res);
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-      success: false,
-      message: "Event not found or you don't have permission to delete it"
-    }));
+    await deleteEvent(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
   });
 
   it('should handle S3 deletion errors gracefully', async () => {
@@ -304,7 +297,7 @@ describe('deleteEvent', () => {
     const { deleteFile } = await import('../../../services/s3Service.js');
     deleteFile.mockRejectedValue(new Error('S3 error'));
 
-    await deleteEvent(req, res);
+    await deleteEvent(req, res, next);
 
     // Should still succeed even if S3 deletion fails
     expect(res.status).toHaveBeenCalledWith(200);
@@ -318,11 +311,7 @@ describe('deleteEvent', () => {
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'deleteCommunityEvent').mockRejectedValue(new Error('DB error'));
 
-    await deleteEvent(req, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-      success: false,
-      message: 'Failed to delete community event'
-    }));
+    await deleteEvent(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
   });
 });

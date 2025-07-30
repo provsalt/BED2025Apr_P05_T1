@@ -1,6 +1,7 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
 import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, deleteCommunityEvent, getCommunityEventImageUrls } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
+import { ErrorFactory } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -451,13 +452,13 @@ export const getEventById = async (req, res) => {
  *                   type: string
  *                   example: "Failed to delete community event"
  */
-export const deleteEvent = async (req, res) => {
+export const deleteEvent = async (req, res, next) => {
     try {
         const { id } = req.params;
 
         // Check if user is authenticated
         if (!req.user || !req.user.id) {
-            return res.status(401).json({ success: false, message: "User not authenticated" });
+            throw ErrorFactory.unauthorized("User not authenticated");
         }
 
         // Get image URLs first for S3 cleanup
@@ -474,6 +475,7 @@ export const deleteEvent = async (req, res) => {
                         await deleteFile(s3Key);
                     }
                 } catch (error) {
+                    //this here allow event to be deleted even if some images can't be removed from S3
                     console.error('Error deleting image from S3:', error);
                 }
             }
@@ -483,12 +485,11 @@ export const deleteEvent = async (req, res) => {
         const deleted = await deleteCommunityEvent(id, req.user.id);
 
         if (!deleted) {
-            return res.status(404).json({ success: false, message: "Event not found or you don't have permission to delete it" });
+            throw ErrorFactory.notFound("Event not found or you don't have permission to delete it");
         }
 
         res.status(200).json({ success: true, message: "Community event deleted successfully" });
     } catch (error) {
-        console.error("Error deleting community event:", error);
-        res.status(500).json({ success: false, message: "Failed to delete community event" });
+        next(error);
     }
 };
