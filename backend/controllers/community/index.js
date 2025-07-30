@@ -1,5 +1,5 @@
 import express from "express";
-import { createEvent, updateEvent, getApprovedEvents, getMyEvents, getEventById } from "./communityEventController.js";
+import { createEvent, updateEvent, getApprovedEvents, getMyEvents, getEventById, signUpForEvent, userSignedUpEvents, cancelEventSignup } from "./communityEventController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import { validateSchema } from '../../middleware/validateSchema.js';
 import { CommunityInformation } from '../../utils/validation/community.js';
@@ -31,7 +31,18 @@ router.get("/", getUserMiddleware, getApprovedEvents);
 // GET /api/community/myevents - Get all community events created by the authenticated user
 router.get("/myevents", getUserMiddleware, getMyEvents);
 
+
 // GET /api/community/:id - Get details for a single community event
 router.get("/:id", getUserMiddleware, getEventById);
+
+
+// POST /api/community/:eventId/signup - Sign up for a community event
+router.post("/:eventId/signup", getUserMiddleware, signUpForEvent);
+
+// DELETE /api/community/:eventId/signup - Cancel signup for a community event
+router.delete("/:eventId/signup", getUserMiddleware, cancelEventSignup);
+
+// GET /api/community/signups - Get user's signed up events
+router.get("/signups", getUserMiddleware, userSignedUpEvents);
 
 export default router; 

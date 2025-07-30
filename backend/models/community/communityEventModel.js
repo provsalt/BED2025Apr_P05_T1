@@ -191,13 +191,13 @@ export async function getCommunityEventById(eventId) {
     }
 }
 
-// PUT: Update a community event (only by the creator)
+// PUT: Update a community event 
 export async function updateCommunityEvent(eventId, eventData, userId) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        
-        // Update the event, filtering by user_id to ensure ownership
+
+        // Update the event, where user_id = user_id
         const result = await connection.request()
             .input('eventId', sql.Int, eventId)
             .input('userId', sql.Int, userId)
@@ -240,14 +240,123 @@ export async function updateCommunityEvent(eventId, eventData, userId) {
     };
 };
 
+// POST: Sign up a user for a community event
+export async function signUpForCommunityEvent(userId, eventId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        
+        //check if user is already signed up for this event
+        const signupCheck = await checkUserSignupStatus(userId, eventId);
+        if (!signupCheck.success) {
+            return {
+                success: false,
+                message: 'Database error occurred'
+            };
+        }
+        
+        if (signupCheck.isSignedUp) {
+            return {
+                success: false,
+                message: 'User is already signed up for this event'
+            };
+        }
+        
+        //check if event exists
+        const eventCheck = await getCommunityEventById(eventId);
+        if (!eventCheck.success) {
+            return {
+                success: false,
+                message: 'Event not found'
+            };
+        }
+        
+        const event = eventCheck.event;
+        if (!event.approved_by_admin_id) {
+            return {
+                success: false,
+                message: 'Event is not approved'
+            };
+        }
+        
+        // Insert the signup record
+        await connection.request()
+            .input('userId', sql.Int, userId)
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                INSERT INTO CommunityEventSignup (user_id, community_event_id)
+                VALUES (@userId, @eventId)
+            `);
+        
+        return {
+            success: true,
+            message: 'Successfully signed up for event',
+            eventName: event.name
+        };
+        
+    } catch (error) {
+        console.error('Error in signUpForEvent:', error);
+        return {
+            success: false,
+            message: 'Database error occurred'
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
 
+// GET: Get all events that a user has signed up for
+export async function getUserSignedUpEvents(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        
+        const result = await connection.request()
+            .input('userId', sql.Int, userId)
+            .query(`
+                SELECT 
+                    CommunityEvent.id,
+                    CommunityEvent.name,
+                    CommunityEvent.location,
+                    CommunityEvent.category,
+                    CommunityEvent.date,
+                    CommunityEvent.time,
+                    CommunityEvent.description,
+                    CommunityEventSignup.signed_up_at,
+                    Users.name as created_by_name
+                FROM CommunityEventSignup 
+                INNER JOIN CommunityEvent ON CommunityEventSignup.community_event_id = CommunityEvent.id
+                INNER JOIN Users ON CommunityEvent.user_id = Users.id
+                WHERE CommunityEventSignup.user_id = @userId
+                ORDER BY CommunityEvent.date ASC, CommunityEvent.time ASC
+            `);
+        
+        return {
+            success: true,
+            events: result.recordset
+        };
+        
+    } catch (error) {
+        console.error('Error in getUserSignedUpEvents:', error);
+        return {
+            success: false,
+            message: 'Database error occurred'
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
 
 // DELETE: Delete unwanted images from a community event
 export async function deleteUnwantedImages(eventId, userId, keepImageIds) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        
+
         // First verify the user owns the event
         const eventCheck = await connection.request()
             .input('eventId', sql.Int, eventId)
@@ -256,7 +365,7 @@ export async function deleteUnwantedImages(eventId, userId, keepImageIds) {
                 SELECT id FROM CommunityEvent 
                 WHERE id = @eventId AND user_id = @userId
             `);
-        
+
         if (eventCheck.recordset.length === 0) {
             return {
                 success: false,
@@ -318,4 +427,87 @@ export async function deleteUnwantedImages(eventId, userId, keepImageIds) {
         }
     };
 };
+
+// GET: Check if a user is signed up for a specific event 
+export async function checkUserSignupStatus(userId, eventId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        
+        const result = await connection.request()
+            .input('userId', sql.Int, userId)
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                SELECT user_id, community_event_id, signed_up_at
+                FROM CommunityEventSignup 
+                WHERE user_id = @userId AND community_event_id = @eventId
+            `);
+        
+        return {
+            success: true,
+            isSignedUp: result.recordset.length > 0,
+            signupData: result.recordset[0] || null
+        };
+        
+    } catch (error) {
+        console.error('Error in checkUserSignupStatus:', error);
+        return {
+            success: false,
+            message: 'Database error occurred'
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
+// DELETE: Cancel a user's signup for a community event
+export async function cancelCommunityEventSignup(userId, eventId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        
+        //check if user is signed up for this event
+        const signupCheck = await checkUserSignupStatus(userId, eventId);
+        if (!signupCheck.success) {
+            return {
+                success: false,
+                message: 'Database error occurred'
+            };
+        }
+        
+        if (!signupCheck.isSignedUp) {
+            return {
+                success: false,
+                message: 'User is not signed up for this event'
+            };
+        }
+        
+        // Delete the signup record
+        await connection.request()
+            .input('userId', sql.Int, userId)
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                DELETE FROM CommunityEventSignup 
+                WHERE user_id = @userId AND community_event_id = @eventId
+            `);
+        
+        return {
+            success: true,
+            message: 'Successfully cancelled event signup'
+        };
+        
+    } catch (error) {
+        console.error('Error in cancelEventSignup:', error);
+        return {
+            success: false,
+            message: 'Database error occurred'
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
 

@@ -1,5 +1,5 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, updateCommunityEvent, deleteUnwantedImages, getCommunityEventImages } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, updateCommunityEvent, deleteUnwantedImages, getCommunityEventImages, signUpForCommunityEvent, getUserSignedUpEvents, cancelCommunityEventSignup } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
 import { ErrorFactory } from "../../utils/AppError.js";
 
@@ -427,6 +427,11 @@ export const getEventById = async (req, res, next) => {
 export const updateEvent = async (req, res, next) => {
     try {
         const userId = req.user.id;
+        //validate user
+        if (!userId) {
+            throw ErrorFactory.unauthorized("User not authenticated");
+        }
+
         const eventId = parseInt(req.params.id, 10);
         
         if (!eventId || isNaN(eventId)) {
@@ -448,7 +453,7 @@ export const updateEvent = async (req, res, next) => {
         const updateResult = await updateCommunityEvent(eventId, eventData, userId);
         if (!updateResult.success) {
             if (updateResult.message.includes('not found') || updateResult.message.includes('permission')) {
-                throw ErrorFactory.forbidden("You do not have permission to edit this event");
+                throw ErrorFactory.forbidden("Event not found or you do not have permission to edit this event");
             }
             throw ErrorFactory.database("Failed to update community event", updateResult.message);
         }
@@ -474,23 +479,27 @@ export const updateEvent = async (req, res, next) => {
                     keepIds = [keepImageIds];
                 }
                 const deleteResult = await deleteUnwantedImages(eventId, userId, keepIds);
-                if (deleteResult.success) {
-                    // Delete files from S3 for each deleted URL
-                    for (const imageUrl of deleteResult.deletedUrls) {
-                        try {
-                            // Extract the key from the image URL
-                            const keyMatch = imageUrl.match(/\/api\/s3\?key=(.+)/);
-                            if (keyMatch) {
-                                const key = decodeURIComponent(keyMatch[1]);
-                                await deleteFile(key);
-                            }
-                        } catch (s3Error) {
-                            console.error('Error deleting file from S3:', imageUrl, s3Error);
-                        }
-                    }
-                    deletedImageUrls.push(...deleteResult.deletedUrls);
+                if (!deleteResult.success) {
+                    throw ErrorFactory.database(deleteResult.message);
                 }
+                // Delete files from S3 for each deleted URL
+                for (const imageUrl of deleteResult.deletedUrls) {
+                    try {
+                        // Extract the key from the image URL
+                        const keyMatch = imageUrl.match(/\/api\/s3\?key=(.+)/);
+                        if (keyMatch) {
+                            const key = decodeURIComponent(keyMatch[1]);
+                            await deleteFile(key);
+                        }
+                    } catch (s3Error) {
+                        console.error('Error deleting file from S3:', imageUrl, s3Error);
+                    }
+                }
+                deletedImageUrls.push(...deleteResult.deletedUrls);
             } catch (error) {
+                if (error.message === 'Invalid keepImageIds format') {
+                    throw ErrorFactory.validation("Invalid keepImageIds format");
+                }
                 throw ErrorFactory.database("Failed to delete unwanted images", error.message);
             }
         }
@@ -530,4 +539,209 @@ export const updateEvent = async (req, res, next) => {
     }
 };
 
+/**
+ * @openapi
+ * /api/community/{eventId}/signup:
+ *   post:
+ *     tags:
+ *       - Community
+ *     summary: Sign up for a community event
+ *     description: Allows an authenticated user to sign up for a community event.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The event ID to sign up for
+ *     responses:
+ *       201:
+ *         description: Successfully signed up for event
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 eventName:
+ *                   type: string
+ *       400:
+ *         description: Bad request
+ *           - User is already signed up for this event
+ *           - Event not found
+ *           - Event is not approved
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *       500:
+ *         description: Internal server error
+ */
+export const signUpForEvent = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        //validate user
+        if(!userId) {
+            throw ErrorFactory.unauthorized("User not authenticated");
+        }
 
+        const eventId = parseInt(req.params.eventId, 10);
+        if (!eventId || isNaN(eventId)) {
+            throw ErrorFactory.validation("Invalid event ID");
+        }
+
+        const result = await signUpForCommunityEvent(userId, eventId);
+        if (result.success) {
+            res.status(201).json(result);
+        } else {
+            if (result.message === 'User is already signed up for this event') {
+                throw ErrorFactory.validation(result.message);
+            } else if (result.message === 'Event not found') {
+                throw ErrorFactory.notFound("Event");
+            } else if (result.message === 'Event is not approved') {
+                throw ErrorFactory.validation(result.message);
+            } else {
+                throw ErrorFactory.database("Failed to sign up for event", result.message);
+            }
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @openapi
+ * /api/community/signups:
+ *   get:
+ *     tags:
+ *       - Community
+ *     summary: Get user's signed up events
+ *     description: Returns all community events that the authenticated user has signed up for.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user's signed up events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                       time:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       signed_up_at:
+ *                         type: string
+ *                         format: date-time
+ *                       created_by_name:
+ *                         type: string
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *       500:
+ *         description: Internal server error
+ */
+export const userSignedUpEvents = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        //validate user
+        if(!userId) {
+            throw ErrorFactory.unauthorized("User not authenticated");
+        }
+
+        const result = await getUserSignedUpEvents(userId);
+        if (result.success) {
+            res.status(200).json(result);
+        } else {
+            throw ErrorFactory.database("Failed to get user's signed up events", result.message);
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @openapi
+ * /api/community/{eventId}/signup:
+ *   delete:
+ *     tags:
+ *       - Community
+ *     summary: Cancel signup for a community event
+ *     description: Allows an authenticated user to cancel their signup for a community event.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The event ID to cancel signup for
+ *     responses:
+ *       200:
+ *         description: Successfully cancelled event signup
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Bad request
+ *           - User is not signed up for this event
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *       500:
+ *         description: Internal server error
+ */
+export const cancelEventSignup = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        //validate user
+        if(!userId) {
+            throw ErrorFactory.unauthorized("User not authenticated");
+        }
+        
+        const eventId = parseInt(req.params.eventId, 10);
+        if (!eventId || isNaN(eventId)) {
+            throw ErrorFactory.validation("Invalid event ID");
+        }
+
+        const result = await cancelCommunityEventSignup(userId, eventId);
+        if (result.success) {
+            res.status(200).json(result);
+        } else {
+            if (result.message === 'User is not signed up for this event') {
+                throw ErrorFactory.validation(result.message);
+            } else {
+                throw ErrorFactory.database("Failed to cancel event signup", result.message);
+            }
+        }
+    } catch (error) {
+        next(error);
+    }
+};
