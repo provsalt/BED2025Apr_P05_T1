@@ -1,7 +1,7 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, getPendingEvents, approveCommunityEvent, rejectCommunityEvent } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
-
+import { ErrorFactory } from "../../utils/AppError.js";
 /**
  * @openapi
  * /api/community/create:
@@ -391,5 +391,129 @@ export const getEventById = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};
+
+/**
+ * @openapi
+ * /api/community/pending:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: Get all pending community events
+ *     description: Admin only. Get all community events that are waiting for admin approval.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of pending community events
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Server error
+ */
+export const getPendingCommunityEventsController = async (req, res, next) => {
+  try {
+    const result = await getPendingEvents();
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      throw ErrorFactory.server('Failed to get pending events');
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @openapi
+ * /api/community/approve:
+ *   post:
+ *     tags:
+ *       - Admin
+ *     summary: Approve a community event
+ *     description: Admin only. Approve a pending community event.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               eventId:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Event approved successfully
+ *       400:
+ *         description: Failed to approve event
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Server error
+ */
+export const approveCommunityEventController = async (req, res, next) => {
+  try {
+    const { eventId } = req.body;
+    const adminId = req.user.id;
+    if (!eventId || isNaN(eventId)) {
+      throw ErrorFactory.validation('Invalid event ID');
+    }
+    const result = await approveCommunityEvent(eventId, adminId);
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      throw ErrorFactory.notFound('Community event');
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @openapi
+ * /api/community/reject:
+ *   post:
+ *     tags:
+ *       - Admin
+ *     summary: Reject a community event
+ *     description: Admin only. Reject and delete a pending community event.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               eventId:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Event rejected successfully
+ *       400:
+ *         description: Failed to reject event
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Server error
+ */
+export const rejectCommunityEventController = async (req, res, next) => {
+  try {
+    const { eventId } = req.body;
+    if (!eventId || isNaN(eventId)) {
+      throw ErrorFactory.validation('Invalid event ID');
+    }
+    const result = await rejectCommunityEvent(eventId);
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      throw ErrorFactory.notFound('Community event');
+    }
+  } catch (error) {
+    next(error);
   }
 };

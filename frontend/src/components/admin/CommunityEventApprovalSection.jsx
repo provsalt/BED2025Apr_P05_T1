@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { 
   AlertDialog,
@@ -30,7 +30,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
   const fetchPendingEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetcher(`${backendUrl}/api/admin/community/pending`);
+      const response = await fetcher(`${backendUrl}/api/community/pending`);
       if (response.success) {
         setPendingEvents(response.events);
       } else {
@@ -45,7 +45,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
 
   const approveEvent = async (eventId) => {
     try {
-      const response = await fetcher(`${backendUrl}/api/admin/community/approve`, {
+      const response = await fetcher(`${backendUrl}/api/community/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -66,7 +66,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
 
   const rejectEvent = async (eventId) => {
     try {
-      const response = await fetcher(`${backendUrl}/api/admin/community/reject`, {
+      const response = await fetcher(`${backendUrl}/api/community/reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
