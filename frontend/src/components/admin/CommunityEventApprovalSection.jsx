@@ -14,7 +14,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel
 } from "@/components/ui/alert-dialog";
-import { CheckCircle, XCircle, Eye } from "lucide-react";
+import { Check, X, Eye } from "lucide-react";
 import { fetcher } from '@/lib/fetcher';
 
 const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
@@ -103,12 +103,12 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
 
   const getCategoryColor = (category) => {
     const colors = {
-      sports: 'bg-blue-100 text-blue-800',
-      arts: 'bg-purple-100 text-purple-800',
-      culinary: 'bg-orange-100 text-orange-800',
-      learn: 'bg-green-100 text-green-800'
+      sports: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
+      arts: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
+      culinary: 'bg-orange-100 text-orange-800 hover:bg-orange-200',
+      learn: 'bg-green-100 text-green-800 hover:bg-green-200'
     };
-    return colors[category] || 'bg-gray-100 text-gray-800';
+    return colors[category] || 'bg-gray-100 text-gray-800 hover:bg-gray-200';
   };
 
   if (loading) {
@@ -145,6 +145,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                 variant="outline" 
                 size="sm" 
                 onClick={fetchPendingEvents}
+                className="cursor-pointer"
               >
                 Refresh
               </Button>
@@ -175,7 +176,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                     <TableCell>{event.created_by_name}</TableCell>
                     <TableCell>
                       <Chip className={getCategoryColor(event.category)}>
-                        {event.category}
+                        {event.category.toUpperCase()}
                       </Chip>
                     </TableCell>
                     <TableCell>
@@ -191,14 +192,15 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                           variant="outline"
                           size="sm"
                           onClick={() => viewEventDetails(event)}
+                          className="cursor-pointer"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
                         
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700">
-                              <CheckCircle className="h-4 w-4" />
+                            <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700 cursor-pointer">
+                              <Check className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -209,10 +211,10 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
                               <AlertDialogAction 
                                 onClick={() => approveEvent(event.id)}
-                                className="bg-green-600 hover:bg-green-700"
+                                className="bg-green-600 hover:bg-green-700 cursor-pointer"
                               >
                                 Approve
                               </AlertDialogAction>
@@ -222,8 +224,8 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
 
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm">
-                              <XCircle className="h-4 w-4" />
+                            <Button variant="destructive" size="sm" className="cursor-pointer">
+                              <X className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -234,10 +236,10 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
                               <AlertDialogAction 
                                 onClick={() => rejectEvent(event.id)}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-red-600 hover:bg-red-700 cursor-pointer"
                               >
                                 Reject
                               </AlertDialogAction>
@@ -253,8 +255,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
           </div>
         )}
       </div>
-
-      {/* Event Details Modal */}
+      {/* Event Details */}
       {showEventDetails && selectedEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -264,6 +265,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                 variant="outline" 
                 size="sm" 
                 onClick={() => setShowEventDetails(false)}
+                className="cursor-pointer"
               >
                 ×
               </Button>
@@ -278,7 +280,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                 <div>
                   <label className="text-sm font-medium text-gray-500">Category</label>
                   <Chip className={getCategoryColor(selectedEvent.category)}>
-                    {selectedEvent.category}
+                    {selectedEvent.category.toUpperCase()}
                   </Chip>
                 </div>
                 <div>
@@ -317,13 +319,14 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                 <Button 
                   variant="outline" 
                   onClick={() => setShowEventDetails(false)}
+                  className="cursor-pointer"
                 >
                   Close
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="default" className="bg-green-600 hover:bg-green-700">
-                      <CheckCircle className="h-4 w-4 mr-2" />
+                    <Button variant="default" className="bg-green-600 hover:bg-green-700 cursor-pointer">
+                      <Check className="h-4 w-4 mr-2" />
                       Approve
                     </Button>
                   </AlertDialogTrigger>
@@ -335,13 +338,13 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={() => {
                           approveEvent(selectedEvent.id);
                           setShowEventDetails(false);
                         }}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-green-600 hover:bg-green-700 cursor-pointer"
                       >
                         Approve
                       </AlertDialogAction>
@@ -351,8 +354,8 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive">
-                      <XCircle className="h-4 w-4 mr-2" />
+                    <Button variant="destructive" className="cursor-pointer">
+                      <X className="h-4 w-4 mr-2" />
                       Reject
                     </Button>
                   </AlertDialogTrigger>
@@ -364,13 +367,13 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={() => {
                           rejectEvent(selectedEvent.id);
                           setShowEventDetails(false);
                         }}
-                        className="bg-red-600 hover:bg-red-700"
+                        className="bg-red-600 hover:bg-red-700 cursor-pointer"
                       >
                         Reject
                       </AlertDialogAction>
