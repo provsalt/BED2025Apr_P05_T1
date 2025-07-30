@@ -10,7 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 
 
 function formatSqlTime(sqlTime) {
-  if (!sqlTime) return '';
+  if (!sqlTime) {
+    return '';
+  }
   // Handles both '19:23:00.0000000' and '1970-01-01T19:23:00.000Z'
   const match = sqlTime.match(/(\d{2}):(\d{2})/);
   if (match) {
@@ -73,56 +75,102 @@ export const MedicationRemindersList = () => {
     }
   };
 
-  return (
-    <div className="w-full max-w-3xl mx-auto mt-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">My Medication Reminders</h2>
-        <Button variant="default" className="bg-blue-500 hover:bg-blue-600 cursor-pointer" onClick={() => navigate('/medical/create')}>+ Add New Reminder</Button>
-      </div>
-      {loading ? (
-        <div className="text-center py-8 text-gray-500">Loading...</div>
-      ) : error ? (
-        <div className="text-center py-8 text-red-500">{error}</div>
-      ) : reminders.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">No reminders</div>
-      ) : (
-        <div className="space-y-4">
-          {reminders.map(reminder => (
-            <Card key={reminder.id} className="flex flex-col md:flex-row items-start md:items-center justify-between">
-              <CardContent className="flex-1 w-full">
-                <div className="font-bold text-base mb-1">{reminder.medicine_name}</div>
-                <div className="text-gray-500 text-sm">
-                  {reminder.reason} • {reminder.dosage} • {formatSqlTime(reminder.medicine_time)} • {reminder.frequency_per_day} per day
-                </div>
-              </CardContent>
-              <div className="flex gap-2 px-6 pb-4 md:pb-0">
-                <Button variant="secondary" className="bg-yellow-400 hover:bg-yellow-500 text-white cursor-pointer" onClick={() => navigate(`/medical/edit/${reminder.id}`)}>Edit</Button>
+  const renderContent = () => {
+    if (loading) {
+      return <div className="text-center py-8 text-gray-500">Loading...</div>;
+    }
+    
+    if (error) {
+      return <div className="text-center py-8 text-red-500">{error}</div>;
+    }
+    
+    if (reminders.length === 0) {
+      return <div className="text-center py-8 text-gray-500">No reminders</div>;
+    }
+    
+    return (
+      <div className="space-y-4">
+        {reminders.map(reminder => (
+          <Card key={reminder.id} className="flex flex-col md:flex-row items-start md:items-center justify-between">
+            <CardContent className="flex-1 w-full">
+              <div className="font-bold text-base mb-1">{reminder.medicine_name}</div>
+              <div className="text-gray-500 text-sm">
+                {reminder.reason} • {reminder.dosage} • {formatSqlTime(reminder.medicine_time)} • {reminder.frequency_per_day} per day
+              </div>
+            </CardContent>
+            <div className="flex gap-2 px-6 pb-4 md:pb-0">
+              <Button 
+                className="bg-black text-white hover:bg-gray-900 cursor-pointer" 
+                onClick={() => navigate(`/medical/edit/${reminder.id}`)}>
+                Edit
+              </Button>
                 <Button
                   variant="destructive"
                   className="bg-red-500 hover:bg-red-600 text-white cursor-pointer"
                   disabled={deletingId === reminder.id}
-                  onClick={() => handleDelete(reminder.id)}
-                >
-                  {(() => { if (deletingId === reminder.id) { return 'Deleting...'; } else { return 'Delete'; } })()}
+                  onClick={() => handleDelete(reminder.id)}>
+                  {renderDeleteButtonText(reminder.id)}
                 </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
+  const renderDialogTitle = () => {
+    if (dialog.type === 'error') {
+      return 'Error';
+    } else {
+      return 'Success';
+    }
+  };
+
+  const renderDialogTitleClass = () => {
+    if (dialog.type === 'error') {
+      return 'text-red-700';
+    } else {
+      return 'text-green-700';
+    }
+  };
+
+  const renderDeleteButtonText = (reminderId) => {
+    if (deletingId === reminderId) {
+      return 'Deleting...';
+    } else {
+      return 'Delete';
+    }
+  };
+
+  return (
+    <div className="w-full max-w-3xl mx-auto mt-8">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">My Medication Reminders</h2>
+        <Button 
+          className="bg-black text-white hover:bg-gray-900 cursor-pointer" 
+          onClick={() => navigate('/medical/create')}
+        >
+          + Add New Reminder
+        </Button>
+      </div>
+      {renderContent()}
       <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className={dialog.type === 'error' ? 'text-red-700' : 'text-green-700'}>
-              {(() => { if (dialog.type === 'error') { return 'Error'; } else { return 'Success'; } })()}
+            <DialogTitle className={renderDialogTitleClass()}>
+              {renderDialogTitle()}
             </DialogTitle>
             <DialogDescription>{dialog.message}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button className="cursor-pointer" onClick={() => {
-              setDialog(d => ({ ...d, open: false }));
-              //window.location.reload();
-            }}>Okay</Button>
+            <Button 
+              className="bg-black text-white hover:bg-gray-900 cursor-pointer" 
+              onClick={() => {
+                setDialog(d => ({ ...d, open: false }));
+                //window.location.reload();
+              }}>
+              Okay
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

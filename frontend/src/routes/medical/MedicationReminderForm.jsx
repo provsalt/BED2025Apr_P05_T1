@@ -41,11 +41,15 @@ export function MedicationReminderForm({
     const file = event.target.files[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
-        setDialog && setDialog({ open: true, type: 'error', message: 'Please select a valid image file' });
+        if (setDialog) {
+          setDialog({ open: true, type: 'error', message: 'Please select a valid image file' });
+        }
         return;
       }
       if (file.size > 30 * 1024 * 1024) {
-        setDialog && setDialog({ open: true, type: 'error', message: 'Image size should be less than 30MB' });
+        if (setDialog) {
+          setDialog({ open: true, type: 'error', message: 'Image size should be less than 30MB' });
+        }
         return;
       }
       const reader = new FileReader();
@@ -69,6 +73,89 @@ export function MedicationReminderForm({
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData, setFormData, setDialog);
+  };
+
+  const renderImagePreview = () => {
+    if (!formData.imagePreview && !formData.oldImageUrl) {
+      return null;
+    }
+
+    let imageSrc = '';
+    if (formData.imagePreview) {
+      imageSrc = formData.imagePreview;
+    } else if (formData.oldImageUrl) {
+      if (formData.oldImageUrl.startsWith('http')) {
+        imageSrc = formData.oldImageUrl;
+      } else {
+        imageSrc = (import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, '') + formData.oldImageUrl);
+      }
+    }
+
+    return (
+      <div className="relative">
+        <img
+          src={imageSrc}
+          alt="Medication preview"
+          className="w-full h-32 object-cover rounded-lg border"/>
+        {formData.imagePreview && (
+          <button
+            type="button"
+            onClick={removeImage}
+            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600">
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const renderSubmitButtonText = () => {
+    if (isSubmitting) {
+      if (mode === 'edit') {
+        return 'Saving...';
+      } else {
+        return 'Creating...';
+      }
+    } else {
+      if (mode === 'edit') {
+        return 'Save Changes';
+      } else {
+        return 'Set Reminder';
+      }
+    }
+  };
+
+  const renderDialogTitle = () => {
+    if (dialog.type === 'error') {
+      return 'Error';
+    } else {
+      return 'Success';
+    }
+  };
+
+  const renderDialogTitleClass = () => {
+    if (dialog.type === 'error') {
+      return 'text-red-700';
+    } else {
+      return 'text-green-700';
+    }
+  };
+
+  const handleDialogOpenChange = (open) => {
+    setDialog(d => ({ ...d, open }));
+    if (!open && mode === 'edit' && dialog.type === 'success') {
+      navigate('/medical/reminders');
+    }
+  };
+
+  const handleDialogOkayClick = () => {
+    setDialog(d => ({ ...d, open: false }));
+    if (mode === 'edit' && dialog.type === 'success') {
+      navigate('/medical/reminders');
+    }
+    if (mode === 'create' && dialog.type === 'success' && typeof navigateOnSuccess === 'function') {
+      navigateOnSuccess();
+    }
   };
 
   return (
@@ -158,72 +245,39 @@ export function MedicationReminderForm({
                   />
                 </label>
               </div>
-              {(formData.imagePreview || formData.oldImageUrl) && (() => {
-                let imageSrc = '';
-                if (formData.imagePreview) {
-                  imageSrc = formData.imagePreview;
-                } else if (formData.oldImageUrl) {
-                  if (formData.oldImageUrl.startsWith('http')) {
-                    imageSrc = formData.oldImageUrl;
-                  } else {
-                    imageSrc = (import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, '') + formData.oldImageUrl);
-                  }
-                }
-                return (
-                  <div className="relative">
-                    <img
-                      src={imageSrc}
-                      alt="Medication preview"
-                      className="w-full h-32 object-cover rounded-lg border"
-                    />
-                    {formData.imagePreview && (
-                      <button
-                        type="button"
-                        onClick={removeImage}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })()}
+              {renderImagePreview()}
             </div>
           </div>
           {/* Submit/Cancel */}
           <div className="flex gap-3 pt-4">
-            <Button type="submit" disabled={isSubmitting} className="bg-blue-500 hover:bg-blue-600 text-white px-6 cursor-pointer">
-              {isSubmitting ? (mode === 'edit' ? 'Saving...' : 'Creating...') : (mode === 'edit' ? 'Save Changes' : 'Set Reminder')}
+            <Button 
+              type="submit" 
+              disabled={isSubmitting} 
+              className="bg-black text-white hover:bg-gray-900 px-6 cursor-pointer">
+              {renderSubmitButtonText()}
             </Button>
-            <Button type="button" variant="outline" onClick={onCancel} className="px-6 cursor-pointer">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel} 
+              className="px-6 cursor-pointer">
               Cancel
             </Button>
           </div>
           {/* Dialog */}
           {dialog && (
-            <Dialog open={dialog.open} onOpenChange={open => {
-              setDialog(d => ({ ...d, open }));
-              if (!open && mode === 'edit' && dialog.type === 'success') {
-                navigate('/medical/reminders');
-              }
-            }}>
+            <Dialog open={dialog.open} onOpenChange={handleDialogOpenChange}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle className={dialog.type === 'error' ? 'text-red-700' : 'text-green-700'}>
-                    {dialog.type === 'error' ? 'Error' : 'Success'}
+                  <DialogTitle className={renderDialogTitleClass()}>
+                    {renderDialogTitle()}
                   </DialogTitle>
                 </DialogHeader>
                 <div className="py-2">{dialog.message}</div>
                 <DialogFooter>
-                  <Button onClick={() => {
-                    setDialog(d => ({ ...d, open: false }));
-                    if (mode === 'edit' && dialog.type === 'success') {
-                      navigate('/medical/reminders');
-                    }
-                    if (mode === 'create' && dialog.type === 'success' && typeof navigateOnSuccess === 'function') {
-                      navigateOnSuccess();
-                    }
-                  }}>Okay</Button>
+                  <Button onClick={handleDialogOkayClick}>
+                    Okay
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
