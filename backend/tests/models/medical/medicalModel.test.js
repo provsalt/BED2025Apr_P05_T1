@@ -2,6 +2,33 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as model from '../../../models/medical/medicalModel.js';
 import sql from 'mssql';
 
+// Mock OpenAI service 
+vi.mock('../../../services/openai/healthSummaryService.js', () => ({
+  generateHealthSummary: vi.fn().mockResolvedValue({
+    success: true,
+    summary: 'Mock health summary for testing',
+    generated_at: new Date().toISOString()
+  }),
+  validateHealthSummary: vi.fn().mockResolvedValue(true)
+}));
+
+vi.mock('../../../services/openai/openaiService.js', () => ({
+  analyzeFoodImage: vi.fn().mockResolvedValue({
+    food_name: 'Mock food',
+    calories: 100,
+    protein: 5,
+    carbs: 10,
+    fat: 2
+  }),
+  moderateContent: vi.fn().mockResolvedValue({
+    flagged: false,
+    categories: {},
+    categoryScores: {},
+    safe: true
+  }),
+  isResponseSafe: vi.fn().mockResolvedValue(true)
+}));
+
 vi.mock('mssql', () => {
   const mockConnection = {
     connect: vi.fn(),
