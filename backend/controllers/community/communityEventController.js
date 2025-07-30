@@ -1,6 +1,5 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, deleteCommunityEvent, getCommunityEventImageUrls, updateCommunityEvent, deleteUnwantedImagesdeleteUnwantedImages, getCommunityEventImages } from "../../models/community/communityEventModel.js";
-import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, updateCommunityEvent } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, deleteCommunityEvent, getCommunityEventImageUrls, updateCommunityEvent } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
 import { ErrorFactory } from "../../utils/AppError.js";
 
@@ -440,13 +439,13 @@ export const getEventById = async (req, res, next) => {
  *       500:
  *         description: Internal server error
  */
-export const updateEvent = async (req, res) => {
+export const updateEvent = async (req, res, next) => {
     try {
         const userId = req.user.id;
         const eventId = parseInt(req.params.id, 10);
 
         if (!eventId || isNaN(eventId)) {
-            return res.status(400).json({ success: false, message: 'Invalid event ID' });
+            throw ErrorFactory.validation("Invalid event ID");
         }
 
         // Ensure time is in HH:mm:ss format to match db
@@ -464,9 +463,9 @@ export const updateEvent = async (req, res) => {
         const updateResult = await updateCommunityEvent(eventId, eventData, userId);
         if (!updateResult.success) {
             if (updateResult.message.includes('not found') || updateResult.message.includes('permission')) {
-                return res.status(403).json(updateResult);
+                throw ErrorFactory.forbidden("You do not have permission to edit this event");
             }
-            return res.status(500).json(updateResult);
+            throw ErrorFactory.database("Failed to update community event", updateResult.message);
         }
 
         // Handle image management
@@ -479,11 +478,10 @@ export const updateEvent = async (req, res) => {
             try {
                 let keepIds;
                 if (typeof keepImageIds === 'string') {
-                    try {
+                    try{
                         keepIds = JSON.parse(keepImageIds);
-                    } catch (parseError) {
-                        console.error('Error parsing keepImageIds:', parseError);
-                        keepIds = [];
+                    }catch (parseError) {
+                        throw ErrorFactory.validation("Invalid keepImageIds format");
                     }
                 } else if (Array.isArray(keepImageIds)) {
                     keepIds = keepImageIds;
@@ -508,7 +506,7 @@ export const updateEvent = async (req, res) => {
                     deletedImageUrls.push(...deleteResult.deletedUrls);
                 }
             } catch (error) {
-                console.error('Error deleting unwanted images:', error);
+                throw ErrorFactory.database("Failed to delete unwanted images", error.message);
             }
         }
 
@@ -531,24 +529,19 @@ export const updateEvent = async (req, res) => {
                         newImageUrls.push(imageUrl);
                     }
                 } catch (error) {
-                    console.error('Error processing file:', file.originalname, error);
+                    throw ErrorFactory.database("Failed to process uploaded file", error.message);
                 }
             }
         }
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             message: 'Community event updated successfully',
             newImages: newImageUrls,
             deletedImages: deletedImageUrls
         });
     } catch (error) {
-        console.error('Error in updateEvent controller:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: error.message
-        });
+        next(error);
     }
 };
 
