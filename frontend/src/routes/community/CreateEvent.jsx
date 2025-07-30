@@ -95,7 +95,7 @@ export const CreateEventPage = () => {
         body: formData,
       });
       if (result.success) {
-        setDialog({ open: true, type: "success", message: "Event created!" });
+        setDialog({ open: true, type: "success", message: result.message || "Event created successfully and pending admin approval!" });
         setImages([]);
         setImagePreviews([]);
         e.target.reset();
