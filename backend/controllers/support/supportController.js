@@ -60,9 +60,6 @@ import { executeAITool } from '../../services/openai/toolExecutionService.js';
  *         description: Internal server error
  */
 export const chatWithAI = async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
   const { conversation, context } = req.body;
 
   try {
