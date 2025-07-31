@@ -10,13 +10,13 @@ export const Dashboard = ({ summary }) => (
         </CardHeader>
         <CardContent>
           {summary?.meals && summary.meals.length > 0 ? (
-            <ul className="list-disc ml-5 text-sm text-gray-700 space-y-1">
+            <ul className="list-disc ml-5 text-sm text-muted-foreground space-y-1">
               {summary.meals.map((item, i) => (
                 <li key={i}>{item}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-400 italic">No data available.</p>
+            <p className="text-sm text-muted-foreground italic">No data available.</p>
           )}
         </CardContent>
       </Card>
@@ -26,13 +26,13 @@ export const Dashboard = ({ summary }) => (
         </CardHeader>
         <CardContent>
           {summary?.events && summary.events.length > 0 ? (
-            <ul className="list-disc ml-5 text-sm text-gray-700 space-y-1">
+            <ul className="list-disc ml-5 text-sm text-muted-foreground space-y-1">
               {summary.events.map((item, i) => (
                 <li key={i}>{item}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-400 italic">No data available.</p>
+            <p className="text-sm text-muted-foreground italic">No data available.</p>
           )}
         </CardContent>
       </Card>
@@ -42,13 +42,13 @@ export const Dashboard = ({ summary }) => (
         </CardHeader>
         <CardContent>
           {summary?.medications && summary.medications.length > 0 ? (
-            <ul className="list-disc ml-5 text-sm text-gray-700 space-y-1">
+            <ul className="list-disc ml-5 text-sm text-muted-foreground space-y-1">
               {summary.medications.map((item, i) => (
                 <li key={i}>{item}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-400 italic">No data available.</p>
+            <p className="text-sm text-muted-foreground italic">No data available.</p>
           )}
         </CardContent>
       </Card>
@@ -57,7 +57,7 @@ export const Dashboard = ({ summary }) => (
           <CardTitle>Nutrition Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="list-disc ml-5 text-sm text-gray-700 space-y-1">
+          <ul className="list-disc ml-5 text-sm text-muted-foreground space-y-1">
             <li>Calories: {summary?.nutrition?.calories || 0}</li>
             <li>Protein: {summary?.nutrition?.protein || 0}g</li>
             <li>Carbs: {summary?.nutrition?.carbs || 0}g</li>
@@ -70,13 +70,13 @@ export const Dashboard = ({ summary }) => (
         </CardHeader>
         <CardContent>
           {summary?.transport && summary.transport.length > 0 ? (
-            <ul className="list-disc ml-5 text-sm text-gray-700 space-y-1">
+            <ul className="list-disc ml-5 text-sm text-muted-foreground space-y-1">
               {summary.transport.map((item, i) => (
                 <li key={i}>{item}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-400 italic">No data available.</p>
+            <p className="text-sm text-muted-foreground italic">No data available.</p>
           )}
         </CardContent>
       </Card>
