@@ -17,7 +17,7 @@ export const ChatInput = (props) => {
   };
 
   return (
-    <div className="p-4 border-t bg-white">
+    <div className="p-4 border-t bg-background">
       <form onSubmit={sendMessage} className="flex">
         <Input
           type="text"
@@ -27,7 +27,7 @@ export const ChatInput = (props) => {
           className="w-full pl-4 pr-12 py-3 rounded-lg border"
         />
         <Button type="submit">
-          <SendHorizontal className="hover:text-gray-300 w-6 h-6 text-gray-50" />
+          <SendHorizontal className="hover:text-muted-foreground w-6 h-6 text-primary-foreground" />
         </Button>
       </form>
     </div>
