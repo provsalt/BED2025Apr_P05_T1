@@ -75,14 +75,14 @@ export const MealsList = () => {
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">
-      <div className="text-gray-500 text-lg">Loading meals...</div>
+      <div className="text-muted-foreground text-lg">Loading meals...</div>
     </div>
   );
   
   if (error) return (
     <div className="flex flex-col items-center justify-center py-20">
-      <div className="text-red-500 text-lg mb-4">Failed to load meals</div>
-      <div className="text-gray-500 text-sm mb-4">{error}</div>
+      <div className="text-destructive text-lg mb-4">Failed to load meals</div>
+      <div className="text-muted-foreground text-sm mb-4">{error}</div>
       <Button 
         onClick={() => window.location.reload()} 
         className="cursor-pointer"
@@ -92,7 +92,7 @@ export const MealsList = () => {
     </div>
   );
   if (!meals.length) return (
-    <div className="flex flex-col items-center justify-center py-20 text-gray-500 text-xl font-semibold">
+    <div className="flex flex-col items-center justify-center py-20 text-muted-foreground text-xl font-semibold">
       <div>No Meals Scanned</div>
       <div className="mt-4">
           <Link to="/nutrition/upload">
@@ -120,7 +120,7 @@ export const MealsList = () => {
         <div className="mb-6">
           <div className="flex gap-2 max-w-md items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
               <Input
                 type="text"
                 placeholder="Search meals by name..."
@@ -132,7 +132,7 @@ export const MealsList = () => {
               {searchTerm && (
                 <button
                   onClick={clearSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   <X size={20} />
                 </button>
@@ -150,7 +150,7 @@ export const MealsList = () => {
 
         {/* No search results message */}
         {hasSearched && !isSearching && searchResults.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             <p>No meals found matching "{searchTerm}"</p>
             <p className="text-sm mt-2">Try searching for different terms or check your spelling</p>
           </div>
@@ -159,7 +159,7 @@ export const MealsList = () => {
           {displayMeals.map((meal) => (
             <Link
               to={`/nutrition/${meal.id}`}
-              className="inline-block mt-3 text-gray-600 hover:text-gray-800 font-medium overflow-hidden"
+              className="inline-block mt-3 text-muted-foreground hover:text-foreground font-medium overflow-hidden"
               key={meal.id}
             >
               <Card className="flex flex-col h-96 w-full min-w-[280px] max-w-[400px] mx-auto overflow-hidden transition-shadow hover:shadow-lg">
@@ -173,7 +173,7 @@ export const MealsList = () => {
                 <div className="flex-1 p-4 flex flex-col justify-between">
                   <div>
                     <h3 className="text-lg font-semibold mb-2">{meal.name}</h3>
-                    <div className="space-y-1 text-sm text-gray-600">
+                    <div className="space-y-1 text-sm text-muted-foreground">
                       <div>Category: {meal.category}</div>
                       <div>Calories: {meal.calories}</div>
                       <div>Scanned: {new Date(meal.scanned_at).toLocaleString()}</div>
