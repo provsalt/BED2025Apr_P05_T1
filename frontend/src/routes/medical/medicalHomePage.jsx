@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router';
 export const MedicalDashboard = () => {
   const navigate = useNavigate();
   return (
-    <div className="flex flex-col flex-1 bg-background min-h-screen">
+    <div className="flex flex-col flex-1 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-3xl font-bold text-foreground mb-8">Medical Care Center</h2>
         
