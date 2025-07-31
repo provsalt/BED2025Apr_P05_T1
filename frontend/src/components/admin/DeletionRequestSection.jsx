@@ -51,10 +51,10 @@ const formatDeletionTime = (isoTime) => {
 
 
   return (
-    <div className="bg-white rounded-lg shadow-md border p-6">
+    <div className="bg-background rounded-lg shadow-md border p-6">
       <h3 className="text-lg font-semibold mb-4">Account Deletion Requests</h3>
 
-      <div className="text-sm text-gray-500 mt-1 flex items-center gap-2 mb-2">
+      <div className="text-sm text-muted-foreground mt-1 flex items-center gap-2 mb-2">
         Times are shown in:
         <select
           className="border rounded px-2 py-1 ml-2"
@@ -69,7 +69,7 @@ const formatDeletionTime = (isoTime) => {
       </div>
 
       {deletionRequests.length === 0 ? (
-        <p className="text-gray-600">No pending deletion requests.</p>
+        <p className="text-muted-foreground">No pending deletion requests.</p>
       ) : (
         <Table>
           <TableHeader>

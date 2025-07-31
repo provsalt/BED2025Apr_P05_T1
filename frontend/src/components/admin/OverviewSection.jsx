@@ -101,28 +101,28 @@ const OverviewSection = ({ users, admins, fetchAllData }) => {
     <div className="space-y-6">
       {/* User Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-2">Total Users</h3>
-          <p className="text-3xl font-bold text-blue-600">{users.length}</p>
-          <p className="text-gray-600 text-sm">All registered users</p>
+          <p className="text-3xl font-bold text-primary">{users.length}</p>
+          <p className="text-muted-foreground text-sm">All registered users</p>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-2">Admins</h3>
-          <p className="text-3xl font-bold text-red-600">{admins.length}</p>
-          <p className="text-gray-600 text-sm">Users with admin privileges</p>
+          <p className="text-3xl font-bold text-destructive">{admins.length}</p>
+          <p className="text-muted-foreground text-sm">Users with admin privileges</p>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-2">Regular Users</h3>
-          <p className="text-3xl font-bold text-green-600">{users.filter(u => u.role !== 'Admin').length}</p>
-          <p className="text-gray-600 text-sm">Non-admin users</p>
+          <p className="text-3xl font-bold text-primary">{users.filter(u => u.role !== 'Admin').length}</p>
+          <p className="text-muted-foreground text-sm">Non-admin users</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-2">Actions</h3>
           <button 
-            className="w-full mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="w-full mb-2 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
             onClick={fetchAllData}
           >
             Refresh Data
@@ -132,26 +132,26 @@ const OverviewSection = ({ users, admins, fetchAllData }) => {
 
       {/* System Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-2">CPU Usage</h3>
-          <p className="text-3xl font-bold text-orange-600">{cpuUsage}%</p>
-          <p className="text-gray-600 text-sm">Current CPU usage</p>
+          <p className="text-3xl font-bold text-primary">{cpuUsage}%</p>
+          <p className="text-muted-foreground text-sm">Current CPU usage</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-2">Memory Usage</h3>
-          <p className="text-3xl font-bold text-purple-600">{memoryUsage} MB</p>
-          <p className="text-gray-600 text-sm">Current memory usage</p>
+          <p className="text-3xl font-bold text-primary">{memoryUsage} MB</p>
+          <p className="text-muted-foreground text-sm">Current memory usage</p>
         </div>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-4">CPU Usage (Last Hour)</h3>
           {loading ? (
             <div className="h-64 flex items-center justify-center">
-              <p className="text-gray-500">Loading...</p>
+              <p className="text-muted-foreground">Loading...</p>
             </div>
           ) : (
             <ChartContainer config={chartConfigCpu} className="h-64 w-full">
@@ -174,11 +174,11 @@ const OverviewSection = ({ users, admins, fetchAllData }) => {
           )}
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-4">Memory Usage (Last Hour)</h3>
           {loading ? (
             <div className="h-64 flex items-center justify-center">
-              <p className="text-gray-500">Loading...</p>
+              <p className="text-muted-foreground">Loading...</p>
             </div>
           ) : (
             <ChartContainer config={chartConfigMemory} className="h-64 w-full">

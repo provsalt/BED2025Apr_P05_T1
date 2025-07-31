@@ -103,17 +103,17 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
 
   const getCategoryColor = (category) => {
     const colors = {
-      sports: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
-      arts: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
-      culinary: 'bg-orange-100 text-orange-800 hover:bg-orange-200',
-      learn: 'bg-green-100 text-green-800 hover:bg-green-200'
+      sports: 'bg-primary/10 text-primary hover:bg-primary/20',
+      arts: 'bg-primary/10 text-primary hover:bg-primary/20',
+      culinary: 'bg-primary/10 text-primary hover:bg-primary/20',
+      learn: 'bg-primary/10 text-primary hover:bg-primary/20'
     };
-    return colors[category] || 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    return colors[category] || 'bg-muted text-muted-foreground hover:bg-muted/80';
   };
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md border p-6">
+      <div className="bg-background rounded-lg shadow-md border p-6">
         <div className="flex justify-center items-center h-32">
           <div className="text-lg">Loading pending events...</div>
         </div>
@@ -122,17 +122,17 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md border">
+    <div className="bg-background rounded-lg shadow-md border">
       <div className="p-6 border-b">
         <h3 className="text-lg font-semibold">Community Event Approvals</h3>
-        <p className="text-gray-600">Review and approve pending community events</p>
+        <p className="text-muted-foreground">Review and approve pending community events</p>
       </div>
       
       <div className="p-6">
         {pendingEvents.length === 0 ? (
           <Card>
             <CardContent className="pt-6">
-              <p className="text-gray-500 text-center">No pending events to approve.</p>
+              <p className="text-muted-foreground text-center">No pending events to approve.</p>
             </CardContent>
           </Card>
         ) : (
@@ -168,7 +168,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                     <TableCell>
                       <div>
                         <div className="font-medium">{event.name}</div>
-                        <div className="text-sm text-gray-500 line-clamp-2">
+                        <div className="text-sm text-muted-foreground line-clamp-2">
                           {event.description}
                         </div>
                       </div>
@@ -182,7 +182,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                     <TableCell>
                       <div className="text-sm">
                         <div>{formatDate(event.date)}</div>
-                        <div className="text-gray-500">{formatTime(event.time)}</div>
+                        <div className="text-muted-foreground">{formatTime(event.time)}</div>
                       </div>
                     </TableCell>
                     <TableCell>{event.location}</TableCell>
@@ -199,7 +199,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                         
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700 cursor-pointer">
+                            <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90 cursor-pointer">
                               <Check className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
@@ -214,7 +214,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                               <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
                               <AlertDialogAction 
                                 onClick={() => approveEvent(event.id)}
-                                className="bg-green-600 hover:bg-green-700 cursor-pointer"
+                                className="bg-primary hover:bg-primary/90 cursor-pointer"
                               >
                                 Approve
                               </AlertDialogAction>
@@ -239,7 +239,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                               <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
                               <AlertDialogAction 
                                 onClick={() => rejectEvent(event.id)}
-                                className="bg-red-600 hover:bg-red-700 cursor-pointer"
+                                className="bg-destructive hover:bg-destructive/90 cursor-pointer"
                               >
                                 Reject
                               </AlertDialogAction>
@@ -258,7 +258,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
       {/* Event Details */}
       {showEventDetails && selectedEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-background rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-xl font-semibold">{selectedEvent.name}</h3>
               <Button 
@@ -274,37 +274,37 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Organizer</label>
+                  <label className="text-sm font-medium text-muted-foreground">Organizer</label>
                   <p>{selectedEvent.created_by_name}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Category</label>
+                  <label className="text-sm font-medium text-muted-foreground">Category</label>
                   <Chip className={getCategoryColor(selectedEvent.category)}>
                     {selectedEvent.category.toUpperCase()}
                   </Chip>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Date</label>
+                  <label className="text-sm font-medium text-muted-foreground">Date</label>
                   <p>{formatDate(selectedEvent.date)}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Time</label>
+                  <label className="text-sm font-medium text-muted-foreground">Time</label>
                   <p>{formatTime(selectedEvent.time)}</p>
                 </div>
                 <div className="col-span-2">
-                  <label className="text-sm font-medium text-gray-500">Location</label>
+                  <label className="text-sm font-medium text-muted-foreground">Location</label>
                   <p>{selectedEvent.location}</p>
                 </div>
               </div>
               
               <div>
-                <label className="text-sm font-medium text-gray-500">Description</label>
-                <p className="mt-1 text-gray-700 whitespace-pre-wrap">{selectedEvent.description}</p>
+                <label className="text-sm font-medium text-muted-foreground">Description</label>
+                <p className="mt-1 text-foreground whitespace-pre-wrap">{selectedEvent.description}</p>
               </div>
               
               {selectedEvent.image_url && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Cover Image</label>
+                  <label className="text-sm font-medium text-muted-foreground">Cover Image</label>
                   <div className="mt-2">
                     <img 
                       src={`${backendUrl}${selectedEvent.image_url}`} 
@@ -325,7 +325,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="default" className="bg-green-600 hover:bg-green-700 cursor-pointer">
+                    <Button variant="default" className="bg-primary hover:bg-primary/90 cursor-pointer">
                       <Check className="h-4 w-4 mr-2" />
                       Approve
                     </Button>
@@ -344,7 +344,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                           approveEvent(selectedEvent.id);
                           setShowEventDetails(false);
                         }}
-                        className="bg-green-600 hover:bg-green-700 cursor-pointer"
+                        className="bg-primary hover:bg-primary/90 cursor-pointer"
                       >
                         Approve
                       </AlertDialogAction>
@@ -373,7 +373,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                           rejectEvent(selectedEvent.id);
                           setShowEventDetails(false);
                         }}
-                        className="bg-red-600 hover:bg-red-700 cursor-pointer"
+                        className="bg-destructive hover:bg-destructive/90 cursor-pointer"
                       >
                         Reject
                       </AlertDialogAction>
