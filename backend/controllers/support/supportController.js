@@ -65,7 +65,7 @@ export const chatWithAI = async (req, res, next) => {
 
   try {
     const toolExecutor = async (functionName, parameters) => {
-      return await executeAITool(functionName, parameters, req.user);
+      return await executeAITool(functionName, parameters, req.user || null);
     };
 
     // Generate AI response with validated conversation and tool execution capabilities
