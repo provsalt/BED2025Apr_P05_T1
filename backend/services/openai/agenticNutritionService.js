@@ -15,7 +15,7 @@ const openai = new OpenAI({
 export const generateAgenticNutritionAnalysis = async (nutritionData) => {
   try {
     const response = await openai.responses.create({
-      model: "gpt-4o-2024-08-06",
+      model: "gpt-4o-mini",
       
       input: [
         {
