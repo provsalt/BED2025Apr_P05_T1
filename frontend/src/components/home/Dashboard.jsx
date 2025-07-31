@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Dashboard = ({ summary }) => (
   <div className="space-y-10">
-    <h1 className="text-3xl font-semibold text-purple-900">Welcome back!</h1>
+    <h1 className="text-3xl font-semibold">Welcome back!</h1>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
       <Card>
         <CardHeader>
