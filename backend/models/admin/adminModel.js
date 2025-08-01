@@ -28,7 +28,7 @@ export const addAdminRole = async (userId) => {
         if (error.isOperational) {
             throw error;
         }
-        throw ErrorFactory.database(`Failed to add admin role: ${error.message}`);
+        throw ErrorFactory.database(`Failed to add admin role: ${error.message}`, "Unable to process request at this time", error);
     }
 }
 
@@ -54,7 +54,7 @@ export const removeAdminRole = async (userId) => {
         if (error.isOperational) {
             throw error;
         }
-        throw ErrorFactory.database(`Failed to remove admin role: ${error.message}`);
+        throw ErrorFactory.database(`Failed to remove admin role: ${error.message}`, "Unable to process request at this time", error);
     }
 }
 
@@ -72,7 +72,7 @@ export const getAllAdmins = async () => {
         
         return result.recordset;
     } catch (error) {
-        throw ErrorFactory.database(`Failed to get all admins: ${error.message}`);
+        throw ErrorFactory.database(`Failed to get all admins: ${error.message}`, "Unable to process request at this time", error);
     }
 }
 
@@ -99,7 +99,7 @@ export const getAllUsers = async () => {
         
         return result.recordset;
     } catch (error) {
-        throw ErrorFactory.database(`Failed to get all users: ${error.message}`);
+        throw ErrorFactory.database(`Failed to get all users: ${error.message}`, "Unable to process request at this time", error);
     }
 };
 
@@ -131,7 +131,7 @@ export const getUserWithRole = async (userId) => {
         
         return result.recordset[0];
     } catch (error) {
-        throw ErrorFactory.database(`Failed to get user with role: ${error.message}`);
+        throw ErrorFactory.database(`Failed to get user with role: ${error.message}`, "Unable to process request at this time", error);
     }
 };
 
@@ -161,7 +161,7 @@ export const updateUserRole = async (userId, newRole) => {
         if (error.isOperational) {
             throw error;
         }
-        throw ErrorFactory.database(`Failed to update user role: ${error.message}`);
+        throw ErrorFactory.database(`Failed to update user role: ${error.message}`, "Unable to process request at this time", error);
     }
 };
 
@@ -189,7 +189,7 @@ export const deleteUser = async (userId) => {
         if (error.isOperational) {
             throw error;
         }
-        throw ErrorFactory.database(`Failed to delete user: ${error.message}`);
+        throw ErrorFactory.database(`Failed to delete user: ${error.message}`, "Unable to process request at this time", error);
     }
 };
 
@@ -218,7 +218,7 @@ export const getUsersByRole = async (role) => {
         
         return result.recordset;
     } catch (error) {
-        throw ErrorFactory.database(`Failed to get users by role: ${error.message}`);
+        throw ErrorFactory.database(`Failed to get users by role: ${error.message}`, "Unable to process request at this time", error);
     }
 };
 
@@ -248,6 +248,6 @@ export const bulkUpdateUserRoles = async (userRoleUpdates) => {
         return userRoleUpdates.length;
     } catch (error) {
         await transaction.rollback();
-        throw ErrorFactory.database(`Failed to bulk update user roles: ${error.message}`);
+        throw ErrorFactory.database(`Failed to bulk update user roles: ${error.message}`, "Unable to process request at this time", error);
     }
 };

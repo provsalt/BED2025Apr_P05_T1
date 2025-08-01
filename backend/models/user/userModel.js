@@ -22,7 +22,7 @@ export const getUser = async (id) => {
 
         return result.recordset[0];
     } catch (error) {
-        throw ErrorFactory.database(`Failed to get user: ${error.message}`);
+        throw ErrorFactory.database(`Failed to get user: ${error.message}`, "Unable to process request at this time", error);
     }
 };
 
@@ -41,7 +41,7 @@ export const getUserByEmail = async (email) => {
 
         return result.recordset[0];
     } catch (error) {
-        throw ErrorFactory.database(`Failed to get user by email: ${error.message}`);
+        throw ErrorFactory.database(`Failed to get user by email: ${error.message}`, "Unable to process request at this time", error);
     }
 }
 
@@ -73,7 +73,7 @@ export const createUser = async (userData) => {
         if (error.number === 2627) { // SQL Server unique constraint violation
             throw ErrorFactory.conflict("Email already exists", "An account with this email already exists");
         }
-        throw ErrorFactory.database(`Failed to create user: ${error.message}`);
+        throw ErrorFactory.database(`Failed to create user: ${error.message}`, "Unable to process request at this time", error);
     }
 }
 
@@ -129,7 +129,7 @@ export const updateUser = async (id, userData) => {
     if (error.isOperational) {
       throw error; // Re-throw AppError instances
     }
-    throw ErrorFactory.database(`Failed to update user: ${error.message}`);
+    throw ErrorFactory.database(`Failed to update user: ${error.message}`, "Unable to process request at this time", error);
   }
 };
 
@@ -150,7 +150,7 @@ export const deleteUser = async (id) => {
 
         return res.rowsAffected[0] !== 0;
     } catch (error) {
-        throw ErrorFactory.database(`Failed to delete user: ${error.message}`);
+        throw ErrorFactory.database(`Failed to delete user: ${error.message}`, "Unable to process request at this time", error);
     }
 }
 
@@ -166,7 +166,7 @@ export const updateUserProfilePicture = async (userId, fileUrl) => {
     const result = await request.query(query);
     return result.rowsAffected[0] > 0;
   } catch (error) {
-    throw ErrorFactory.database(`Failed to update profile picture: ${error.message}`);
+    throw ErrorFactory.database(`Failed to update profile picture: ${error.message}`, "Unable to process request at this time", error);
   }
 }
 
@@ -179,7 +179,7 @@ export const getLoginHistoryByUserId = async (userId, limit = 10) => {
       .query("SELECT TOP (@limit) id, CONVERT(VARCHAR(30), login_time, 126) as login_time FROM UserLoginHistory WHERE user_id = @userId ORDER BY login_time DESC");
     return result.recordset;
   } catch (error) {
-    throw ErrorFactory.database(`Failed to get login history: ${error.message}`);
+    throw ErrorFactory.database(`Failed to get login history: ${error.message}`, "Unable to process request at this time", error);
   }
 };
 
@@ -192,7 +192,7 @@ export const insertLoginHistory = async (userId) => {
       .input("loginTime", utcNow)
       .query("INSERT INTO UserLoginHistory (user_id) VALUES (@userId)");
   } catch (error) {
-    throw ErrorFactory.database(`Failed to insert login history: ${error.message}`);
+    throw ErrorFactory.database(`Failed to insert login history: ${error.message}`, "Unable to process request at this time", error);
   }
 };
 
@@ -227,7 +227,7 @@ export const changeUserRole = async (id, role) => {
         if (error.isOperational) {
             throw error;
         }
-        throw ErrorFactory.database(`Failed to change user role: ${error.message}`);
+        throw ErrorFactory.database(`Failed to change user role: ${error.message}`, "Unable to process request at this time", error);
     }
 }
 
@@ -239,7 +239,7 @@ export const getAllUsers = async () => {
         const result = await request.query(query);
         return result.recordset;
     } catch (error) {
-        throw ErrorFactory.database(`Failed to get all users: ${error.message}`);
+        throw ErrorFactory.database(`Failed to get all users: ${error.message}`, "Unable to process request at this time", error);
     }
 }
 
@@ -257,7 +257,7 @@ export const requestUserDeletion = async (userId) => {
     const result = await request.query(query);
     return result.rowsAffected[0] > 0;
   } catch (error) {
-    throw ErrorFactory.database(`Failed to request user deletion: ${error.message}`);
+    throw ErrorFactory.database(`Failed to request user deletion: ${error.message}`, "Unable to process request at this time", error);
   }
 };
 
@@ -269,7 +269,7 @@ export const approveUserDeletionRequest = async (userId) => {
     if (error.isOperational) {
       throw error;
     }
-    throw ErrorFactory.database(`Failed to approve user deletion: ${error.message}`);
+    throw ErrorFactory.database(`Failed to approve user deletion: ${error.message}`, "Unable to process request at this time", error);
   }
 };
 
@@ -282,7 +282,7 @@ export const cancelUserDeletionRequest = async (userId) => {
     const result = await request.query(query);
     return result.rowsAffected[0] > 0;
   } catch (error) {
-    throw ErrorFactory.database(`Failed to cancel user deletion request: ${error.message}`);
+    throw ErrorFactory.database(`Failed to cancel user deletion request: ${error.message}`, "Unable to process request at this time", error);
   }
 };
 
@@ -293,6 +293,6 @@ export const getUsersWithDeletionRequested = async () => {
     const result = await db.request().query(query);
     return result.recordset;
   } catch (error) {
-    throw ErrorFactory.database(`Failed to get users with deletion requested: ${error.message}`);
+    throw ErrorFactory.database(`Failed to get users with deletion requested: ${error.message}`, "Unable to process request at this time", error);
   }
 };
