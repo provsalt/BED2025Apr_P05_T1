@@ -34,7 +34,7 @@ export function CommunityEvents() {
 
   useEffect(() => {
     fetchEvents();
-  }, []); 
+  }, []);
 
 
 

@@ -5,16 +5,42 @@ import { MapPin, Clock, User, Calendar, Tag, ChevronLeft, ChevronRight, ArrowLef
 import { fetcher } from "@/lib/fetcher";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { UserContext } from "@/provider/UserContext.js";
+import { decodeJwt } from "jose";
 
 export function EventDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const userContext = React.useContext(UserContext);
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(0);
   const [deleting, setDeleting] = useState(false);
   const [dialog, setDialog] = useState({ open: false, type: '', message: '' });
-  const navigate = useNavigate();
+  const [unauthorizedDialog, setUnauthorizedDialog] = useState({ open: false });
+  const [unauthorizedDeleteDialog, setUnauthorizedDeleteDialog] = useState({ open: false });
+
+  // Check authentication status with better error handling
+  const localStorageToken = localStorage.getItem('token');
+  const hasToken = localStorageToken || userContext.token;
+  const isAuthenticated = (userContext.isAuthenticated && userContext.id) || hasToken;
+
+  // Extract user ID from JWT token
+  const getUserIdFromToken = () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const decoded = decodeJwt(token);
+        return decoded.sub;
+      }
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+    }
+    return null;
+  };
+
+  const currentUserId = getUserIdFromToken();
 
   useEffect(() => {
     async function fetchEvent() {
@@ -25,6 +51,12 @@ export function EventDetail() {
         const res = await fetcher(`${backendUrl}/api/community/${id}`);
         if (res.success) {
           setEvent(res.event);
+          
+          // Check if user owns this event
+          if (isAuthenticated && currentUserId && res.event.user_id !== currentUserId) {
+            setUnauthorizedDialog({ open: true });
+            return;
+          }
         } else {
           setError("Event not found");
         }
@@ -35,21 +67,45 @@ export function EventDetail() {
       }
     }
     fetchEvent();
-  }, [id]);
+  }, [id, isAuthenticated, currentUserId]);
+
+  // Show loading state while user context is initializing
+  if (userContext?.isLoading) {
+    return (
+      <div className="w-full p-6 bg-muted min-h-screen">
+        <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+          <div className="text-center py-8 text-muted-foreground">
+            Loading user authentication...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user context exists and is properly loaded
+  if (!userContext) {
+    return (
+      <div className="w-full p-6 bg-muted min-h-screen">
+        <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+          <div className="text-center py-8 text-muted-foreground">
+            Loading user authentication...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) return <div className="text-center py-8 text-muted-foreground">Loading event...</div>;
   if (error) return <div className="text-center py-8 text-destructive">{error}</div>;
   if (!event) return null;
 
-  //Images array
-  let images = [];
-  if (Array.isArray(event.images)) {
-    images = event.images;
-  }
-  let hasImages = false;
-  if (images.length > 0) {
-    hasImages = true;
-  }
+  const images = (() => {
+    if (Array.isArray(event.images)) {
+      return event.images;
+    }
+    return [];
+  })();
+  const hasImages = images.length > 0;
   let imageSrc;
   if (hasImages) {
     imageSrc = images[currentImage] && images[currentImage].image_url;
@@ -66,24 +122,28 @@ export function EventDetail() {
     }
   }
 
-  //format date and time
-  let dateStr = "";
-  if (event.date) {
-    dateStr = new Date(event.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-  }
-  let timeStr = "";
-  if (event.time) {
-    const match = event.time.match(/T(\d{2}:\d{2}:\d{2})/);
-    if (match) {
-      timeStr = match[1].slice(0, 5);
+  const dateStr = (() => {
+    if (event.date) {
+      return new Date(event.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
     }
-  }
+    return "";
+  })();
+  const timeStr = (() => {
+    if (event.time) {
+      const match = event.time.match(/T(\d{2}:\d{2}:\d{2})/);
+      if (match) {
+        return match[1].slice(0, 5);
+      }
+    }
+    return "";
+  })();
 
-  // Organizer info
-  let organizerName = "Event Organizer";
-  if (event.created_by_name) {
-    organizerName = event.created_by_name;
-  }
+  const organizerName = (() => {
+    if (event.created_by_name) {
+      return event.created_by_name;
+    }
+    return "Event Organizer";
+  })();
 
   //carousel navigation
   const goLeft = () => {
@@ -91,9 +151,8 @@ export function EventDetail() {
       setCurrentImage((prev) => {
         if (prev === 0) {
           return images.length - 1;
-        } else {
-          return prev - 1;
         }
+        return prev - 1;
       });
     }
   };
@@ -102,9 +161,8 @@ export function EventDetail() {
       setCurrentImage((prev) => {
         if (prev === images.length - 1) {
           return 0;
-        } else {
-          return prev + 1;
         }
+        return prev + 1;
       });
     }
   };
@@ -141,8 +199,7 @@ export function EventDetail() {
       </div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-bold capitalize">{event.name}</h1>
-                <div className="flex gap-2 items-center">
-          {/* Approval Status */}
+        <div className="flex gap-2 items-center">
           {(() => {
             if (event.approved_by_admin_id) {
               return (
@@ -151,14 +208,13 @@ export function EventDetail() {
                   <span className="text-sm font-medium">Approved</span>
                 </div>
               );
-            } else {
-              return (
-                <div className="flex items-center text-orange-600 gap-2 px-3 py-1.5 bg-orange-50 rounded-lg h-8">
-                  <AlertCircle className="size-4" />
-                  <span className="text-sm font-medium">Pending Approval</span>
-                </div>
-              );
             }
+            return (
+              <div className="flex items-center text-orange-600 gap-2 px-3 py-1.5 bg-orange-50 rounded-lg h-8">
+                <AlertCircle className="size-4" />
+                <span className="text-sm font-medium">Pending Approval</span>
+              </div>
+            );
           })()}
           {/* Event Status - Past Event */}
           {(() => {
@@ -188,7 +244,7 @@ export function EventDetail() {
           })()}
         </div>
       </div>
-      
+
       {/* Image Carousel */}
       {hasImages && (
         <div className="relative flex items-center justify-center mb-6 mx-auto rounded-xl shadow-md aspect-[4/3] max-w-3xl w-full bg-muted overflow-hidden">
@@ -244,13 +300,13 @@ export function EventDetail() {
           </div>
         </div>
       </div>
-      
+
       {/* Description */}
       <h2 className="text-lg font-semibold mb-2">Description</h2>
       <div className="text-foreground text-base mb-8 whitespace-pre-line">
         {event.description}
       </div>
-      
+
       {/* Organizer Section */}
       <div className="flex items-center gap-4 border-t pt-6 mb-8">
         <User className="w-12 h-12 text-muted-foreground" />
@@ -259,40 +315,48 @@ export function EventDetail() {
           <div className="text-xs text-muted-foreground">Event Organizer</div>
         </div>
         <div className="flex gap-2">
-          <Button className="h-10 px-6 cursor-pointer" onClick={() => navigate(`/community/event/${id}/edit`)}>Edit Event</Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="destructive"
-                className="h-10 px-6 cursor-pointer"
-                disabled={deleting}
-              >
-                {(() => {
-                  if (deleting) {
-                    return 'Deleting...';
-                  } else {
-                    return 'Delete Event';
-                  }
-                })()}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="rounded-xl max-w-md mx-auto">
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this event? This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel asChild>
-                  <Button className="cursor-pointer" variant="outline">Cancel</Button>
-                </AlertDialogCancel>
-                <AlertDialogAction asChild>
-                  <Button className="cursor-pointer" variant="destructive" onClick={handleDeleteEvent}>Delete Event</Button>
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          {(() => {
+            if (currentUserId && event && event.user_id && currentUserId == event.user_id) {
+              return (
+                <>
+                  <Button className="h-10 px-6 cursor-pointer" onClick={() => navigate(`/community/event/${id}/edit`)}>Edit Event</Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        className="h-10 px-6 cursor-pointer"
+                        disabled={deleting}
+                      >
+                        {(() => {
+                          if (deleting) {
+                            return 'Deleting...';
+                          }
+                          return 'Delete Event';
+                        })()}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="rounded-xl max-w-md mx-auto">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this event? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel asChild>
+                          <Button className="cursor-pointer" variant="outline">Cancel</Button>
+                        </AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                          <Button className="cursor-pointer" variant="destructive" onClick={handleDeleteEvent}>Delete Event</Button>
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              );
+            }
+            return null;
+          })()}
         </div>
       </div>
 
@@ -300,21 +364,19 @@ export function EventDetail() {
       <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
         <DialogContent className="rounded-xl">
           <DialogHeader>
-                      <DialogTitle className={(() => {
-            if (dialog.type === 'error') {
-              return 'text-destructive';
-            } else {
-              return 'text-primary';
-            }
-          })()}>
-            {(() => {
+            <DialogTitle className={(() => {
               if (dialog.type === 'error') {
-                return 'Error';
-              } else {
-                return 'Success';
+                return 'text-destructive';
               }
-            })()}
-          </DialogTitle>
+              return 'text-primary';
+            })()}>
+              {(() => {
+                if (dialog.type === 'error') {
+                  return 'Error';
+                }
+                return 'Success';
+              })()}
+            </DialogTitle>
           </DialogHeader>
           <div className="py-2">{dialog.message}</div>
           <DialogFooter>
@@ -323,6 +385,45 @@ export function EventDetail() {
               if (dialog.type === 'success') {
                 navigate('/community/myevents');
               }
+            }}>Okay</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+             {/* Unauthorized Access Dialog */}
+       <Dialog open={unauthorizedDialog.open} onOpenChange={open => {
+         if (!open) {
+           setUnauthorizedDialog(d => ({ ...d, open: false }));
+           navigate('/community');
+         } else {
+           setUnauthorizedDialog(d => ({ ...d, open }));
+         }
+       }}>
+         <DialogContent className="rounded-xl">
+           <DialogHeader>
+             <DialogTitle className="text-destructive">Access Denied</DialogTitle>
+           </DialogHeader>
+           <div className="py-2">You did not create this event. You can only view and edit events that you created.</div>
+           <DialogFooter>
+             <Button className="cursor-pointer" onClick={() => {
+               setUnauthorizedDialog(d => ({ ...d, open: false }));
+               navigate('/community');
+             }}>Go to Community</Button>
+           </DialogFooter>
+         </DialogContent>
+       </Dialog>
+
+      {/* Unauthorized Delete Dialog */}
+      <Dialog open={unauthorizedDeleteDialog.open} onOpenChange={open => setUnauthorizedDeleteDialog(d => ({ ...d, open }))}>
+        <DialogContent className="rounded-xl">
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Access Denied</DialogTitle>
+          </DialogHeader>
+          <div className="py-2">You don't have permission to delete this event.</div>
+          <DialogFooter>
+            <Button className="cursor-pointer" onClick={() => {
+              setUnauthorizedDeleteDialog(d => ({ ...d, open: false }));
+              navigate('/community/myevents');
             }}>Okay</Button>
           </DialogFooter>
         </DialogContent>
