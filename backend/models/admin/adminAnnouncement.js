@@ -6,6 +6,10 @@ import sql from "mssql";
  * Create server-wide announcements.
  */
 
+// In-memory storage for dismissed announcements
+// Structure: { userId: Set of announcementIds }
+const dismissedAnnouncements = new Map();
+
 export const createAnnouncement = async (announcementData) => {
     const db = await sql.connect(dbConfig);
     const query = `
@@ -119,4 +123,43 @@ export const deleteAnnouncement = async (id) => {
     }
     
     return result.recordset[0].affectedRows;
+}
+
+export const getAnnouncementsForUser = async (userId) => {
+    const db = await sql.connect(dbConfig);
+    const query = `
+        SELECT 
+            a.id, 
+            a.title, 
+            a.content, 
+            a.created_at, 
+            a.updated_at,
+            COALESCE(u.name, 'Unknown User') as author_name,
+            COALESCE(u.email, 'unknown@email.com') as author_email
+        FROM Announcement a
+        LEFT JOIN Users u ON a.user_id = u.id
+        ORDER BY a.created_at DESC
+    `;
+    const request = db.request();
+    const result = await request.query(query);
+    
+    // Filter out dismissed announcements for this user
+    const userDismissed = dismissedAnnouncements.get(userId) || new Set();
+    const filteredAnnouncements = result.recordset.filter(
+        announcement => !userDismissed.has(announcement.id)
+    );
+    
+    return filteredAnnouncements;
+}
+
+export const dismissAnnouncement = async (userId, announcementId) => {
+    // Add to in-memory storage
+    if (!dismissedAnnouncements.has(userId)) {
+        dismissedAnnouncements.set(userId, new Set());
+    }
+    
+    const userDismissed = dismissedAnnouncements.get(userId);
+    userDismissed.add(announcementId);
+    
+    return { success: true };
 }

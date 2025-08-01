@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.jsx';
 import { Alert } from '@/components/ui/alert.jsx';
+import { Button } from '@/components/ui/button.jsx';
+import { X } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher.js';
 
-const AnnouncementsList = ({ isAdmin = false, onDelete, adminApiEndpoint }) => {
+const AnnouncementsList = ({ isAdmin = false, onDelete, onDismiss, adminApiEndpoint }) => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -52,6 +54,12 @@ const AnnouncementsList = ({ isAdmin = false, onDelete, adminApiEndpoint }) => {
     }
   };
 
+  const handleDismiss = async (announcementId) => {
+    if (onDismiss) {
+      await onDismiss(announcementId);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -89,18 +97,35 @@ const AnnouncementsList = ({ isAdmin = false, onDelete, adminApiEndpoint }) => {
           {announcements.map((announcement) => (
             <Card key={announcement.id}>
               <CardHeader>
-                <CardTitle className="text-xl">{announcement.title}</CardTitle>
-                <div className="text-sm text-gray-500">
-                  By {announcement.author_name} • {new Date(announcement.created_at).toLocaleDateString()}
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-xl">{announcement.title}</CardTitle>
+                    <div className="text-sm text-gray-500">
+                      By {announcement.author_name} • {new Date(announcement.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {onDismiss && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDismiss(announcement.id)}
+                        className="text-gray-400 hover:text-gray-600"
+                        title="Dismiss announcement"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {isAdmin && (
+                      <button
+                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                        onClick={() => onDelete && onDelete(announcement.id)}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {isAdmin && (
-                  <button
-                    className="ml-auto mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
-                    onClick={() => onDelete && onDelete(announcement.id)}
-                  >
-                    Delete
-                  </button>
-                )}
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 whitespace-pre-wrap">{announcement.content}</p>

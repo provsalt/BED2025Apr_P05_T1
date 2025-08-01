@@ -23,15 +23,25 @@ export const Home = () => {
     const loadAnnouncements = async () => {
       try {
         setAnnouncementsLoading(true);
-        const endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/announcements`;
-        const response = await fetch(endpoint);
+        let endpoint;
         
-        if (!response.ok) {
-          throw new Error(`Failed to load announcements: ${response.status} ${response.statusText}`);
+        if (isAuthenticated) {
+          // Use user-specific endpoint for authenticated users
+          endpoint = "/announcements/user";
+          const data = await fetcher(endpoint);
+          setAnnouncements(data);
+        } else {
+          // Use public endpoint for non-authenticated users
+          endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/announcements`;
+          const response = await fetch(endpoint);
+          
+          if (!response.ok) {
+            throw new Error(`Failed to load announcements: ${response.status} ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          setAnnouncements(data);
         }
-        
-        const data = await response.json();
-        setAnnouncements(data);
       } catch (error) {
         console.error('Error loading announcements:', error);
         setAnnouncements([]);
@@ -41,7 +51,20 @@ export const Home = () => {
     };
 
     loadAnnouncements();
-  }, []);
+  }, [isAuthenticated]);
+
+  const handleDismissAnnouncement = async (announcementId) => {
+    try {
+      await fetcher(`/announcements/${announcementId}/dismiss`, {
+        method: 'POST'
+      });
+      
+      // Remove the dismissed announcement from the local state
+      setAnnouncements(prev => prev.filter(announcement => announcement.id !== announcementId));
+    } catch (error) {
+      console.error('Error dismissing announcement:', error);
+    }
+  };
 
   return (
     <div className="flex-1 bg-gray-50 text-gray-900">
@@ -49,6 +72,7 @@ export const Home = () => {
         {!announcementsLoading && announcements.length > 0 && (
           <AnnouncementsList
             isAdmin={false}
+            onDismiss={isAuthenticated ? handleDismissAnnouncement : undefined}
           />
         )}
         {isAuthenticated ? <Dashboard summary={summary} /> : <Landing />}

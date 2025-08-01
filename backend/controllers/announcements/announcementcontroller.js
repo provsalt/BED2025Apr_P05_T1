@@ -1,5 +1,5 @@
 
-import {createAnnouncement, getAnnouncements, getAnnouncementById, deleteAnnouncement} from "../../models/admin/adminAnnouncement.js";
+import {createAnnouncement, getAnnouncements, getAnnouncementById, deleteAnnouncement, getAnnouncementsForUser, dismissAnnouncement} from "../../models/admin/adminAnnouncement.js";
 import {z} from "zod/v4";
 import { Router } from "express";
 import { getUserMiddleware } from "../../middleware/getUser.js";
@@ -163,6 +163,93 @@ export const deleteAnnouncementController = async (req, res, next) => {
     await deleteAnnouncement(parseInt(id));
     res.status(200).json({ message: "Announcement deleted successfully" });
   } catch (error) {
+    if (error.message.includes("not found")) {
+      return next(ErrorFactory.notFound("Announcement"));
+    }
+    next(error);
+  }
+};
+
+/**
+ * @openapi
+ * /api/announcements/user:
+ *   get:
+ *     tags:
+ *       - Announcements
+ *     summary: Get announcements for authenticated user
+ *     description: Retrieves a list of announcements that haven't been dismissed by the authenticated user.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of announcements for the user
+ *       401:
+ *         description: User not authenticated
+ *       500:
+ *         description: Error fetching announcements
+ */
+export const getUserAnnouncementsController = async (req, res, next) => {
+  try {
+    if (!req.user || !req.user.id) {
+      throw ErrorFactory.unauthorized("User not authenticated");
+    }
+
+    const announcements = await getAnnouncementsForUser(req.user.id);
+    res.status(200).json(announcements);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @openapi
+ * /api/announcements/{id}/dismiss:
+ *   post:
+ *     tags:
+ *       - Announcements
+ *     summary: Dismiss an announcement
+ *     description: Marks an announcement as dismissed for the authenticated user.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the announcement to dismiss.
+ *     responses:
+ *       200:
+ *         description: Announcement dismissed successfully
+ *       400:
+ *         description: Invalid announcement ID
+ *       401:
+ *         description: User not authenticated
+ *       404:
+ *         description: Announcement not found
+ *       409:
+ *         description: Announcement already dismissed
+ *       500:
+ *         description: Error dismissing announcement
+ */
+export const dismissAnnouncementController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    if (!req.user || !req.user.id) {
+      throw ErrorFactory.unauthorized("User not authenticated");
+    }
+    
+    if (!id || isNaN(id)) {
+      throw ErrorFactory.validation("Invalid announcement ID");
+    }
+
+    await dismissAnnouncement(req.user.id, parseInt(id));
+    res.status(200).json({ message: "Announcement dismissed successfully" });
+  } catch (error) {
+    if (error.message.includes("already dismissed")) {
+      return next(ErrorFactory.conflict("Announcement already dismissed"));
+    }
     if (error.message.includes("not found")) {
       return next(ErrorFactory.notFound("Announcement"));
     }
