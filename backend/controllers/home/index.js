@@ -1,5 +1,7 @@
+
 import { Router } from "express";
 import { getUserMiddleware } from "../../middleware/getUser.js";
+import { ErrorFactory } from "../../utils/AppError.js";
 
 const router = Router();
 
@@ -39,10 +41,7 @@ router.get("/dashboard", getUserMiddleware, (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
-      error: "Failed to retrieve dashboard data",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    throw ErrorFactory.internal("Failed to retrieve dashboard data", error.message);
   }
 });
 

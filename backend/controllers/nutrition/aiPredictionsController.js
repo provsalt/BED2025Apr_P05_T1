@@ -1,7 +1,9 @@
 import { AIPredictionService } from "../../services/nutrition/aiPredictionService.js";
 import { NutritionDataService } from "../../services/nutrition/nutritionDataService.js";
-import { logError } from "../../utils/logger.js";/**
- * @openapi
+import { logError } from "../../utils/logger.js";
+import { ErrorFactory } from "../../utils/AppError.js";
+/**
+* @openapi
  * /api/nutrition/ai-predictions:
  *   get:
  *     tags:
@@ -79,20 +81,19 @@ export const getAIPredictionsController = async (req, res) => {
   try {
     // Check if user is authenticated
     if (!req.user?.id) {
-      return res.status(401).json({ error: "User not authenticated" });
+      throw ErrorFactory.unauthorized("User not authenticated");
     }
 
     const days = parseInt(req.query.days) || 7;
     const useAgentic = req.query.agentic !== 'false'; // Default to true
-    
     logError(`Generating AI predictions for user ${req.user.id}, days: ${days}, agentic: ${useAgentic}`);
-    
+
     // Get user nutrition data
     const { user, analytics, trendData } = await NutritionDataService.getUserNutritionData(
       req.user.id, 
       days
     );
-    
+
     // Format data for AI analysis
     const nutritionData = NutritionDataService.formatForAIAnalysis(
       user, 
@@ -107,7 +108,7 @@ export const getAIPredictionsController = async (req, res) => {
       user, 
       useAgentic
     );
-    
+
     res.status(200).json({ 
       message: "AI predictions generated successfully",
       ...aiResponse,
@@ -120,15 +121,11 @@ export const getAIPredictionsController = async (req, res) => {
         generatedAt: new Date().toISOString()
       }
     });
-
   } catch (error) {
     logError(error, req, { message: "Error generating AI predictions" });
     if (error.message === 'User not found') {
-      return res.status(404).json({ error: "User not found" });
+      throw ErrorFactory.notFound("User");
     }
-    res.status(500).json({
-      error: "Failed to generate AI predictions",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    throw ErrorFactory.internal("Failed to generate AI predictions", error.message);
   }
 };

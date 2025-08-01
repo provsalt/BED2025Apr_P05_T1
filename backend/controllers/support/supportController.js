@@ -1,5 +1,6 @@
 import { generateAIResponse } from '../../services/openai/aiSupportService.js';
 import { executeAITool } from '../../services/openai/toolExecutionService.js';
+import { ErrorFactory } from '../../utils/AppError.js';
 
 /**
  * @openapi
@@ -61,7 +62,7 @@ import { executeAITool } from '../../services/openai/toolExecutionService.js';
  */
 export const chatWithAI = async (req, res) => {
   if (!req.user) {
-    return res.status(401).json({ message: "Unauthorized" });
+    throw ErrorFactory.unauthorized();
   }
   const { conversation, context } = req.body;
 
@@ -74,12 +75,8 @@ export const chatWithAI = async (req, res) => {
     const result = await generateAIResponse(conversation, context, toolExecutor);
 
     res.status(200).json(result);
-
   } catch (error) {
     console.error("AI Support error:", error);
-    res.status(500).json({
-      message: "Failed to get AI response",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    throw ErrorFactory.internal("Failed to get AI response", error.message);
   }
 };

@@ -1,5 +1,6 @@
 import { getNutritionAnalytics, getDailyNutritionBreakdown, getCaloriesTrend } from "../../models/nutrition/nutritionAnalyticsModel.js";
 import { logError } from "../../utils/logger.js";
+import { ErrorFactory } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -57,28 +58,25 @@ export const getNutritionAnalyticsController = async (req, res) => {
   try {
     // Check if user is authenticated
     if (!req.user || !req.user.id) {
-      return res.status(401).json({ error: "User not authenticated" });
+      throw ErrorFactory.unauthorized("User not authenticated");
     }
 
     const days = parseInt(req.query.days) || 7;
-    
+
     // Validate days parameter
     if (![7, 30].includes(days)) {
-      return res.status(400).json({ error: "Days parameter must be 7 or 30" });
+      throw ErrorFactory.validation("Days parameter must be 7 or 30");
     }
 
     const analytics = await getNutritionAnalytics(req.user.id, days);
-    
+
     res.status(200).json({ 
       message: "Analytics retrieved successfully", 
       analytics: analytics || {}
     });
   } catch (error) {
     logError(error, req, { message: "Error fetching nutrition analytics" });
-    res.status(500).json({ 
-      error: "Failed to fetch nutrition analytics",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    throw ErrorFactory.internal("Failed to fetch nutrition analytics", error.message);
   }
 };
 
@@ -112,22 +110,19 @@ export const getDailyBreakdownController = async (req, res) => {
   try {
     // Check if user is authenticated
     if (!req.user || !req.user.id) {
-      return res.status(401).json({ error: "User not authenticated" });
+      throw ErrorFactory.unauthorized("User not authenticated");
     }
 
     const days = parseInt(req.query.days) || 7;
     const breakdown = await getDailyNutritionBreakdown(req.user.id, days);
-    
+
     res.status(200).json({ 
       message: "Daily breakdown retrieved successfully", 
       breakdown: breakdown || []
     });
   } catch (error) {
     logError(error, req, { message: "Error fetching daily breakdown" });
-    res.status(500).json({ 
-      error: "Failed to fetch daily breakdown",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    throw ErrorFactory.internal("Failed to fetch daily breakdown", error.message);
   }
 };
 
@@ -161,21 +156,18 @@ export const getCaloriesTrendController = async (req, res) => {
   try {
     // Check if user is authenticated
     if (!req.user || !req.user.id) {
-      return res.status(401).json({ error: "User not authenticated" });
+      throw ErrorFactory.unauthorized("User not authenticated");
     }
 
     const days = parseInt(req.query.days) || 7;
     const trend = await getCaloriesTrend(req.user.id, days);
-    
+
     res.status(200).json({ 
       message: "Trend data retrieved successfully", 
       trend: trend || []
     });
   } catch (error) {
     logError(error, req, { message: "Error fetching calories trend" });
-    res.status(500).json({ 
-      error: "Failed to fetch calories trend",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    throw ErrorFactory.internal("Failed to fetch calories trend", error.message);
   }
 };
