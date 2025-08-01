@@ -1,6 +1,7 @@
 import pino from "pino";
 import {context, trace} from "@opentelemetry/api";
 import dotenv from "dotenv";
+import packageJson from "../package.json" with { type: "json" };
 
 dotenv.config();
 
@@ -10,6 +11,11 @@ const LokiTransport = pino.transport({
     batching: true,
     interval: 5,
     host: process.env.LOKI_ENDPOINT,
+    labels: {
+      service: process.env.SERVICE_NAME || packageJson.name || "eldercare_backend",
+      environment: process.env.NODE_ENV || "development",
+      version: packageJson.version || "1.0.0"
+    }
   },
 });
 
@@ -53,7 +59,7 @@ export const loggerMiddleware = (req, res, next) => {
       originalUrl: req.originalUrl,
       baseUrl: req.baseUrl,
     },
-    "API--HIT!",
+    "API-HIT!",
   );
 
   next();
@@ -80,11 +86,15 @@ export const logError = (error, req = null, additionalInfo = {}) => {
     traceId: req.traceId
   } : {};
 
-  logger.error("Application Error", {
+  const logData = {
+    msg: "Application Error",
     error: errorData,
     request: requestData,
+    timestamp: new Date().toISOString(),
     ...additionalInfo
-  });
+  };
+
+  logger.error(logData);
 };
 
 export const logInfo = (message, data = {}) => {
