@@ -22,7 +22,7 @@ const AnnouncementsList = ({ isAdmin = false, onDelete, adminApiEndpoint }) => {
       if (isAdmin && adminApiEndpoint) {
         // For admin endpoints, use fetcher with auth
         console.log('Using fetcher with auth for admin endpoint');
-        data = await fetcher(endpoint);
+        data = await fetcher(adminApiEndpoint);
       } else {
         // For public endpoints, use plain fetch without auth
         console.log('Using plain fetch for public endpoint');

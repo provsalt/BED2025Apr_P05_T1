@@ -48,7 +48,7 @@ const AnnouncementManagementSection = ({
         key={announcementsKey}
         isAdmin={true}
         onDelete={handleDeleteAnnouncement}
-        adminApiEndpoint={`${backendUrl}/api/announcements`}
+        adminApiEndpoint="/announcements"
       />
     </div>
   </div>
