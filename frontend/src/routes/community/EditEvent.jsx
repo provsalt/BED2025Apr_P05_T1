@@ -12,6 +12,7 @@ import { UserContext } from '../../provider/UserContext.js';
 export const EditEventPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const userContext = React.useContext(UserContext);
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,12 +21,15 @@ export const EditEventPage = () => {
   const [existingImages, setExistingImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialog, setDialog] = useState({ open: false, type: '', message: '' });
+  const [unauthorizedDialog, setUnauthorizedDialog] = useState({ open: false });
   const [category, setCategory] = useState("");
   const fileInputRef = useRef(null);
-  const userContext = React.useContext(UserContext);
 
-  
-  // Fetch existing event data
+  // Check authentication status with better error handling
+  const localStorageToken = localStorage.getItem('token');
+  const hasToken = localStorageToken || userContext.token;
+  const isAuthenticated = (userContext.isAuthenticated && userContext.id) || hasToken;
+
   useEffect(() => {
     async function fetchEvent() {
       setLoading(true);
@@ -40,6 +44,12 @@ export const EditEventPage = () => {
           if (res.event.images && Array.isArray(res.event.images)) {
             setExistingImages(res.event.images);
           }
+
+          //checking if user owns this event
+          if (isAuthenticated && userContext.id && res.event.user_id !== userContext.id) {
+            setUnauthorizedDialog({ open: true });
+            return;
+          }
         } else {
           setError("Event not found");
         }
@@ -50,7 +60,49 @@ export const EditEventPage = () => {
       }
     }
     fetchEvent();
-  }, [id]);
+  }, [id, isAuthenticated, userContext.id]);
+
+  // Show loading state while user context is initializing
+  if (userContext?.isLoading) {
+    return (
+      <div className="w-full p-6 bg-muted min-h-screen">
+        <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+          <div className="text-center py-8 text-muted-foreground">
+            Loading user authentication...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user context exists and properly loaded
+  if (!userContext) {
+    return (
+      <div className="w-full p-6 bg-muted min-h-screen">
+        <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+          <div className="text-center py-8 text-muted-foreground">
+            Loading user authentication...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="w-full p-6 bg-muted min-h-screen">
+        <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+          <div className="text-center py-8">
+            <h2 className="text-xl font-semibold text-foreground mb-4">Authentication Required</h2>
+            <p className="text-muted-foreground mb-4">You must be logged in to edit an event.</p>
+            <Button onClick={() => navigate('/login')} className="cursor-pointer">
+              Go to Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Handle file selection
   const handleImageChange = (e) => {
@@ -58,7 +110,7 @@ export const EditEventPage = () => {
     const validFiles = files.filter(file =>
       ["image/jpeg", "image/png", "image/webp", "image/jpg"].includes(file.type) && file.size <= 30 * 1024 * 1024
     );
-    // Allow all valid files to be added 
+
     const newImages = [...images];
     const newPreviews = [...imagePreviews];
     validFiles.forEach(file => {
@@ -70,7 +122,6 @@ export const EditEventPage = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Remove a new image before submit
   const removeNewImage = (idx) => {
     const newImages = images.filter((_, i) => i !== idx);
     const newPreviews = imagePreviews.filter((_, i) => i !== idx);
@@ -79,7 +130,6 @@ export const EditEventPage = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Remove an existing image
   const removeExistingImage = (imageId) => {
     setExistingImages(prev => prev.filter(img => img.id !== imageId));
   };
@@ -91,24 +141,18 @@ export const EditEventPage = () => {
     handleImageChange({ target: { files } });
   };
 
-  // Form submit
+  // handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    //check if user logged in
-    if (!userContext || !userContext.isAuthenticated || !userContext.id) {
-      setDialog({ open: true, type: 'error', message: 'You must be logged in to edit an event.' });
-      setIsSubmitting(false);
-      return;
-    }
-    
     //get form values
     const eventName = e.target.name.value.trim();
     const location = e.target.location.value.trim();
     const date = e.target.date.value;
     const time = e.target.time.value;
     const description = e.target.description.value.trim();
+
     if (!eventName || !location || !category || !date || !time || !description) {
       setDialog({ open: true, type: 'error', message: 'Please fill in all required fields.' });
       setIsSubmitting(false);
@@ -129,13 +173,13 @@ export const EditEventPage = () => {
       setIsSubmitting(false);
       return;
     }
-    
+
     const formData = new FormData(e.target);
-    images.forEach((file) => formData.append("images", file));
-    
-    // Add keepImageIds for existing images that should be kept
+
+    const validImages = images.filter(file => file.size > 0);
+    validImages.forEach((file) => formData.append("images", file));
+
     const keepImageIds = existingImages.map(img => img.id);
-    // Always send keepImageIds, even if empty 
     formData.append("keepImageIds", JSON.stringify(keepImageIds));
 
     try {
@@ -146,7 +190,6 @@ export const EditEventPage = () => {
       });
       if (result.success) {
         setDialog({ open: true, type: "success", message: "Event updated successfully!" });
-        // Navigate back to event detail after a short delay
         setTimeout(() => {
           navigate(`/community/event/${id}`);
         }, 1500);
@@ -162,7 +205,24 @@ export const EditEventPage = () => {
         setDialog({ open: true, type: "error", message: errorMessage });
       }
     } catch (err) {
-      setDialog({ open: true, type: "error", message: "Network error. Please try again." });
+      let errorMessage = "Network error. Please try again.";
+
+      if (err.message) {
+        try {
+          const errorResponse = JSON.parse(err.message);
+          if (errorResponse.error) {
+            errorMessage = errorResponse.error;
+          } else if (errorResponse.details) {
+            errorMessage = Array.isArray(errorResponse.details)
+              ? errorResponse.details.map(d => d.message).join(", ")
+              : errorResponse.details;
+          }
+        } catch (parseError) {
+          errorMessage = err.message;
+        }
+      }
+
+      setDialog({ open: true, type: "error", message: errorMessage });
     } finally {
       setIsSubmitting(false);
     }
@@ -172,13 +232,46 @@ export const EditEventPage = () => {
   if (error) return <div className="text-center py-8 text-destructive">{error}</div>;
   if (!event) return null;
 
+  const formatDate = (dateString) => {
+    if (dateString) {
+      return dateString.split('T')[0];
+    }
+    return '';
+  };
+
+  const formatTime = (timeString) => {
+    if (timeString) {
+      const match = timeString.match(/T(\d{2}:\d{2}):\d{2}/);
+      if (match) {
+        return match[1];
+      }
+      return timeString.slice(0, 5);
+    }
+    return '';
+  };
+
+  const getImageUrl = (imageUrl) => {
+    if (imageUrl.startsWith('http')) {
+      return imageUrl;
+    }
+    return `${import.meta.env.VITE_BACKEND_URL}${imageUrl}`;
+  };
+
+  const hasImages = existingImages.length > 0 || images.length > 0;
+  const borderColor = (() => {
+    if (hasImages) {
+      return "#4f46e5";
+    }
+    return "#d1d5db";
+  })();
+
   return (
     <div className="w-full p-6 bg-muted min-h-screen">
       <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
         <div className="flex items-center gap-2 mb-6">
-          <Button 
-            variant="ghost" 
-            className="p-0 h-auto cursor-pointer" 
+          <Button
+            variant="ghost"
+            className="p-0 h-auto cursor-pointer"
             onClick={() => navigate(`/community/event/${id}`)}
           >
             <ArrowLeft className="mr-2 size-4" />
@@ -215,36 +308,22 @@ export const EditEventPage = () => {
           <div className="flex gap-4">
             <div className="flex-1">
               <Label htmlFor="date" className="mb-2 inline-block">Date *</Label>
-              <Input 
-                id="date" 
-                name="date" 
-                type="date" 
-                placeholder="Select date" 
-                defaultValue={(() => {
-                  if (event.date) {
-                    return event.date.split('T')[0];
-                  }
-                  return '';
-                })()} 
+              <Input
+                id="date"
+                name="date"
+                type="date"
+                placeholder="Select date"
+                defaultValue={formatDate(event.date)}
               />
             </div>
             <div className="flex-1">
               <Label htmlFor="time" className="mb-2 inline-block">Time *</Label>
-              <Input 
-                id="time" 
-                name="time" 
-                type="time" 
-                placeholder="Select time" 
-                defaultValue={(() => {
-                  if (event.time) {
-                    const match = event.time.match(/T(\d{2}:\d{2}):\d{2}/);
-                    if (match) {
-                      return match[1];
-                    }
-                    return event.time.slice(0, 5);
-                  }
-                  return '';
-                })()} 
+              <Input
+                id="time"
+                name="time"
+                type="time"
+                placeholder="Select time"
+                defaultValue={formatTime(event.time)}
               />
             </div>
           </div>
@@ -252,7 +331,7 @@ export const EditEventPage = () => {
             <Label htmlFor="description" className="mb-2 inline-block">Description *</Label>
             <Textarea id="description" name="description" placeholder="Enter description" rows={3} defaultValue={event.description} />
           </div>
-          
+
           {/* Images Section */}
           <div>
             <Label className="mb-2 inline-block">Event Images *</Label>
@@ -261,12 +340,7 @@ export const EditEventPage = () => {
               onDrop={handleDrop}
               onDragOver={e => e.preventDefault()}
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
-              style={{ borderColor: (() => {
-                if (existingImages.length > 0 || images.length > 0) {
-                  return "#4f46e5";
-                }
-                return "#d1d5db";
-              })() }}
+              style={{ borderColor }}
             >
               <Upload className="w-6 h-6 mb-1 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">
@@ -284,20 +358,13 @@ export const EditEventPage = () => {
                 onChange={handleImageChange}
               />
             </div>
-            
-            {/* All Images Preview (Existing + New) */}
-            {(existingImages.length > 0 || imagePreviews.length > 0) && (
+
+            {hasImages && (
               <div className="flex flex-wrap gap-3 mt-3">
-                {/* Existing Images */}
                 {existingImages.map((img) => (
                   <div key={img.id} className="relative group">
                     <img
-                      src={(() => {
-                        if (img.image_url.startsWith('http')) {
-                          return img.image_url;
-                        }
-                        return `${import.meta.env.VITE_BACKEND_URL}${img.image_url}`;
-                      })()}
+                      src={getImageUrl(img.image_url)}
                       alt={`Existing ${img.id}`}
                       className="w-24 h-24 object-cover rounded border"
                     />
@@ -311,8 +378,7 @@ export const EditEventPage = () => {
                     </button>
                   </div>
                 ))}
-                
-                {/* New Images */}
+
                 {imagePreviews.map((src, idx) => (
                   <div key={`new-${idx}`} className="relative group">
                     <img
@@ -333,12 +399,14 @@ export const EditEventPage = () => {
               </div>
             )}
           </div>
-          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>{(() => {
-            if (isSubmitting) {
-              return "Updating...";
-            }
-            return "Update Event";
-          })()}</Button>
+          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>
+            {(() => {
+              if (isSubmitting) {
+                return "Updating...";
+              }
+              return "Update Event";
+            })()}
+          </Button>
         </form>
         <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
           <DialogContent className="rounded-xl">
@@ -360,6 +428,27 @@ export const EditEventPage = () => {
             <div className="py-2">{dialog.message}</div>
             <DialogFooter>
               <Button className="cursor-pointer" onClick={() => setDialog(d => ({ ...d, open: false }))}>Okay</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        <Dialog open={unauthorizedDialog.open} onOpenChange={open => {
+          if (!open) {
+            setUnauthorizedDialog(d => ({ ...d, open: false }));
+            navigate('/community');
+          } else {
+            setUnauthorizedDialog(d => ({ ...d, open }));
+          }
+        }}>
+          <DialogContent className="rounded-xl">
+            <DialogHeader>
+              <DialogTitle className="text-destructive">Access Denied</DialogTitle>
+            </DialogHeader>
+            <div className="py-2">You did not create this event. You can only edit events that you created.</div>
+            <DialogFooter>
+              <Button className="cursor-pointer" onClick={() => {
+                setUnauthorizedDialog(d => ({ ...d, open: false }));
+                navigate('/community');
+              }}>Go to Community</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

@@ -31,21 +31,29 @@ describe('communityEventModel', () => {
   });
 
   describe('createCommunityEvent', () => {
-    it('returns success on insert', async () => {
+    it('returns success on insert with pending approval', async () => {
       mockRequest.query.mockResolvedValue({ recordset: [{ id: 42 }] });
       const result = await model.createCommunityEvent({
         name: 'Event', location: 'Loc', category: 'sports', date: '2025-07-20', time: '12:00:00', description: 'desc', user_id: 1
       });
-      expect(result).toEqual({ success: true, message: expect.stringContaining('pending admin approval'), eventId: 42 });
+      expect(result).toEqual({ 
+        success: true, 
+        message: 'Community event created successfully and pending admin approval', 
+        eventId: 42 
+      });
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
     it('returns success with different categories', async () => {
       mockRequest.query.mockResolvedValue({ recordset: [{ id: 43 }] });
       const result = await model.createCommunityEvent({
-        name: 'Art Event', location: 'Gallery', category: 'arts', date: '2025-08-15', time: '14:30:00', description: 'Art exhibition', user_id: 2, approved_by_admin_id: 1
+        name: 'Art Event', location: 'Gallery', category: 'arts', date: '2025-08-15', time: '14:30:00', description: 'Art exhibition', user_id: 2
       });
-      expect(result).toEqual({ success: true, message: expect.any(String), eventId: 43 });
+      expect(result).toEqual({ 
+        success: true, 
+        message: 'Community event created successfully and pending admin approval', 
+        eventId: 43 
+      });
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
@@ -72,14 +80,14 @@ describe('communityEventModel', () => {
     it('returns success on insert', async () => {
       mockRequest.query.mockResolvedValue({});
       const result = await model.addCommunityEventImage(1, '/api/s3?key=test-image');
-      expect(result).toEqual({ success: true, message: expect.any(String) });
+      expect(result).toEqual({ success: true, message: 'Community event image added successfully' });
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
     it('returns success with different image URLs', async () => {
       mockRequest.query.mockResolvedValue({});
       const result = await model.addCommunityEventImage(2, '/api/s3?key=community-events/2/uuid-here');
-      expect(result).toEqual({ success: true, message: expect.any(String) });
+      expect(result).toEqual({ success: true, message: 'Community event image added successfully' });
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
@@ -95,7 +103,7 @@ describe('communityEventModel', () => {
       mockRequest.query.mockResolvedValue({});
       const s3Url = '/api/s3?key=community-events/1/uuid-test-image.jpg';
       const result = await model.addCommunityEventImage(1, s3Url);
-      expect(result).toEqual({ success: true, message: expect.any(String) });
+      expect(result).toEqual({ success: true, message: 'Community event image added successfully' });
       expect(mockConnection.close).toHaveBeenCalled();
     });
   });
@@ -174,16 +182,16 @@ describe('communityEventModel', () => {
     it('returns success with pending events', async () => {
       mockRequest.query.mockResolvedValue({ 
         recordset: [
-          { id: 1, name: 'Pending Event 1', approved_by_admin_id: 0 },
-          { id: 2, name: 'Pending Event 2', approved_by_admin_id: 0 }
+          { id: 1, name: 'Pending Event 1', approved_by_admin_id: null },
+          { id: 2, name: 'Pending Event 2', approved_by_admin_id: null }
         ] 
       });
       const result = await model.getPendingEvents();
       expect(result).toEqual({ 
         success: true, 
         events: [
-          { id: 1, name: 'Pending Event 1', approved_by_admin_id: 0 },
-          { id: 2, name: 'Pending Event 2', approved_by_admin_id: 0 }
+          { id: 1, name: 'Pending Event 1', approved_by_admin_id: null },
+          { id: 2, name: 'Pending Event 2', approved_by_admin_id: null }
         ] 
       });
       expect(mockConnection.close).toHaveBeenCalled();
@@ -202,7 +210,7 @@ describe('communityEventModel', () => {
     it('returns success when event is approved', async () => {
       mockRequest.query.mockResolvedValue({ recordset: [{ affectedRows: 1 }] });
       const result = await model.approveCommunityEvent(1, 2);
-      expect(result).toEqual({ success: true, message: expect.stringContaining('approved successfully') });
+      expect(result).toEqual({ success: true, message: 'Community event approved successfully' });
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
@@ -226,7 +234,7 @@ describe('communityEventModel', () => {
     it('returns success when event is rejected', async () => {
       mockRequest.query.mockResolvedValue({ recordset: [{ affectedRows: 1 }] });
       const result = await model.rejectCommunityEvent(1);
-      expect(result).toEqual({ success: true, message: expect.stringContaining('rejected successfully') });
+      expect(result).toEqual({ success: true, message: 'Community event rejected successfully' });
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
@@ -244,8 +252,6 @@ describe('communityEventModel', () => {
       expect(result.message).toMatch(/Failed/);
       expect(result.error).toBe('DB fail');
     });
-
-
   });
 
   describe('getCommunityEventImageUrls', () => {
@@ -541,7 +547,7 @@ describe('communityEventModel', () => {
         time: '14:00:00',
         description: 'Updated description'
       }, 1);
-      expect(result).toEqual({ success: true, message: expect.any(String) });
+      expect(result).toEqual({ success: true, message: 'Community event updated successfully' });
       expect(mockConnection.close).toHaveBeenCalled();
     });
 

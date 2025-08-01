@@ -19,7 +19,52 @@ export const CreateEventPage = () => {
   const fileInputRef = useRef(null);
   const userContext = React.useContext(UserContext);
 
+  //show loading state while user context is initializing
+  if (userContext?.isLoading) {
+    return (
+      <div className="w-full p-6 bg-muted min-h-screen">
+        <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+          <div className="text-center py-8 text-muted-foreground">
+            Loading user authentication...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
+  //check if user context exists and  properly loaded
+  if (!userContext) {
+    return (
+      <div className="w-full p-6 bg-muted min-h-screen">
+        <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+          <div className="text-center py-8 text-muted-foreground">
+            Loading user authentication...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check authentication status with better error handling
+  const localStorageToken = localStorage.getItem('token');
+  const hasToken = localStorageToken || userContext.token;
+  const isAuthenticated = (userContext.isAuthenticated && userContext.id) || hasToken;
+  
+  if (!isAuthenticated) {
+    return (
+      <div className="w-full p-6 bg-muted min-h-screen">
+        <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+          <div className="text-center py-8">
+            <h2 className="text-xl font-semibold text-foreground mb-4">Authentication Required</h2>
+            <p className="text-muted-foreground mb-4">You must be logged in to create an event.</p>
+            <Button onClick={() => navigate('/login')} className="cursor-pointer">
+              Go to Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Handle file selection
   const handleImageChange = (e) => {
@@ -27,7 +72,7 @@ export const CreateEventPage = () => {
     const validFiles = files.filter(file =>
       ["image/jpeg", "image/png", "image/webp", "image/jpg"].includes(file.type) && file.size <= 30 * 1024 * 1024
     );
-    // Allow all valid files to be added 
+
     const newImages = [...images];
     const newPreviews = [...imagePreviews];
     validFiles.forEach(file => {
@@ -55,24 +100,18 @@ export const CreateEventPage = () => {
     handleImageChange({ target: { files } });
   };
 
-  // Form submit
+  //handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    //check if user logged in
-    if (!userContext || !userContext.isAuthenticated || !userContext.id) {
-      setDialog({ open: true, type: 'error', message: 'You must be logged in to create an event.' });
-      setIsSubmitting(false);
-      return;
-    }
-    
-    // Get form values
+    //form values
     const eventName = e.target.name.value.trim();
     const location = e.target.location.value.trim();
     const date = e.target.date.value;
     const time = e.target.time.value;
     const description = e.target.description.value.trim();
+
     if (!eventName || !location || !category || !date || !time || !description) {
       setDialog({ open: true, type: 'error', message: 'Please fill in all required fields.' });
       setIsSubmitting(false);
@@ -92,9 +131,12 @@ export const CreateEventPage = () => {
       setIsSubmitting(false);
       return;
     }
-    
+
     const formData = new FormData(e.target);
-    images.forEach((file) => formData.append("images", file));
+
+    // Only add non-empty files to FormData
+    const validImages = images.filter(file => file.size > 0);
+    validImages.forEach((file) => formData.append("images", file));
 
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -125,6 +167,11 @@ export const CreateEventPage = () => {
       setIsSubmitting(false);
     }
   };
+
+  let borderColor = "#d1d5db";
+  if (images.length) {
+    borderColor = "#4f46e5";
+  }
 
   return (
     <div className="w-full p-6 bg-muted min-h-screen">
@@ -177,12 +224,7 @@ export const CreateEventPage = () => {
               onDrop={handleDrop}
               onDragOver={e => e.preventDefault()}
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
-              style={{ borderColor: (() => {
-                if (images.length) {
-                  return "#4f46e5";
-                }
-                return "#d1d5db";
-              })() }}
+              style={{ borderColor }}
             >
               <Upload className="w-6 h-6 mb-1 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">
@@ -222,12 +264,14 @@ export const CreateEventPage = () => {
               </div>
             )}
           </div>
-          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>{(() => {
-            if (isSubmitting) {
-              return "Submitting...";
-            }
-            return "Submit";
-          })()}</Button>
+          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>
+            {(() => {
+              if (isSubmitting) {
+                return "Submitting...";
+              }
+              return "Submit";
+            })()}
+          </Button>
         </form>
         <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
           <DialogContent className="rounded-xl">
@@ -246,15 +290,15 @@ export const CreateEventPage = () => {
                 })()}
               </DialogTitle>
             </DialogHeader>
-             <div className="py-2">{dialog.message}</div>
-             <DialogFooter>
-               <Button className="cursor-pointer" onClick={() => {
-                 setDialog(d => ({ ...d, open: false }));
-                 if (dialog.type === 'success') {
-                   navigate('/community/myevents');
-                 }
-               }}>Okay</Button>
-             </DialogFooter>
+            <div className="py-2">{dialog.message}</div>
+            <DialogFooter>
+              <Button className="cursor-pointer" onClick={() => {
+                setDialog(d => ({ ...d, open: false }));
+                if (dialog.type === 'success') {
+                  navigate('/community/myevents');
+                }
+              }}>Okay</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
@@ -262,4 +306,3 @@ export const CreateEventPage = () => {
   );
 };
 
- 
