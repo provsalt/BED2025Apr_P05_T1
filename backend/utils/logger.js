@@ -65,7 +65,10 @@ export const logError = (error, req = null, additionalInfo = {}) => {
     message: error.message,
     category: error.category || "unknown",
     statusCode: error.statusCode,
-    ...(process.env.NODE_ENV === "development" && {stack: error.stack})
+    stack: error.stack,
+    isOperational: error.isOperational,
+    timestamp: error.timestamp,
+    ...(error.details && { details: error.details })
   };
 
   const requestData = req ? {
