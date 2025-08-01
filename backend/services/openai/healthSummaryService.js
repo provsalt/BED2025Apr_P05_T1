@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import { z } from "zod/v4";
 import { healthSummarySchema } from '../../utils/validation/medical.js';
-
+import { isResponseSafe } from './openaiService.js';
 dotenv.config();
 
 const openai = new OpenAI({
@@ -87,12 +87,6 @@ Please format the response as a well-structured health summary with clear sectio
       throw new Error("Generated content failed safety validation");
     }
 
-    // Additional validation for health summary content
-    const isValidHealthSummary = await validateHealthSummary(summaryString);
-    if (!isValidHealthSummary) {
-      throw new Error("Generated health summary failed content validation");
-    }
-
     return summary;
 
   } catch (error) {
@@ -100,77 +94,3 @@ Please format the response as a well-structured health summary with clear sectio
   }
 }; 
 
-/**
- * Validate AI response for safety and appropriateness
- * @param {string} response - AI response to validate
- * @returns {Promise<boolean>} Whether response is safe
- */
-export const isResponseSafe = async (response) => {
-  if (!response || typeof response !== 'string') return false;
-  
-  const lowerResponse = response.toLowerCase();
-  
-  const rolePlayingIndicators = [
-    'i am now', 'i have become', 'switching to', 'roleplaying as',
-    'pretending to be', 'my new role', 'i will now act as'
-  ];
-  
-  if (rolePlayingIndicators.some(indicator => lowerResponse.includes(indicator))) {
-    console.warn('AI response contains role-playing indicators');
-    return false;
-  }
-  
-  const systemLeakIndicators = [
-    'my instructions are', 'my system prompt', 'i was programmed to',
-    'the developers told me', 'according to my training'
-  ];
-  
-  return !systemLeakIndicators.some(indicator => lowerResponse.includes(indicator));
-};
-
-/**
- * Validate health summary content for medical appropriateness
- * @param {string} summary - The generated health summary
- * @returns {Promise<boolean>} Whether the summary is appropriate
- */
-export const validateHealthSummary = async (summary) => {
-  try {
-    const lowerSummary = summary.toLowerCase();
-    
-    // Check for inappropriate medical claims
-    const medicalRedFlags = [
-      'i can diagnose',
-      'i can treat',
-      'i can cure',
-      'definite diagnosis',
-      'you have',
-      'you are suffering from',
-      'you need medication',
-      'prescribe',
-    ];
-    
-    if (medicalRedFlags.some(flag => lowerSummary.includes(flag))) {
-      console.warn('Health summary contains inappropriate medical claims');
-      return false;
-    }
-    
-    // Check for encouraging professional consultation
-    const professionalConsultation = [
-      'consult your doctor',
-      'speak with a healthcare provider',
-      'medical professional',
-      'healthcare provider',
-      'physician'
-    ];
-    
-    if (!professionalConsultation.some(term => lowerSummary.includes(term))) {
-      console.warn('Health summary does not encourage professional consultation');
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error("Health summary validation error:", error);
-    return false;
-  }
-};
