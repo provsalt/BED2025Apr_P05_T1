@@ -8,14 +8,13 @@ import { Settings } from "@/routes/user/Settings.jsx";
 import {Navbar} from "@/components/navbar/navbar.jsx";
 import {AlertProvider} from "@/provider/AlertProvider.jsx";
 import {Login} from "@/routes/auth/login.jsx";
-import {MealImageUpload} from "@/routes/nutrition/mealImageUpload.jsx";
 import {Chat} from "@/routes/chats/Chat.jsx";
 import {SelectedChat} from "@/routes/chats/SelectedChat.jsx";
 import {UserProvider} from "@/provider/UserProvider.jsx";
 import {SocketProvider} from "@/provider/SocketProvider.jsx";
 import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
-import {MealsList} from "@/routes/nutrition/mealsList.jsx";
-import {MealDetail} from "@/routes/nutrition/mealDetail.jsx";
+import {MealsList} from "@/routes/nutrition/MealsList.jsx";
+import {MealDetail} from "@/routes/nutrition/MealDetail.jsx";
 import {MedicalCreateForm} from '@/routes/medical/medicalCreateForm.jsx';
 import {MedicationRemindersList} from '@/routes/medical/MedicationRemindersList.jsx';
 import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
@@ -35,6 +34,7 @@ import {UserEvents} from '@/routes/community/userEvents.jsx';
 import {EventDetail} from '@/routes/community/userEventDetail.jsx';
 import {EventDetails} from '@/routes/community/EventDetails.jsx';
 import { SupportChat } from '@/components/support/SupportChat.jsx';
+import {MealImageUpload} from "@/routes/nutrition/MealImageUpload.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

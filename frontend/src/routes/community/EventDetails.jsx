@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { MapPin, Clock, User, Calendar, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
-import { UserContext } from "@/provider/UserContext";
+import { UserContext } from "@/provider/UserContext.js";
 
 export function EventDetails() {
   const { id } = useParams();
@@ -42,15 +42,13 @@ export function EventDetails() {
   if (error) return <div className="text-center py-8 text-destructive">{error}</div>;
   if (!event) return null;
 
-  //Images array
-  let images = [];
-  if (Array.isArray(event.images)) {
-    images = event.images;
-  }
-  let hasImages = false;
-  if (images.length > 0) {
-    hasImages = true;
-  }
+  const images = (() => {
+    if (Array.isArray(event.images)) {
+      return event.images;
+    }
+    return [];
+  })();
+  const hasImages = images.length > 0;
   let imageSrc;
   if (hasImages) {
     imageSrc = images[currentImage] && images[currentImage].image_url;
@@ -67,25 +65,29 @@ export function EventDetails() {
     }
   }
 
-  //format date and time
-  let dateStr = "";
-  if (event.date) {
-    dateStr = new Date(event.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-  }
-  let timeStr = "";
-  if (event.time) {
-    const match = event.time.match(/T(\d{2}:\d{2}:\d{2})/);
-    if (match) {
-      timeStr = match[1].slice(0, 5);
+  const dateStr = (() => {
+    if (event.date) {
+      return new Date(event.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
     }
-  }
+    return "";
+  })();
+  const timeStr = (() => {
+    if (event.time) {
+      const match = event.time.match(/T(\d{2}:\d{2}:\d{2})/);
+      if (match) {
+        return match[1].slice(0, 5);
+      }
+    }
+    return "";
+  })();
 
-  // Organizer info (placeholder avatar)
-  let organizerName = "Event Organizer";
-  if (event.created_by_name) {
-    organizerName = event.created_by_name;
-  }
-  let organizerAvatar = event.created_by_profile_picture;
+  const organizerName = (() => {
+    if (event.created_by_name) {
+      return event.created_by_name;
+    }
+    return "Event Organizer";
+  })();
+  const organizerAvatar = event.created_by_profile_picture;
 
   //carousel navigation
   const goLeft = () => {
@@ -238,15 +240,24 @@ export function EventDetails() {
         {(() => {
           if (organizerAvatar) {
             return <img src={organizerAvatar} alt={organizerName} className="w-12 h-12 rounded-full border" />;
-          } else {
-            return <User className="w-12" />;
           }
+          return <User className="w-12" />;
         })()}
         <div className="flex-1">
           <div className="font-semibold text-foreground capitalize">{organizerName}</div>
           <div className="text-xs text-muted-foreground">Event Organizer</div>
         </div>
-        <Button className="h-10 px-6 cursor-pointer">Send Message</Button>
+        <div className="flex gap-2">
+          {currentUserId && currentUserId === event.user_id && (
+            <Button 
+              className="h-10 px-6 cursor-pointer" 
+              onClick={() => navigate(`/community/event/${id}/edit`)}
+            >
+              Edit Event
+            </Button>
+          )}
+          <Button className="h-10 px-6 cursor-pointer">Send Message</Button>
+        </div>
       </div>
       <div className="w-full max-w-3xl mx-auto">
         {(() => {

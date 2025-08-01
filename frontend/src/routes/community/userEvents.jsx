@@ -37,7 +37,7 @@ export function UserEvents() {
   return (
     <div className="w-full max-w-6xl mx-auto pt-8 pb-7">
       <div className="w-full flex flex-col">
-        
+
         <div className="mb-4 flex items-center gap-1 text-sm text-muted-foreground cursor-pointer -ml-2">
           <Button variant="ghost" className="p-0 h-auto cursor-pointer" onClick={() => navigate('/community')}>
             <ArrowLeft className="mr-2 size-4" />

@@ -83,64 +83,63 @@ import { ErrorFactory, AppError } from "../../utils/AppError.js";
  *         description: Internal server error
  */
 export const createEvent = async (req, res, next) => {
-    try {
-        const userId = req.user.id;
+  try {
+    const userId = req.user.id;
 
-        const files = req.files || [];
-        if (files.length === 0) {
-            throw ErrorFactory.validation("At least one image is required.");
-        }
-
-        // Ensure time is in HH:mm:ss format t match db
-        let { time, ...rest } = req.body;
-        if (time && /^\d{2}:\d{2}$/.test(time)) {
-            time = time + ":00";
-        }
-
-        const eventData = {
-            ...rest,
-            time,
-            user_id: userId
-        };
-        const eventResult = await createCommunityEvent(eventData);
-        if (!eventResult.success) {
-          await deleteFile(imageKey);
-          throw ErrorFactory.database("Failed to create community event", eventResult.message);
-        }
-
-        // Handle multiple images
-        const imageUrls = [];
-        for (let file of files) {
-            // Sanitize filename to avoid encoding issues
-            const sanitizedFilename = file.originalname
-                .replace(/[^\w.-]/g, '_') // Replace special characters with underscore
-                .replace(/_+/g, '_') // Replace multiple underscores with single
-                .substring(0, 100); // Limit length
-
-            const imageKey = `community-events/${userId}/${uuidv4()}_${sanitizedFilename}`;
-
-            try {
-                await uploadFile(file, imageKey);
-                const imageUrl = `/api/s3?key=${imageKey}`;
-                const imageResult = await addCommunityEventImage(eventResult.eventId, imageUrl);
-                if (imageResult.success) {
-                    imageUrls.push(imageUrl);
-                }
-            } catch (error) {
-                console.error('Error processing file:', file.originalname, error);
-            }
-        }
-
-        return res.status(201).json({
-            success: true,
-            message: 'Community event created successfully and pending admin approval',
-            eventId: eventResult.eventId,
-            images: imageUrls
-        });
-    } catch (error) {
-        next(error);
+    const files = req.files || [];
+    if (files.length === 0) {
+      throw ErrorFactory.validation("At least one image is required.");
     }
-}; 
+
+    // Ensure time is in HH:mm:ss format t match db
+    let { time, ...rest } = req.body;
+    if (time && /^\d{2}:\d{2}$/.test(time)) {
+      time = time + ":00";
+    }
+
+    const eventData = {
+      ...rest,
+      time,
+      user_id: userId
+    };
+    const eventResult = await createCommunityEvent(eventData);
+    if (!eventResult.success) {
+      throw ErrorFactory.database("Failed to create community event", eventResult.message);
+    }
+
+    // Handle multiple images
+    const imageUrls = [];
+    for (let file of files) {
+      // Sanitize filename to avoid encoding issues
+      const sanitizedFilename = file.originalname
+        .replace(/[^\w.-]/g, '_') // Replace special characters with underscore
+        .replace(/_+/g, '_') // Replace multiple underscores with single
+        .substring(0, 100); // Limit length
+
+      const imageKey = `community-events/${userId}/${uuidv4()}_${sanitizedFilename}`;
+
+      try {
+        await uploadFile(file, imageKey);
+        const imageUrl = `/api/s3?key=${imageKey}`;
+        const imageResult = await addCommunityEventImage(eventResult.eventId, imageUrl);
+        if (imageResult.success) {
+          imageUrls.push(imageUrl);
+        }
+      } catch (error) {
+        console.error('Error processing file:', file.originalname, error);
+      }
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Community event created successfully and pending admin approval',
+      eventId: eventResult.eventId,
+      images: imageUrls
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * @openapi
@@ -203,7 +202,7 @@ export const getApprovedEvents = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-}; 
+};
 
 /**
  * @openapi
@@ -261,22 +260,22 @@ export const getApprovedEvents = async (req, res, next) => {
  *         description: Internal server error
  */
 export const getMyEvents = async (req, res, next) => {
-    try {
-        const userId = req.user.id;
-        //validate user
-        if (!userId) {
-            throw ErrorFactory.unauthorized("User not authenticated");
-        }
-
-        const result = await getCommunityEventsByUserId(userId);
-        if (result.success) {
-            res.status(200).json(result);
-        } else {
-            throw ErrorFactory.database("Failed to get user events", result.message);
-        }
-    } catch (error) {
-        next(error);
+  try {
+    const userId = req.user.id;
+    //validate user
+    if (!userId) {
+      throw ErrorFactory.unauthorized("User not authenticated");
     }
+
+    const result = await getCommunityEventsByUserId(userId);
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      throw ErrorFactory.database("Failed to get user events", result.message);
+    }
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -465,118 +464,118 @@ export const getEventById = async (req, res, next) => {
  *         description: Internal server error
  */
 export const updateEvent = async (req, res, next) => {
-    try {
-        const userId = req.user.id;
-        //validate user
-        if (!userId) {
-            throw ErrorFactory.unauthorized("User not authenticated");
-        }
-
-        const eventId = parseInt(req.params.id, 10);
-
-        if (!eventId || isNaN(eventId)) {
-            throw ErrorFactory.validation("Invalid event ID");
-        }
-
-        // Ensure time is in HH:mm:ss format to match db
-        let { time, keepImageIds, ...rest } = req.body;
-        if (time && /^\d{2}:\d{2}$/.test(time)) {
-            time = time + ":00";
-        }
-
-        const eventData = {
-            ...rest,
-            time
-        };
-
-        // Update the event
-        const updateResult = await updateCommunityEvent(eventId, eventData, userId);
-        if (!updateResult.success) {
-            if (updateResult.message.includes('not found') || updateResult.message.includes('permission')) {
-                throw ErrorFactory.forbidden("Event not found or you do not have permission to edit this event");
-            }
-            throw ErrorFactory.database("Failed to update community event", updateResult.message);
-        }
-
-        // Handle image management
-        const files = req.files || [];
-        const newImageUrls = [];
-        const deletedImageUrls = [];
-
-        // Delete images that are not in keepImageIds
-        if (keepImageIds) {
-            try {
-                let keepIds;
-                if (typeof keepImageIds === 'string') {
-                    try{
-                        keepIds = JSON.parse(keepImageIds);
-                    }catch (parseError) {
-                        throw ErrorFactory.validation("Invalid keepImageIds format");
-                    }
-                } else if (Array.isArray(keepImageIds)) {
-                    keepIds = keepImageIds;
-                } else {
-                    keepIds = [keepImageIds];
-                }
-                const deleteResult = await deleteUnwantedImages(eventId, userId, keepIds);
-                if (!deleteResult.success) {
-                    throw ErrorFactory.database(deleteResult.message);
-                }
-                // Delete files from S3 for each deleted URL
-                for (const imageUrl of deleteResult.deletedUrls) {
-                    try {
-                        // Extract the key from the image URL
-                        const keyMatch = imageUrl.match(/\/api\/s3\?key=(.+)/);
-                        if (keyMatch) {
-                            const key = decodeURIComponent(keyMatch[1]);
-                            await deleteFile(key);
-                        }
-                    } catch (s3Error) {
-                        console.error('Error deleting file from S3:', imageUrl, s3Error);
-                    }
-                }
-                deletedImageUrls.push(...deleteResult.deletedUrls);
-            } catch (error) {
-                if (error.message === 'Invalid keepImageIds format') {
-                    throw ErrorFactory.validation("Invalid keepImageIds format");
-                }
-                throw ErrorFactory.database("Failed to delete unwanted images", error.message);
-            }
-        }
-
-        // Handle new images if provided
-        if (files.length > 0) {
-            for (let file of files) {
-                // Sanitize filename to avoid encoding issues
-                const sanitizedFilename = file.originalname
-                    .replace(/[^\w.-]/g, '_') // Replace special characters with underscore
-                    .replace(/_+/g, '_') // Replace multiple underscores with single
-                    .substring(0, 100); // Limit length
-
-                const imageKey = `community-events/${userId}/${uuidv4()}_${sanitizedFilename}`;
-
-                try {
-                    await uploadFile(file, imageKey);
-                    const imageUrl = `/api/s3?key=${imageKey}`;
-                    const imageResult = await addCommunityEventImage(eventId, imageUrl);
-                    if (imageResult.success) {
-                        newImageUrls.push(imageUrl);
-                    }
-                } catch (error) {
-                    throw ErrorFactory.database("Failed to process uploaded file", error.message);
-                }
-            }
-        }
-
-        res.status(200).json({
-            success: true,
-            message: 'Community event updated successfully and pending admin approval',
-            newImages: newImageUrls,
-            deletedImages: deletedImageUrls
-        });
-    } catch (error) {
-        next(error);
+  try {
+    const userId = req.user.id;
+    //validate user
+    if (!userId) {
+      throw ErrorFactory.unauthorized("User not authenticated");
     }
+
+    const eventId = parseInt(req.params.id, 10);
+
+    if (!eventId || isNaN(eventId)) {
+      throw ErrorFactory.validation("Invalid event ID");
+    }
+
+    // Ensure time is in HH:mm:ss format to match db
+    let { time, keepImageIds, ...rest } = req.body;
+    if (time && /^\d{2}:\d{2}$/.test(time)) {
+      time = time + ":00";
+    }
+
+    const eventData = {
+      ...rest,
+      time
+    };
+
+    // Update the event
+    const updateResult = await updateCommunityEvent(eventId, eventData, userId);
+    if (!updateResult.success) {
+      if (updateResult.message.includes('not found') || updateResult.message.includes('permission')) {
+        throw ErrorFactory.forbidden("Event not found or you do not have permission to edit this event");
+      }
+      throw ErrorFactory.database("Failed to update community event", updateResult.message);
+    }
+
+    // Handle image management
+    const files = req.files || [];
+    const newImageUrls = [];
+    const deletedImageUrls = [];
+
+    // Delete images that are not in keepImageIds
+    if (keepImageIds) {
+      try {
+        let keepIds;
+        if (typeof keepImageIds === 'string') {
+          try {
+            keepIds = JSON.parse(keepImageIds);
+          } catch (parseError) {
+            throw ErrorFactory.validation("Invalid keepImageIds format");
+          }
+        } else if (Array.isArray(keepImageIds)) {
+          keepIds = keepImageIds;
+        } else {
+          keepIds = [keepImageIds];
+        }
+        const deleteResult = await deleteUnwantedImages(eventId, userId, keepIds);
+        if (!deleteResult.success) {
+          throw ErrorFactory.database(deleteResult.message);
+        }
+        // Delete files from S3 for each deleted URL
+        for (const imageUrl of deleteResult.deletedUrls) {
+          try {
+            // Extract the key from the image URL
+            const keyMatch = imageUrl.match(/\/api\/s3\?key=(.+)/);
+            if (keyMatch) {
+              const key = decodeURIComponent(keyMatch[1]);
+              await deleteFile(key);
+            }
+          } catch (s3Error) {
+            console.error('Error deleting file from S3:', imageUrl, s3Error);
+          }
+        }
+        deletedImageUrls.push(...deleteResult.deletedUrls);
+      } catch (error) {
+        if (error.message === 'Invalid keepImageIds format') {
+          throw ErrorFactory.validation("Invalid keepImageIds format");
+        }
+        throw ErrorFactory.database("Failed to delete unwanted images", error.message);
+      }
+    }
+
+    // Handle new images if provided
+    if (files.length > 0) {
+      for (let file of files) {
+        // Sanitize filename to avoid encoding issues
+        const sanitizedFilename = file.originalname
+          .replace(/[^\w.-]/g, '_') // Replace special characters with underscore
+          .replace(/_+/g, '_') // Replace multiple underscores with single
+          .substring(0, 100); // Limit length
+
+        const imageKey = `community-events/${userId}/${uuidv4()}_${sanitizedFilename}`;
+
+        try {
+          await uploadFile(file, imageKey);
+          const imageUrl = `/api/s3?key=${imageKey}`;
+          const imageResult = await addCommunityEventImage(eventId, imageUrl);
+          if (imageResult.success) {
+            newImageUrls.push(imageUrl);
+          }
+        } catch (error) {
+          throw ErrorFactory.database("Failed to process uploaded file", error.message);
+        }
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Community event updated successfully and pending admin approval',
+      newImages: newImageUrls,
+      deletedImages: deletedImageUrls
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -621,43 +620,43 @@ export const updateEvent = async (req, res, next) => {
  *         description: Internal server error
  */
 export const signUpForEvent = async (req, res, next) => {
-    try {
-        const userId = req.user.id;
-        //validate user
-        if(!userId) {
-            throw ErrorFactory.unauthorized("User not authenticated");
-        }
-
-        const eventId = parseInt(req.params.eventId, 10);
-        if (!eventId || isNaN(eventId)) {
-            throw ErrorFactory.validation("Invalid event ID");
-        }
-
-        const result = await signUpForCommunityEvent(userId, eventId);
-        if (result.success) {
-            res.status(201).json(result);
-        } else {
-            if (result.message === 'User is already signed up for this event') {
-                const error = new AppError(result.message, 400, "validation", result.message);
-                throw error;
-            } else if (result.message === 'Event not found') {
-                throw ErrorFactory.notFound("Event");
-            } else if (result.message === 'Event is not approved') {
-                const error = new AppError(result.message, 400, "validation", result.message);
-                throw error;
-            } else if (result.message === 'Event is in the past or happening now') {
-                const error = new AppError(result.message, 400, "validation", result.message);
-                throw error;
-            } else if (result.message === 'You cannot sign up for your own event') {
-                const error = new AppError(result.message, 400, "validation", result.message);
-                throw error;
-            } else {
-                throw ErrorFactory.database("Failed to sign up for event", result.message);
-            }
-        }
-    } catch (error) {
-        next(error);
+  try {
+    const userId = req.user.id;
+    //validate user
+    if (!userId) {
+      throw ErrorFactory.unauthorized("User not authenticated");
     }
+
+    const eventId = parseInt(req.params.eventId, 10);
+    if (!eventId || isNaN(eventId)) {
+      throw ErrorFactory.validation("Invalid event ID");
+    }
+
+    const result = await signUpForCommunityEvent(userId, eventId);
+    if (result.success) {
+      res.status(201).json(result);
+    } else {
+      if (result.message === 'User is already signed up for this event') {
+        const error = new AppError(result.message, 400, "validation", result.message);
+        throw error;
+      } else if (result.message === 'Event not found') {
+        throw ErrorFactory.notFound("Event");
+      } else if (result.message === 'Event is not approved') {
+        const error = new AppError(result.message, 400, "validation", result.message);
+        throw error;
+      } else if (result.message === 'Event is in the past or happening now') {
+        const error = new AppError(result.message, 400, "validation", result.message);
+        throw error;
+      } else if (result.message === 'You cannot sign up for your own event') {
+        const error = new AppError(result.message, 400, "validation", result.message);
+        throw error;
+      } else {
+        throw ErrorFactory.database("Failed to sign up for event", result.message);
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -711,22 +710,22 @@ export const signUpForEvent = async (req, res, next) => {
  *         description: Internal server error
  */
 export const userSignedUpEvents = async (req, res, next) => {
-    try {
-        const userId = req.user.id;
-        //validate user
-        if(!userId) {
-            throw ErrorFactory.unauthorized("User not authenticated");
-        }
-
-        const result = await getUserSignedUpEvents(userId);
-        if (result.success) {
-            res.status(200).json(result);
-        } else {
-            throw ErrorFactory.database("Failed to get user's signed up events", result.message);
-        }
-    } catch (error) {
-        next(error);
+  try {
+    const userId = req.user.id;
+    //validate user
+    if (!userId) {
+      throw ErrorFactory.unauthorized("User not authenticated");
     }
+
+    const result = await getUserSignedUpEvents(userId);
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      throw ErrorFactory.database("Failed to get user's signed up events", result.message);
+    }
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -767,31 +766,31 @@ export const userSignedUpEvents = async (req, res, next) => {
  *         description: Internal server error
  */
 export const cancelEventSignup = async (req, res, next) => {
-    try {
-        const userId = req.user.id;
-        //validate user
-        if(!userId) {
-            throw ErrorFactory.unauthorized("User not authenticated");
-        }
-        
-        const eventId = parseInt(req.params.eventId, 10);
-        if (!eventId || isNaN(eventId)) {
-            throw ErrorFactory.validation("Invalid event ID");
-        }
-
-        const result = await cancelCommunityEventSignup(userId, eventId);
-        if (result.success) {
-            res.status(200).json(result);
-        } else {
-            if (result.message === 'User is not signed up for this event') {
-                throw ErrorFactory.validation(result.message);
-            } else {
-                throw ErrorFactory.database("Failed to cancel event signup", result.message);
-            }
-        }
-    } catch (error) {
-        next(error);
+  try {
+    const userId = req.user.id;
+    //validate user
+    if (!userId) {
+      throw ErrorFactory.unauthorized("User not authenticated");
     }
+
+    const eventId = parseInt(req.params.eventId, 10);
+    if (!eventId || isNaN(eventId)) {
+      throw ErrorFactory.validation("Invalid event ID");
+    }
+
+    const result = await cancelCommunityEventSignup(userId, eventId);
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      if (result.message === 'User is not signed up for this event') {
+        throw ErrorFactory.validation(result.message);
+      } else {
+        throw ErrorFactory.database("Failed to cancel event signup", result.message);
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
 };
 
 
@@ -872,45 +871,43 @@ export const cancelEventSignup = async (req, res, next) => {
  *                   example: "Failed to delete community event"
  */
 export const deleteEvent = async (req, res, next) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        // Check if user is authenticated
-        if (!req.user || !req.user.id) {
-            throw ErrorFactory.unauthorized("User not authenticated");
-        }
-
-        // Get image URLs first for S3 cleanup
-        const imageUrls = await getCommunityEventImageUrls(id);
-
-        // Delete images from S3
-        if (imageUrls && imageUrls.length > 0) {
-            for (const imageUrl of imageUrls) {
-                try {
-                    // Extract S3 key from image URL
-                    const keyMatch = imageUrl.match(/key=([^&]+)/);
-                    if (keyMatch) {
-                        const s3Key = decodeURIComponent(keyMatch[1]);
-                        await deleteFile(s3Key);
-                    }
-                } catch (error) {
-                    //this here allow event to be deleted even if some images can't be removed from S3
-                    console.error('Error deleting image from S3:', error);
-                }
-            }
-        }
-
-        // Delete from database
-        const deleted = await deleteCommunityEvent(id, req.user.id);
-
-        if (!deleted) {
-            throw ErrorFactory.notFound("Event not found or you don't have permission to delete it");
-        }
-
-        res.status(200).json({ success: true, message: "Community event deleted successfully" });
-    } catch (error) {
-        next(error);
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      throw ErrorFactory.unauthorized("User not authenticated");
     }
+
+    // Get image URLs first
+    const imageUrls = await getCommunityEventImageUrls(id);
+
+    const deleted = await deleteCommunityEvent(id, req.user.id);
+
+    if (!deleted) {
+      throw ErrorFactory.notFound("Event not found or you don't have permission to delete it");
+    }
+
+    // Only after successful database deletion, clean up S3 images
+    if (imageUrls && imageUrls.length > 0) {
+      for (const imageUrl of imageUrls) {
+        try {
+          // Extract S3 key from image URL
+          const keyMatch = imageUrl.match(/key=([^&]+)/);
+          if (keyMatch) {
+            const s3Key = decodeURIComponent(keyMatch[1]);
+            await deleteFile(s3Key);
+          }
+        } catch (error) {
+          console.error('Error deleting image from S3:', error);
+        }
+      }
+    }
+
+    res.status(200).json({ success: true, message: "Community event deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -937,7 +934,7 @@ export const getPendingCommunityEventsController = async (req, res, next) => {
     if (result.success) {
       res.status(200).json(result);
     } else {
-      throw ErrorFactory.server('Failed to get pending events');
+      throw ErrorFactory.database('Failed to get pending events');
     }
   } catch (error) {
     next(error);

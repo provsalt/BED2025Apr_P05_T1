@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { createEvent, getApprovedEvents, getMyEvents, getEventById, updateEvent, signUpForEvent, userSignedUpEvents, cancelEventSignup, deleteEvent } from '../../../controllers/community/communityEventController.js';
+import { createEvent, getApprovedEvents, getMyEvents, getEventById, updateEvent, signUpForEvent, userSignedUpEvents, cancelEventSignup, deleteEvent, getPendingCommunityEventsController, approveCommunityEventController, rejectCommunityEventController } from '../../../controllers/community/communityEventController.js';
 import { ErrorFactory } from '../../../utils/AppError.js';
 
 // Ensure S3_BUCKET_NAME is set for all tests
@@ -25,7 +25,7 @@ vi.mock('../../../models/community/communityEventModel.js', () => ({
   getAllApprovedEvents: vi.fn().mockResolvedValue({ success: true, events: [] }), // Mock for getApprovedEvents
   getCommunityEventsByUserId: vi.fn().mockResolvedValue({ success: true, events: [] }), // Mock for getMyEvents
   getCommunityEventById: vi.fn().mockResolvedValue({ success: true, event: { id: 1, name: 'Event 1' } }), // Mock for getEventById
-  updateCommunityEvent: vi.fn().mockResolvedValue({ success: true, message: 'Community event updated successfully and pending admin approval' }), // Mock for updateEvent
+  updateCommunityEvent: vi.fn().mockResolvedValue({ success: true, message: 'Community event updated successfully' }), // Mock for updateEvent
   deleteUnwantedImages: vi.fn().mockResolvedValue({ success: true, message: 'Images deleted successfully', deletedUrls: [] }), // Mock for deleteUnwantedImages
   signUpForCommunityEvent: vi.fn().mockResolvedValue({ success: true, message: 'Successfully signed up for event', eventName: 'Test Event' }),
   getUserSignedUpEvents: vi.fn().mockResolvedValue({ success: true, events: [] }),
@@ -33,6 +33,9 @@ vi.mock('../../../models/community/communityEventModel.js', () => ({
   deleteCommunityEventImage: vi.fn().mockResolvedValue({ success: true, message: 'Image deleted successfully', imageUrl: '/api/s3?key=test-image' }), // Mock for deleteEventImage
   deleteCommunityEvent: vi.fn().mockResolvedValue({ success: true, message: 'Event deleted' }), // Mock for deleteEvent
   getCommunityEventImageUrls: vi.fn().mockResolvedValue([]),
+  getPendingEvents: vi.fn().mockResolvedValue({ success: true, events: [] }),
+  approveCommunityEvent: vi.fn().mockResolvedValue({ success: true, message: 'Event approved successfully' }),
+  rejectCommunityEvent: vi.fn().mockResolvedValue({ success: true, message: 'Event rejected successfully' }),
 }));
 
 describe('createEvent', () => {
@@ -147,8 +150,8 @@ describe('getEventById', () => {
   });
 
   it('should return 200 and event on success', async () => {
-    const mockEvent = { 
-      id: 1, 
+    const mockEvent = {
+      id: 1,
       name: 'Event 1',
       images: [
         { id: 1, image_url: '/api/s3?key=test1', uploaded_at: '2025-01-01T00:00:00Z' },
@@ -452,9 +455,9 @@ describe('updateEvent', () => {
       success: true,
       message: 'Community event updated successfully and pending admin approval'
     });
-    
+
     await updateEvent(req, res, next);
-    
+
     expect(updateSpy).toHaveBeenCalledWith(1, expect.objectContaining({
       name: 'Updated Event',
       location: 'Updated Location',
@@ -463,7 +466,7 @@ describe('updateEvent', () => {
       time: '14:00:00',
       description: 'Updated description'
     }), 1);
-    
+
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: true,
@@ -491,22 +494,22 @@ describe('updateEvent', () => {
   it('should handle image deletion with keepImageIds', async () => {
     const model = await import('../../../models/community/communityEventModel.js');
     const s3Service = await import('../../../services/s3Service.js');
-    vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({ 
-      success: true, 
-      message: 'Community event updated successfully and pending admin approval' 
+    vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({
+      success: true,
+      message: 'Community event updated successfully and pending admin approval'
     });
-    vi.spyOn(model, 'deleteUnwantedImages').mockResolvedValue({ 
-      success: true, 
-      message: 'Images deleted successfully', 
-      deletedUrls: ['/api/s3?key=deleted1.jpg', '/api/s3?key=deleted2.jpg'] 
+    vi.spyOn(model, 'deleteUnwantedImages').mockResolvedValue({
+      success: true,
+      message: 'Images deleted successfully',
+      deletedUrls: ['/api/s3?key=deleted1.jpg', '/api/s3?key=deleted2.jpg']
     });
     vi.spyOn(s3Service, 'deleteFile').mockResolvedValue();
     req.body.keepImageIds = [1, 2]; // Keep images with IDs 1 and 2
     req.files = [];
     await updateEvent(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ 
-      success: true, 
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      success: true,
       message: 'Community event updated successfully and pending admin approval',
       newImages: [],
       deletedImages: expect.arrayContaining(['/api/s3?key=deleted1.jpg', '/api/s3?key=deleted2.jpg'])
@@ -516,22 +519,22 @@ describe('updateEvent', () => {
   it('should handle keepImageIds as string JSON', async () => {
     const model = await import('../../../models/community/communityEventModel.js');
     const s3Service = await import('../../../services/s3Service.js');
-    vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({ 
-      success: true, 
-      message: 'Community event updated successfully and pending admin approval' 
+    vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({
+      success: true,
+      message: 'Community event updated successfully and pending admin approval'
     });
-    vi.spyOn(model, 'deleteUnwantedImages').mockResolvedValue({ 
-      success: true, 
-      message: 'Images deleted successfully', 
-      deletedUrls: ['/api/s3?key=deleted1.jpg'] 
+    vi.spyOn(model, 'deleteUnwantedImages').mockResolvedValue({
+      success: true,
+      message: 'Images deleted successfully',
+      deletedUrls: ['/api/s3?key=deleted1.jpg']
     });
     vi.spyOn(s3Service, 'deleteFile').mockResolvedValue();
     req.body.keepImageIds = '[1, 2]'; // String JSON format
     req.files = [];
     await updateEvent(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ 
-      success: true, 
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      success: true,
       message: 'Community event updated successfully and pending admin approval',
       newImages: [],
       deletedImages: expect.arrayContaining(['/api/s3?key=deleted1.jpg'])
@@ -547,13 +550,13 @@ describe('updateEvent', () => {
 
   it('should handle database error in deleteUnwantedImages', async () => {
     const model = await import('../../../models/community/communityEventModel.js');
-    vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({ 
-      success: true, 
-      message: 'Community event updated successfully and pending admin approval' 
+    vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({
+      success: true,
+      message: 'Community event updated successfully and pending admin approval'
     });
-    vi.spyOn(model, 'deleteUnwantedImages').mockResolvedValue({ 
-      success: false, 
-      message: 'Failed to delete unwanted images' 
+    vi.spyOn(model, 'deleteUnwantedImages').mockResolvedValue({
+      success: false,
+      message: 'Failed to delete unwanted images'
     });
     req.body.keepImageIds = [1, 2];
     req.files = [];
@@ -565,13 +568,13 @@ describe('updateEvent', () => {
   it('should handle S3 upload error when adding new images', async () => {
     const model = await import('../../../models/community/communityEventModel.js');
     const s3Service = await import('../../../services/s3Service.js');
-    vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({ 
-      success: true, 
-      message: 'Community event updated successfully and pending admin approval' 
+    vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({
+      success: true,
+      message: 'Community event updated successfully and pending admin approval'
     });
-    vi.spyOn(model, 'addCommunityEventImage').mockResolvedValue({ 
-      success: true, 
-      message: 'Image added successfully' 
+    vi.spyOn(model, 'addCommunityEventImage').mockResolvedValue({
+      success: true,
+      message: 'Image added successfully'
     });
     vi.spyOn(s3Service, 'uploadFile').mockRejectedValue(new Error('S3 upload failed'));
     await updateEvent(req, res, next);
@@ -598,27 +601,27 @@ describe('signUpForEvent', () => {
     const mockResult = { success: true, message: 'Successfully signed up for event', eventName: 'Test Event' };
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'signUpForCommunityEvent').mockResolvedValue(mockResult);
-    
+
     await signUpForEvent(req, res, next);
-    
+
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(mockResult);
   });
 
   it('should throw unauthorized error if user not authenticated', async () => {
     req.user = {};
-    
+
     await signUpForEvent(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('User not authenticated');
   });
 
   it('should throw validation error if event ID is invalid', async () => {
     req.params.eventId = 'abc';
-    
+
     await signUpForEvent(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('Invalid event ID');
   });
@@ -627,9 +630,9 @@ describe('signUpForEvent', () => {
     const mockResult = { success: false, message: 'User is already signed up for this event' };
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'signUpForCommunityEvent').mockResolvedValue(mockResult);
-    
+
     await signUpForEvent(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('User is already signed up for this event');
   });
@@ -638,9 +641,9 @@ describe('signUpForEvent', () => {
     const mockResult = { success: false, message: 'Event not found' };
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'signUpForCommunityEvent').mockResolvedValue(mockResult);
-    
+
     await signUpForEvent(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('Event not found');
   });
@@ -649,9 +652,9 @@ describe('signUpForEvent', () => {
     const mockResult = { success: false, message: 'Event is not approved' };
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'signUpForCommunityEvent').mockResolvedValue(mockResult);
-    
+
     await signUpForEvent(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('Event is not approved');
   });
@@ -660,9 +663,9 @@ describe('signUpForEvent', () => {
     const mockResult = { success: false, message: 'You cannot sign up for your own event' };
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'signUpForCommunityEvent').mockResolvedValue(mockResult);
-    
+
     await signUpForEvent(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('You cannot sign up for your own event');
   });
@@ -671,9 +674,9 @@ describe('signUpForEvent', () => {
     const mockResult = { success: false, message: 'Event is in the past or happening now' };
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'signUpForCommunityEvent').mockResolvedValue(mockResult);
-    
+
     await signUpForEvent(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('Event is in the past or happening now');
   });
@@ -681,9 +684,9 @@ describe('signUpForEvent', () => {
   it('should pass error to next on database error', async () => {
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'signUpForCommunityEvent').mockRejectedValue(new Error('DB error'));
-    
+
     await signUpForEvent(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
   });
 });
@@ -704,18 +707,18 @@ describe('userSignedUpEvents', () => {
     const mockResult = { success: true, events: mockEvents };
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'getUserSignedUpEvents').mockResolvedValue(mockResult);
-    
+
     await userSignedUpEvents(req, res, next);
-    
+
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(mockResult);
   });
 
   it('should throw unauthorized error if user not authenticated', async () => {
     req.user = {};
-    
+
     await userSignedUpEvents(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('User not authenticated');
   });
@@ -724,9 +727,9 @@ describe('userSignedUpEvents', () => {
     const mockResult = { success: false, message: 'fail' };
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'getUserSignedUpEvents').mockResolvedValue(mockResult);
-    
+
     await userSignedUpEvents(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('Failed to get user\'s signed up events');
   });
@@ -734,9 +737,9 @@ describe('userSignedUpEvents', () => {
   it('should pass error to next on database error', async () => {
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'getUserSignedUpEvents').mockRejectedValue(new Error('DB error'));
-    
+
     await userSignedUpEvents(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
   });
 });
@@ -744,7 +747,7 @@ describe('userSignedUpEvents', () => {
 describe('cancelEventSignup', () => {
   let req, res, next;
   beforeEach(() => {
-    req = { 
+    req = {
       user: { id: 1 },
       params: { eventId: '1' }
     };
@@ -759,27 +762,27 @@ describe('cancelEventSignup', () => {
     const mockResult = { success: true, message: 'Successfully cancelled event signup' };
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'cancelCommunityEventSignup').mockResolvedValue(mockResult);
-    
+
     await cancelEventSignup(req, res, next);
-    
+
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(mockResult);
   });
 
   it('should throw unauthorized error if user not authenticated', async () => {
     req.user = {};
-    
+
     await cancelEventSignup(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('User not authenticated');
   });
 
   it('should throw validation error if event ID is invalid', async () => {
     req.params.eventId = 'abc';
-    
+
     await cancelEventSignup(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('Invalid event ID');
   });
@@ -788,9 +791,9 @@ describe('cancelEventSignup', () => {
     const mockResult = { success: false, message: 'User is not signed up for this event' };
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'cancelCommunityEventSignup').mockResolvedValue(mockResult);
-    
+
     await cancelEventSignup(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('User is not signed up for this event');
   });
@@ -799,9 +802,9 @@ describe('cancelEventSignup', () => {
     const mockResult = { success: false, message: 'Database error' };
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'cancelCommunityEventSignup').mockResolvedValue(mockResult);
-    
+
     await cancelEventSignup(req, res, next);
-    
+
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next.mock.calls[0][0].message).toBe('Failed to cancel event signup');
   });
@@ -809,9 +812,140 @@ describe('cancelEventSignup', () => {
   it('should pass error to next on database error', async () => {
     const model = await import('../../../models/community/communityEventModel.js');
     vi.spyOn(model, 'cancelCommunityEventSignup').mockRejectedValue(new Error('DB error'));
-    
+
     await cancelEventSignup(req, res, next);
-    
+
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+  });
+});
+
+describe('getPendingCommunityEventsController', () => {
+  let req, res, next;
+  beforeEach(() => {
+    req = {};
+    res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    };
+    next = vi.fn();
+  });
+
+  it('should return 200 and pending events on success', async () => {
+    const mockEvents = [{ id: 1, name: 'Pending Event 1' }];
+    const mockResult = { success: true, events: mockEvents };
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'getPendingEvents').mockResolvedValue(mockResult);
+    await getPendingCommunityEventsController(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(mockResult);
+  });
+
+  it('should throw server error if model returns success: false', async () => {
+    const mockResult = { success: false, message: 'Database error' };
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'getPendingEvents').mockResolvedValue(mockResult);
+    await getPendingCommunityEventsController(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(next.mock.calls[0][0].message).toBe('Failed to get pending events');
+  });
+
+  it('should pass error to next on database error', async () => {
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'getPendingEvents').mockRejectedValue(new Error('DB error'));
+    await getPendingCommunityEventsController(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+  });
+});
+
+describe('approveCommunityEventController', () => {
+  let req, res, next;
+  beforeEach(() => {
+    req = {
+      user: { id: 1 },
+      body: { eventId: 1 }
+    };
+    res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    };
+    next = vi.fn();
+  });
+
+  it('should return 200 and success message on successful approval', async () => {
+    const mockResult = { success: true, message: 'Event approved successfully' };
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'approveCommunityEvent').mockResolvedValue(mockResult);
+    await approveCommunityEventController(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(mockResult);
+  });
+
+  it('should throw validation error if eventId is invalid', async () => {
+    req.body.eventId = 'abc';
+    await approveCommunityEventController(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(next.mock.calls[0][0].message).toBe('Invalid event ID');
+  });
+
+  it('should throw not found error if event not found', async () => {
+    const mockResult = { success: false, message: 'Event not found' };
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'approveCommunityEvent').mockResolvedValue(mockResult);
+    await approveCommunityEventController(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(next.mock.calls[0][0].message).toBe('Community event not found');
+  });
+
+  it('should pass error to next on database error', async () => {
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'approveCommunityEvent').mockRejectedValue(new Error('DB error'));
+    await approveCommunityEventController(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+  });
+});
+
+describe('rejectCommunityEventController', () => {
+  let req, res, next;
+  beforeEach(() => {
+    req = {
+      body: { eventId: 1 }
+    };
+    res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    };
+    next = vi.fn();
+  });
+
+  it('should return 200 and success message on successful rejection', async () => {
+    const mockResult = { success: true, message: 'Event rejected successfully' };
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'rejectCommunityEvent').mockResolvedValue(mockResult);
+    await rejectCommunityEventController(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(mockResult);
+  });
+
+  it('should throw validation error if eventId is invalid', async () => {
+    req.body.eventId = 'abc';
+    await rejectCommunityEventController(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(next.mock.calls[0][0].message).toBe('Invalid event ID');
+  });
+
+  it('should throw not found error if event not found', async () => {
+    const mockResult = { success: false, message: 'Event not found' };
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'rejectCommunityEvent').mockResolvedValue(mockResult);
+    await rejectCommunityEventController(req, res, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(next.mock.calls[0][0].message).toBe('Community event not found');
+  });
+
+  it('should pass error to next on database error', async () => {
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'rejectCommunityEvent').mockRejectedValue(new Error('DB error'));
+    await rejectCommunityEventController(req, res, next);
     expect(next).toHaveBeenCalledWith(expect.any(Error));
   });
 });

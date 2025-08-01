@@ -507,40 +507,49 @@ export async function deleteUnwantedImages(eventId, userId, keepImageIds) {
             };
         }
 
-        // Get all images for this event that are NOT in keepImageIds
-        let imagesToDelete;
+        // Get the image URLs that will be deleted before deleting them
+        let imagesToDeleteQuery;
         if (keepImageIds.length === 0) {
-            // If no images to keep, delete all images for this event
-            imagesToDelete = await connection.request()
+            // Delete all images for this event
+            imagesToDeleteQuery = `
+                SELECT image_url FROM CommunityEventImage 
+                WHERE community_event_id = @eventId
+            `;
+        } else {
+            // Delete only unwanted images
+            imagesToDeleteQuery = `
+                SELECT image_url FROM CommunityEventImage 
+                WHERE community_event_id = @eventId 
+                AND id NOT IN (SELECT value FROM STRING_SPLIT(@keepImageIds, ','))
+            `;
+        }
+
+        const imagesToDelete = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .input('keepImageIds', sql.NVarChar, keepImageIds.join(','))
+            .query(imagesToDeleteQuery);
+
+        const deletedUrls = imagesToDelete.recordset.map(record => record.image_url);
+
+        //delete database data
+        if (keepImageIds.length === 0) {
+            // Delete all images for this event
+            await connection.request()
                 .input('eventId', sql.Int, eventId)
                 .query(`
-                    SELECT id, image_url 
-                    FROM CommunityEventImage 
+                    DELETE FROM CommunityEventImage 
                     WHERE community_event_id = @eventId
                 `);
         } else {
-            // If there are images to keep, delete only the unwanted ones
-            const keepIdsParam = keepImageIds.join(',');
-            imagesToDelete = await connection.request()
-                .input('eventId', sql.Int, eventId)
-                .query(`
-                    SELECT id, image_url 
-                    FROM CommunityEventImage 
-                    WHERE community_event_id = @eventId 
-                    AND id NOT IN (${keepIdsParam})
-                `);
-        }
-
-        const deletedUrls = [];
-
-        // Delete each unwanted image
-        for (const image of imagesToDelete.recordset) {
+            // Delete only unwanted images
             await connection.request()
-                .input('imageId', sql.Int, image.id)
+                .input('eventId', sql.Int, eventId)
+                .input('keepImageIds', sql.NVarChar, keepImageIds.join(','))
                 .query(`
-                    DELETE FROM CommunityEventImage WHERE id = @imageId
+                    DELETE FROM CommunityEventImage 
+                    WHERE community_event_id = @eventId 
+                    AND id NOT IN (SELECT value FROM STRING_SPLIT(@keepImageIds, ','))
                 `);
-            deletedUrls.push(image.image_url);
         }
 
         return {
