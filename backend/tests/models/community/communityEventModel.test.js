@@ -653,4 +653,251 @@ describe('communityEventModel', () => {
     });
   });
 
-}); 
+  describe('signUpForCommunityEvent', () => {
+    it('returns success when user signs up for event', async () => {
+      // Mock the check for existing signup (no existing signup)
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+      // Mock the event check (event exists and is approved)
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{ id: 1, name: 'Test Event', approved_by_admin_id: 1 }]
+      });
+      // Mock the insert query
+      mockRequest.query.mockResolvedValueOnce({});
+
+      const result = await model.signUpForCommunityEvent(1, 1);
+      expect(result).toEqual({
+        success: true,
+        message: 'Successfully signed up for event',
+        eventName: 'Test Event'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error if user already signed up', async () => {
+      // Mock the check for existing signup (user already signed up)
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{ user_id: 1, community_event_id: 1 }]
+      });
+
+      const result = await model.signUpForCommunityEvent(1, 1);
+      expect(result).toEqual({
+        success: false,
+        message: 'User is already signed up for this event'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error if event not found', async () => {
+      // Mock the check for existing signup (no existing signup)
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+      // Mock the event check (event not found)
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+
+      const result = await model.signUpForCommunityEvent(1, 999);
+      expect(result).toEqual({
+        success: false,
+        message: 'Event not found'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error if event not approved', async () => {
+      // Mock the check for existing signup (no existing signup)
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+      // Mock the event check (event exists but not approved)
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{ id: 1, name: 'Test Event', approved_by_admin_id: null }]
+      });
+
+      const result = await model.signUpForCommunityEvent(1, 1);
+      expect(result).toEqual({
+        success: false,
+        message: 'Event is not approved'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error if user tries to sign up for their own event', async () => {
+      // Mock the check for existing signup (no existing signup)
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+      // Mock the event check (event exists approved, but user created the event)
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{ id: 1, name: 'Test Event', approved_by_admin_id: 1, user_id: 1 }]
+      });
+
+      const result = await model.signUpForCommunityEvent(1, 1);
+      expect(result).toEqual({
+        success: false,
+        message: 'You cannot sign up for your own event'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error if event is in the past or happening now', async () => {
+      // Mock the check for existing signup (no existing signup)
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+      // Mock the event check (event exists and is approved, but date/time is in the past)
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{
+          id: 1,
+          name: 'Past Event',
+          approved_by_admin_id: 1,
+          user_id: 2,
+          date: new Date('2025-01-01'), // Past date
+          time: new Date('1970-01-01T10:00:00.000Z') // Past time
+        }]
+      });
+
+      const result = await model.signUpForCommunityEvent(1, 1);
+      expect(result).toEqual({
+        success: false,
+        message: 'Event is in the past or happening now'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error if event is happening now (current time)', async () => {
+      // Mock the check for existing signup (no existing signup)
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+      // Mock the event check (event exists and is approved, but date/time is current)
+      const now = new Date();
+      const currentTimeString = now.toTimeString().split(' ')[0]; // Get HH:MM:SS format
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{
+          id: 1,
+          name: 'Current Event',
+          approved_by_admin_id: 1,
+          user_id: 2,
+          date: now.toISOString().split('T')[0], // Get YYYY-MM-DD format
+          time: currentTimeString
+        }]
+      });
+
+      const result = await model.signUpForCommunityEvent(1, 1);
+      expect(result).toEqual({
+        success: false,
+        message: 'Event is in the past or happening now'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error on db error', async () => {
+      mockRequest.query.mockRejectedValue(new Error('DB fail'));
+      const result = await model.signUpForCommunityEvent(1, 1);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Database error occurred');
+    });
+  });
+
+  describe('getUserSignedUpEvents', () => {
+    it('returns success with user signed up events', async () => {
+      mockRequest.query.mockResolvedValue({
+        recordset: [
+          {
+            id: 1,
+            name: 'Event 1',
+            location: 'Location 1',
+            category: 'sports',
+            date: '2025-07-20',
+            time: '12:00:00',
+            description: 'Description 1',
+            signed_up_at: '2025-01-01T00:00:00Z',
+            created_by_name: 'John Doe'
+          },
+          {
+            id: 2,
+            name: 'Event 2',
+            location: 'Location 2',
+            category: 'arts',
+            date: '2025-07-21',
+            time: '14:00:00',
+            description: 'Description 2',
+            signed_up_at: '2025-01-01T00:00:01Z',
+            created_by_name: 'Jane Smith'
+          }
+        ]
+      });
+
+      const result = await model.getUserSignedUpEvents(1);
+      expect(result).toEqual({
+        success: true,
+        events: [
+          {
+            id: 1,
+            name: 'Event 1',
+            location: 'Location 1',
+            category: 'sports',
+            date: '2025-07-20',
+            time: '12:00:00',
+            description: 'Description 1',
+            signed_up_at: '2025-01-01T00:00:00Z',
+            created_by_name: 'John Doe'
+          },
+          {
+            id: 2,
+            name: 'Event 2',
+            location: 'Location 2',
+            category: 'arts',
+            date: '2025-07-21',
+            time: '14:00:00',
+            description: 'Description 2',
+            signed_up_at: '2025-01-01T00:00:01Z',
+            created_by_name: 'Jane Smith'
+          }
+        ]
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns empty array for user with no signed up events', async () => {
+      mockRequest.query.mockResolvedValue({ recordset: [] });
+      const result = await model.getUserSignedUpEvents(999);
+      expect(result).toEqual({ success: true, events: [] });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error on db error', async () => {
+      mockRequest.query.mockRejectedValue(new Error('DB fail'));
+      const result = await model.getUserSignedUpEvents(1);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Database error occurred');
+    });
+  });
+
+  describe('cancelCommunityEventSignup', () => {
+    it('returns success when user cancels signup', async () => {
+      // Mock the check for existing signup (user is signed up)
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{ user_id: 1, community_event_id: 1 }]
+      });
+      // Mock the delete query
+      mockRequest.query.mockResolvedValueOnce({});
+
+      const result = await model.cancelCommunityEventSignup(1, 1);
+      expect(result).toEqual({
+        success: true,
+        message: 'Successfully cancelled event signup'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error if user not signed up', async () => {
+      // Mock the check for existing signup (user not signed up)
+      mockRequest.query.mockResolvedValueOnce({ recordset: [] });
+
+      const result = await model.cancelCommunityEventSignup(1, 999);
+      expect(result).toEqual({
+        success: false,
+        message: 'User is not signed up for this event'
+      });
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
+    it('returns error on db error', async () => {
+      mockRequest.query.mockRejectedValue(new Error('DB fail'));
+      const result = await model.cancelCommunityEventSignup(1, 1);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Database error occurred');
+    });
+  });
+});

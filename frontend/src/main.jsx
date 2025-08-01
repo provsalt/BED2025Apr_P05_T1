@@ -16,6 +16,7 @@ import {ChatLayout} from "@/components/chat/ChatLayout.jsx";
 import {MealsList} from "@/routes/nutrition/MealsList.jsx";
 import {MealDetail} from "@/routes/nutrition/MealDetail.jsx";
 import {MedicalCreateForm} from '@/routes/medical/medicalCreateForm.jsx';
+import {NutritionAnalyticsPage} from "@/routes/nutrition/nutritionAnalytics.jsx";
 import {MedicationRemindersList} from '@/routes/medical/MedicationRemindersList.jsx';
 import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
@@ -57,6 +58,7 @@ createRoot(document.getElementById('root')).render(
                   </Route>
                   <Route path="/medical" element={<MedicalDashboard />} />
                   <Route path="/nutrition/upload" element={<MealImageUpload/>} />
+                  <Route path="/nutrition/analytics" element={<NutritionAnalyticsPage/>} />
                   <Route path="/nutrition" element={<MealsList/>} />
                   <Route path="/nutrition/:id" element={<MealDetail/>} />
                   <Route path="/medical/create" element={<MedicalCreateForm />} />

@@ -59,6 +59,9 @@ dependencies:
   date-fns:
     specifier: ^4.1.0
     version: 4.1.0
+  es-toolkit:
+    specifier: ^1.39.8
+    version: 1.39.8
   immer:
     specifier: ^10.1.1
     version: 10.1.1
@@ -2453,6 +2456,10 @@ packages:
     dependencies:
       graceful-fs: 4.2.11
       tapable: 2.2.2
+    dev: false
+
+  /es-toolkit@1.39.8:
+    resolution: {integrity: sha512-A8QO9TfF+rltS8BXpdu8OS+rpGgEdnRhqIVxO/ZmNvnXBYgOdSsxukT55ELyP94gZIntWJ+Li9QRrT2u1Kitpg==}
     dev: false
 
   /esbuild@0.25.8:

@@ -1,5 +1,5 @@
 import express from "express";
-import { createEvent, updateEvent, getApprovedEvents, getMyEvents, getEventById, deleteEvent, getPendingCommunityEventsController, approveCommunityEventController, rejectCommunityEventController } from "./communityEventController.js";
+import { createEvent, updateEvent, getApprovedEvents, getMyEvents, getEventById, signUpForEvent, userSignedUpEvents, cancelEventSignup, deleteEvent, getPendingCommunityEventsController, approveCommunityEventController, rejectCommunityEventController } from "./communityEventController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import { validateSchema } from '../../middleware/validateSchema.js';
 import { CommunityInformation } from '../../utils/validation/community.js';
@@ -43,6 +43,15 @@ router.post("/reject", getUserMiddleware, authorizeRole(["Admin"]), rejectCommun
 
 // GET /api/community/:id - Get details for a single community event
 router.get("/:id", getUserMiddleware, getEventById);
+
+// POST /api/community/:eventId/signup - Sign up for a community event
+router.post("/:eventId/signup", getUserMiddleware, signUpForEvent);
+
+// DELETE /api/community/:eventId/signup - Cancel signup for a community event
+router.delete("/:eventId/signup", getUserMiddleware, cancelEventSignup);
+
+// GET /api/community/signups - Get user's signed up events
+router.get("/signups", getUserMiddleware, userSignedUpEvents);
 
 // DELETE /api/community/:id - Delete a community event
 router.delete("/:id", getUserMiddleware, deleteEvent);

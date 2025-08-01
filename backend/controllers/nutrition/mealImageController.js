@@ -133,7 +133,7 @@ export const retrieveMeals = async (req, res, next) => {
     const meals = await getAllMeals(req.user.id);
     res.status(200).json({ 
       message: "Meals retrieved successfully", 
-      meals: meals 
+      meals: meals || []
     });
   } catch (error) {
     next(error);

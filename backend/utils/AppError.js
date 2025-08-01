@@ -44,6 +44,15 @@ export class AppError extends Error {
 }
 
 export class ErrorFactory {
+  static internal(message = "Internal server error", details = null) {
+    return new AppError(
+      message,
+      500,
+      "internal",
+      "An unexpected error occurred. Please try again later.",
+      details
+    );
+  }
   static validation(message, details = null) {
     return new AppError(
       message,
