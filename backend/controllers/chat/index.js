@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import {
@@ -12,7 +11,9 @@ import {
   deleteMessageController
 } from "./messageController.js";
 
+
 const router = Router();
+router.use(getUserMiddleware);
 
 router.get("/", getChatsController);
 router.post("/", createChatController);
@@ -20,5 +21,7 @@ router.get("/:chatId", getChatMessagesController);
 router.post("/:chatId", createMessageController);
 router.put("/:chatId/:messageId", updateMessageController);
 router.delete("/:chatId/:messageId", deleteMessageController);
+
+
 
 export default router;
