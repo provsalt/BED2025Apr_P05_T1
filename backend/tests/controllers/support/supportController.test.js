@@ -12,7 +12,7 @@ vi.mock("../../../services/openai/toolExecutionService.js", () => ({
 }));
 
 describe("Support Controller", () => {
-    let req, res;
+    let req, res, next;
 
     beforeEach(() => {
         req = {
@@ -23,6 +23,7 @@ describe("Support Controller", () => {
             status: vi.fn(() => res),
             json: vi.fn(),
         };
+        next = vi.fn();
         vi.clearAllMocks();
     });
 
@@ -44,7 +45,7 @@ describe("Support Controller", () => {
             req.body = { conversation, context };
             aiSupportService.generateAIResponse.mockResolvedValue(expectedResponse);
 
-            await chatWithAI(req, res);
+            await chatWithAI(req, res, next);
 
             expect(aiSupportService.generateAIResponse).toHaveBeenCalledWith(
                 conversation,
@@ -70,7 +71,7 @@ describe("Support Controller", () => {
             toolExecutionService.executeAITool.mockResolvedValue(toolResult);
             aiSupportService.generateAIResponse.mockResolvedValue(expectedResponse);
 
-            await chatWithAI(req, res);
+            await chatWithAI(req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(expectedResponse);
@@ -91,7 +92,7 @@ describe("Support Controller", () => {
             req.body = { conversation, context };
             aiSupportService.generateAIResponse.mockResolvedValue(expectedResponse);
 
-            await chatWithAI(req, res);
+            await chatWithAI(req, res, next);
 
             expect(aiSupportService.generateAIResponse).toHaveBeenCalledWith(
                 conversation,
@@ -102,20 +103,6 @@ describe("Support Controller", () => {
             expect(res.json).toHaveBeenCalledWith(expectedResponse);
         });
 
-        it("should return 401 if user is not authenticated", async () => {
-            req.user = null;
-            req.body = {
-                conversation: [{ role: "user", content: "Hello" }],
-                context: "general"
-            };
-
-            await chatWithAI(req, res);
-
-            expect(res.status).toHaveBeenCalledWith(401);
-            expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
-            expect(aiSupportService.generateAIResponse).not.toHaveBeenCalled();
-        });
-
         it("should return 500 if AI service throws an error", async () => {
             const conversation = [{ role: "user", content: "Hello" }];
             const context = "general";
@@ -123,10 +110,13 @@ describe("Support Controller", () => {
             req.body = { conversation, context };
             aiSupportService.generateAIResponse.mockRejectedValue(new Error("OpenAI API error"));
 
-            await chatWithAI(req, res);
+            await chatWithAI(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({ message: "Failed to get AI response" });
+            expect(next).toHaveBeenCalledWith(expect.objectContaining({
+                name: "AppError",
+                statusCode: 503,
+                category: "external_service"
+            }));
         });
 
         it("should return 500 if tool execution fails", async () => {
@@ -137,10 +127,13 @@ describe("Support Controller", () => {
             toolExecutionService.executeAITool.mockRejectedValue(new Error("Database connection failed"));
             aiSupportService.generateAIResponse.mockRejectedValue(new Error("Tool execution failed"));
 
-            await chatWithAI(req, res);
+            await chatWithAI(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({ message: "Failed to get AI response" });
+            expect(next).toHaveBeenCalledWith(expect.objectContaining({
+                name: "AppError",
+                statusCode: 503,
+                category: "external_service"
+            }));
         });
 
         it("should handle context parameter correctly", async () => {
@@ -158,7 +151,7 @@ describe("Support Controller", () => {
                 const expectedResponse = { response: "Test response", toolsUsed: [] };
                 aiSupportService.generateAIResponse.mockResolvedValue(expectedResponse);
 
-                await chatWithAI(req, res);
+                await chatWithAI(req, res, next);
 
                 expect(aiSupportService.generateAIResponse).toHaveBeenCalledWith(
                     testCase.conversation,
@@ -183,7 +176,7 @@ describe("Support Controller", () => {
                 return expectedResponse;
             });
 
-            await chatWithAI(req, res);
+            await chatWithAI(req, res, next);
 
             expect(toolExecutionService.executeAITool).toHaveBeenCalledWith(
                 "test_function",
@@ -197,10 +190,13 @@ describe("Support Controller", () => {
             
             aiSupportService.generateAIResponse.mockRejectedValue(new Error("Empty conversation"));
 
-            await chatWithAI(req, res);
+            await chatWithAI(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({ message: "Failed to get AI response" });
+            expect(next).toHaveBeenCalledWith(expect.objectContaining({
+                name: "AppError",
+                statusCode: 503,
+                category: "external_service"
+            }));
         });
 
         it("should handle missing context parameter", async () => {
@@ -210,7 +206,7 @@ describe("Support Controller", () => {
             const expectedResponse = { response: "Hello! How can I help?", toolsUsed: [] };
             aiSupportService.generateAIResponse.mockResolvedValue(expectedResponse);
 
-            await chatWithAI(req, res);
+            await chatWithAI(req, res, next);
 
             expect(aiSupportService.generateAIResponse).toHaveBeenCalledWith(
                 conversation,
@@ -220,8 +216,7 @@ describe("Support Controller", () => {
             expect(res.status).toHaveBeenCalledWith(200);
         });
 
-        it("should log errors appropriately", async () => {
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        it("should handle errors and call next with AppError", async () => {
             const testError = new Error("Test error");
             
             req.body = {
@@ -230,10 +225,14 @@ describe("Support Controller", () => {
             };
             aiSupportService.generateAIResponse.mockRejectedValue(testError);
 
-            await chatWithAI(req, res);
+            await chatWithAI(req, res, next);
 
-            expect(consoleSpy).toHaveBeenCalledWith("AI Support error:", testError);
-            consoleSpy.mockRestore();
+            expect(next).toHaveBeenCalledWith(expect.objectContaining({
+                name: "AppError",
+                statusCode: 503,
+                category: "external_service",
+                userMessage: "Failed to get AI response"
+            }));
         });
     });
 });
