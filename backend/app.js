@@ -14,6 +14,12 @@ import { connectedUsersGauge } from "./services/prometheusService.js";
 import client from "prom-client";
 import { errorHandler } from "./middleware/errorHandler.js";
 import {loggerMiddleware, logInfo} from "./utils/logger.js";
+import { checkAndSendReminders } from './controllers/medical/reminderController.js';
+import passport from "passport";
+import dotenv from "dotenv";
+import "./config/passport.js";
+import { AuthController } from "./controllers/authController.js";
+dotenv.config();
 
 const app = express();
 const server = createServer(app);
@@ -37,68 +43,13 @@ app.use(express.json());
 
 
 // Apply rate limiting globally
-app.use(defaultRateLimit);
+app.use(defaultRateLimit)
 
-const metricsMiddleware = promBundle({
-  promClient: {
-    collectDefaultMetrics: {
-      timeout: 10000,
-    }
-  },
-  includeMethod: true,
-  includePath: true,
-  buckets: [0.001, 0.01, 0.1, 1, 2, 3, 5, 7, 10, 15, 20, 25, 30, 35, 40, 50, 70, 100, 200],
-  normalizePath: (req, opts) => {
-    const path = promBundle.normalizePath(req, opts);
-    // Group dynamic routes
-    if (path.startsWith("/api/users/")) {
-      const parts = path.split("/");
-      if (parts.length === 4) {
-        return `/api/users/:id`;
-      }
-      if (parts.length === 5 && parts[4] === "role") {
-        return `/api/users/:id/role`;
-      }
-      if (parts.length === 4 && parts[2] === "role") {
-        return `/api/users/role/:role`;
-      }
-    }
-    if (path.startsWith("/api/chats/")) {
-      const parts = path.split("/");
-      if (parts.length === 4) {
-        return `/api/chats/:chatId`;
-      }
-      if (parts.length === 5) {
-        return `/api/chats/:chatId/:messageId`;
-      }
-    }
-    if (path.startsWith("/api/nutrition/")) {
-      const parts = path.split("/");
-      if (parts.length === 4) {
-        return `/api/nutrition/:id`;
-      }
-    }
-    if (path.startsWith("/api/medications/")) {
-      const parts = path.split("/");
-      if (parts.length === 4) {
-        return `/api/medications/:id`;
-      }
-    }
-    if (path.startsWith("/api/announcements/")) {
-      const parts = path.split("/");
-      if (parts.length === 4) {
-        return `/api/announcements/:id`;
-      }
-    }
-    return path;
-  }
-});
-app.use(metricsMiddleware);
-client.register.registerMetric(connectedUsersGauge);
+// Remove Google OAuth and passport initialization
+// import passport from "passport";
+// import "./config/passport.js";
 
 app.use("/api", ApiController())
-
-app.use(errorHandler)
 
 initSwagger(app);
 
