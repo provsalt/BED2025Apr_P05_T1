@@ -9,6 +9,6 @@ const router = Router();
 
 router.use(openaiRateLimit)
 
-router.post("/chat", getUserMiddleware, validateSchema(supportChatSchema), chatWithAI);
+router.post("/chat", validateSchema(supportChatSchema), chatWithAI);
 
 export default router;

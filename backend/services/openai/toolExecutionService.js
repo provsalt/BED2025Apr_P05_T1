@@ -16,6 +16,31 @@ import { getCurrentUserController } from '../../controllers/user/userController.
  */
 export const executeAITool = async (functionName, parameters, user) => {
   try {
+    const userRequiredFunctions = [
+      "get_medication_reminders",
+      "get_meals", 
+      "search_meals",
+      "get_meal_by_id",
+      "update_meal",
+      "delete_meal",
+      "create_route",
+      "get_user_routes", 
+      "get_route",
+      "update_route",
+      "delete_route",
+      "get_user_chats",
+      "get_chat_messages",
+      "get_current_user"
+    ];
+
+    if (userRequiredFunctions.includes(functionName) && !user) {
+      return {
+        success: false,
+        error: "Authentication required",
+        message: "This feature requires you to be logged in. Please sign in to access your personal data."
+      };
+    }
+
     // mock request and response objects cause i don't want to touch the model directly.
     const req = {
       user: user,

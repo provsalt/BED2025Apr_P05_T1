@@ -1,5 +1,6 @@
 import { generateAIResponse } from '../../services/openai/aiSupportService.js';
 import { executeAITool } from '../../services/openai/toolExecutionService.js';
+import { ErrorFactory } from '../../utils/AppError.js';
 
 /**
  * @openapi
@@ -59,15 +60,12 @@ import { executeAITool } from '../../services/openai/toolExecutionService.js';
  *       500:
  *         description: Internal server error
  */
-export const chatWithAI = async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+export const chatWithAI = async (req, res, next) => {
   const { conversation, context } = req.body;
 
   try {
     const toolExecutor = async (functionName, parameters) => {
-      return await executeAITool(functionName, parameters, req.user);
+      return await executeAITool(functionName, parameters, req.user || null);
     };
 
     // Generate AI response with validated conversation and tool execution capabilities
@@ -76,7 +74,28 @@ export const chatWithAI = async (req, res) => {
     res.status(200).json(result);
 
   } catch (error) {
-    console.error("AI Support error:", error);
-    res.status(500).json({ message: "Failed to get AI response" });
+    if (error.name === 'AppError') {
+      return next(error);
+    }
+    
+    // Handle OpenAI API errors
+    if (error.status === 401) {
+      return next(ErrorFactory.external("OpenAI", "Invalid API key", "AI service unavailable"));
+    }
+    
+    if (error.status === 429) {
+      return next(ErrorFactory.rateLimited("AI service rate limit exceeded"));
+    }
+    
+    if (error.status >= 400 && error.status < 500) {
+      return next(ErrorFactory.external("OpenAI", error.message, "Invalid request to AI service"));
+    }
+    
+    if (error.status >= 500) {
+      return next(ErrorFactory.external("OpenAI", error.message, "AI service temporarily unavailable"));
+    }
+
+    // Generic error fallback
+    return next(ErrorFactory.external("AI Support", error.message, "Failed to get AI response"));
   }
 };
