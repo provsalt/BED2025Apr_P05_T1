@@ -50,7 +50,8 @@ export const AuthController = () => {
         .setProtectedHeader({ alg: "HS256" })
         .setExpirationTime("1d")
         .sign(secret);
-      res.redirect(`http://localhost:5173/?token=${token}`);
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+      res.redirect(`${frontendUrl}/?token=${token}`);
     }
   );
 
