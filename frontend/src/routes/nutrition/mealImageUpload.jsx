@@ -70,46 +70,46 @@ export const MealImageUpload = () => {
   if (analysisResult) {
     return (
       <div className="p-3 flex flex-col items-center justify-center">
-        <Card className="p-8 max-w-2xl w-full mx-auto bg-white space-y-6">
+        <Card className="p-8 max-w-2xl w-full mx-auto bg-background space-y-6">
           <h2 className="text-2xl font-bold text-center mb-6">Food Analysis Result</h2>
           {previewURL && (
             <div className="flex justify-center mb-6">
               <img
                 src={previewURL}
                 alt="Food Preview"
-                className="max-h-64 rounded-lg border border-gray-300 shadow-md object-contain"
+                className="max-h-64 rounded-lg border border-muted shadow-md object-contain"
               />
             </div>
           )}
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h4 className="font-medium text-gray-800">Food Name</h4>
-                <p className="text-gray-600">{analysisResult.name || "-"}</p>
+                <h4 className="font-medium text-foreground">Food Name</h4>
+                <p className="text-muted-foreground">{analysisResult.name || "-"}</p>
               </div>
               <div>
-                <h4 className="font-medium text-gray-800">Category</h4>
-                <p className="text-gray-600">{analysisResult.category || "-"}</p>
+                <h4 className="font-medium text-foreground">Category</h4>
+                <p className="text-muted-foreground">{analysisResult.category || "-"}</p>
               </div>
               <div>
-                <h4 className="font-medium text-gray-800">Carbohydrates (g)</h4>
-                <p className="text-gray-600">{analysisResult.carbohydrates || "-"}</p>
+                <h4 className="font-medium text-foreground">Carbohydrates (g)</h4>
+                <p className="text-muted-foreground">{analysisResult.carbohydrates || "-"}</p>
               </div>
               <div>
-                <h4 className="font-medium text-gray-800">Protein (g)</h4>
-                <p className="text-gray-600">{analysisResult.protein || "-"}</p>
+                <h4 className="font-medium text-foreground">Protein (g)</h4>
+                <p className="text-muted-foreground">{analysisResult.protein || "-"}</p>
               </div>
               <div>
-                <h4 className="font-medium text-gray-800">Fat (g)</h4>
-                <p className="text-gray-600">{analysisResult.fat || "-"}</p>
+                <h4 className="font-medium text-foreground">Fat (g)</h4>
+                <p className="text-muted-foreground">{analysisResult.fat || "-"}</p>
               </div>
               <div>
-                <h4 className="font-medium text-gray-800">Calories</h4>
-                <p className="text-gray-600">{analysisResult.calories || "-"}</p>
+                <h4 className="font-medium text-foreground">Calories</h4>
+                <p className="text-muted-foreground">{analysisResult.calories || "-"}</p>
               </div>
               <div className="md:col-span-2">
-                <h4 className="font-medium text-gray-800">Ingredients</h4>
-                <p className="text-gray-600">{Array.isArray(analysisResult.ingredients) ? analysisResult.ingredients.join(", ") : (analysisResult.ingredients || "-")}</p>
+                <h4 className="font-medium text-foreground">Ingredients</h4>
+                <p className="text-muted-foreground">{Array.isArray(analysisResult.ingredients) ? analysisResult.ingredients.join(", ") : (analysisResult.ingredients || "-")}</p>
               </div>
             </div>
           </div>
@@ -144,12 +144,12 @@ export const MealImageUpload = () => {
               <Link to="/nutrition">View All Meals</Link>
             </Button>
         </div>
-        <Card className="p-8 max-w-2xl mx-auto bg-white space-y-6">
+        <Card className="p-8 max-w-2xl mx-auto bg-background space-y-6">
           <h2 className="text-xl font-bold text-center">Upload Food Image</h2>
           {/* Information section */}
-          <div className="text-center space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800">Why Scan Your Food?</h3>
-            <p className="text-sm text-gray-600 leading-relaxed">
+          <div className="text-center space-y-3 p-4 bg-muted rounded-lg border border-muted">
+            <h3 className="text-lg font-semibold text-foreground">Why Scan Your Food?</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Scanning your meal helps you instantly understand what you're eating. Get accurate details about calories, protein, carbohydrates, and fats all so you can make smarter choices for your health, track your diet easily, and stay informed without the guesswork.
             </p>
           </div>
@@ -160,7 +160,7 @@ export const MealImageUpload = () => {
                   <>
                     <button
                       onClick={removeImage}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors z-9"
+                      className="absolute -top-2 -right-2 bg-destructive text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center hover:bg-destructive/90 transition-colors z-9"
                       type="button"
                     >
                       <X size={14} />
@@ -168,24 +168,24 @@ export const MealImageUpload = () => {
                     <img
                       src={previewURL}
                       alt="Preview"
-                      className="max-w-full h-auto rounded-lg border border-gray-300 shadow-md"
+                      className="max-w-full h-auto rounded-lg border border-muted shadow-md"
                     />
                   </>
                 ) : (
                   <label className="block cursor-pointer">
                     <div 
-                      className="w-64 h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors"
+                      className="w-64 h-48 border-2 border-dashed border-muted rounded-lg flex items-center justify-center bg-muted hover:bg-muted/80 transition-colors"
                       onDragOver={(e) => {
                         e.preventDefault();
-                        e.currentTarget.classList.add('border-gray-400', 'bg-gray-100');
+                        e.currentTarget.classList.add('border-muted-foreground', 'bg-muted/80');
                       }}
                       onDragLeave={(e) => {
                         e.preventDefault();
-                        e.currentTarget.classList.remove('border-gray-400', 'bg-gray-100');
+                        e.currentTarget.classList.remove('border-muted-foreground', 'bg-muted/80');
                       }}
                       onDrop={(e) => {
                         e.preventDefault();
-                        e.currentTarget.classList.remove('border-gray-400', 'bg-gray-100');
+                        e.currentTarget.classList.remove('border-muted-foreground', 'bg-muted/80');
                         const files = e.dataTransfer.files;
                         if (files.length > 0) {
                           const file = files[0];
@@ -197,7 +197,7 @@ export const MealImageUpload = () => {
                         }
                       }}
                     >
-                      <div className="text-center text-gray-700">
+                      <div className="text-center text-foreground">
                         <p className="text-sm">Click or drag image here</p>
                       </div>
                     </div>
@@ -212,7 +212,7 @@ export const MealImageUpload = () => {
               </div>
             </div>
             {showError && (
-              <p className="text-red-500 text-sm text-center">No File Chosen</p>
+              <p className="text-destructive text-sm text-center">No File Chosen</p>
             )}
             <div className="flex justify-center">
               <Button

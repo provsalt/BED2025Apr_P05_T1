@@ -220,12 +220,12 @@ export const loginUserController = async (req, res, next) => {
 
     const user = await getUserByEmail(body.email);
     if (!user) {
-      throw ErrorFactory.unauthorized("Invalid email or password");
+      throw ErrorFactory.notFound("Email or password");
     }
     const isPasswordValid = await bcrypt.compare(body.password, user.password);
 
     if (!isPasswordValid) {
-      throw ErrorFactory.unauthorized("Invalid email or password");
+      throw ErrorFactory.notFound("Email or password");
     }                       
     await insertLoginHistory(user.id);
 

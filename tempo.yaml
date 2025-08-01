@@ -1,0 +1,49 @@
+# Configuring server settings for HTTP and gRPC
+server:
+  http_listen_address: 0.0.0.0
+  http_listen_port: 3200
+  http_server_read_timeout: 30s
+  http_server_write_timeout: 30s
+  http_server_idle_timeout: 60s
+  grpc_listen_address: 0.0.0.0
+  grpc_listen_port: 9095
+
+# Configuring distributor to receive traces (HTTP only)
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: 0.0.0.0:4318
+
+# Configuring storage to use local filesystem
+storage:
+  trace:
+    backend: local
+    local:
+      path: /var/tempo/traces
+    wal:
+      path: /var/tempo/wal
+    pool:
+      max_workers: 100
+      queue_depth: 10000
+
+# Configuring compactor for trace retention
+compactor:
+  compaction:
+    block_retention: 48h
+
+# Configuring querier to handle trace queries
+querier:
+  frontend_worker:
+    frontend_address: tempo:9095 # Using service name and GRPC port instead
+
+# Optimize ingester readiness
+ingester:
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+    heartbeat_timeout: 10s
+    min_ready_duration: 10s

@@ -168,13 +168,13 @@ export const EditEventPage = () => {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-gray-500">Loading event...</div>;
-  if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
+  if (loading) return <div className="text-center py-8 text-muted-foreground">Loading event...</div>;
+  if (error) return <div className="text-center py-8 text-destructive">{error}</div>;
   if (!event) return null;
 
   return (
-    <div className="w-full p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+    <div className="w-full p-6 bg-muted min-h-screen">
+      <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
         <div className="flex items-center gap-2 mb-6">
           <Button 
             variant="ghost" 
@@ -185,7 +185,7 @@ export const EditEventPage = () => {
             Back to Event
           </Button>
         </div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-6">Edit Event</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-6">Edit Event</h2>
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="eventName" className="mb-2 inline-block">Event Name *</Label>
@@ -202,7 +202,7 @@ export const EditEventPage = () => {
               name="category"
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
               required
             >
               <option value="" disabled>Select a category</option>
@@ -257,7 +257,7 @@ export const EditEventPage = () => {
           <div>
             <Label className="mb-2 inline-block">Event Images *</Label>
             <div
-              className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+              className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80 transition"
               onDrop={handleDrop}
               onDragOver={e => e.preventDefault()}
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
@@ -268,11 +268,11 @@ export const EditEventPage = () => {
                 return "#d1d5db";
               })() }}
             >
-              <Upload className="w-6 h-6 mb-1 text-gray-500" />
-              <p className="text-xs text-gray-500">
+              <Upload className="w-6 h-6 mb-1 text-muted-foreground" />
+              <p className="text-xs text-muted-foreground">
                 <span className="font-semibold">Click or drag images here</span>
               </p>
-              <p className="text-xs text-gray-400">PNG, JPG, WEBP up to 30MB each</p>
+              <p className="text-xs text-muted-foreground">PNG, JPG, WEBP up to 30MB each</p>
               <input
                 id="eventImages"
                 name="images"
@@ -304,7 +304,7 @@ export const EditEventPage = () => {
                     <button
                       type="button"
                       onClick={() => removeExistingImage(img.id)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-80 hover:opacity-100 cursor-pointer"
+                      className="absolute top-1 right-1 bg-destructive text-primary-foreground rounded-full p-1 opacity-80 hover:opacity-100 cursor-pointer"
                       title="Remove image"
                     >
                       <X className="w-4 h-4" />
@@ -323,7 +323,7 @@ export const EditEventPage = () => {
                     <button
                       type="button"
                       onClick={e => { e.stopPropagation(); removeNewImage(idx); }}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-80 hover:opacity-100 cursor-pointer"
+                      className="absolute top-1 right-1 bg-destructive text-primary-foreground rounded-full p-1 opacity-80 hover:opacity-100 cursor-pointer"
                       title="Remove image"
                     >
                       <X className="w-4 h-4" />
@@ -345,9 +345,9 @@ export const EditEventPage = () => {
             <DialogHeader>
               <DialogTitle className={(() => {
                 if (dialog.type === 'error') {
-                  return 'text-red-700';
+                  return 'text-destructive';
                 }
-                return 'text-green-700';
+                return 'text-primary';
               })()}>
                 {(() => {
                   if (dialog.type === 'error') {

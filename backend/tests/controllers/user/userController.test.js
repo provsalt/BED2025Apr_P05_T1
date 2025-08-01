@@ -324,7 +324,7 @@ describe('User Controller', () => {
 
       await loginUserController(req, res, next);
 
-      expect(ErrorFactory.unauthorized).toHaveBeenCalledWith("Invalid email or password");
+      expect(ErrorFactory.notFound).toHaveBeenCalledWith("Email or password");
       expect(next).toHaveBeenCalledWith(expect.any(Error));
       expect(res.status).not.toHaveBeenCalled();
       expect(res.json).not.toHaveBeenCalled();
@@ -337,7 +337,7 @@ describe('User Controller', () => {
 
       await loginUserController(req, res, next);
 
-      expect(ErrorFactory.unauthorized).toHaveBeenCalledWith("Invalid email or password");
+      expect(ErrorFactory.notFound).toHaveBeenCalledWith("Email or password");
       expect(next).toHaveBeenCalledWith(expect.any(Error));
       expect(res.status).not.toHaveBeenCalled();
       expect(res.json).not.toHaveBeenCalled();
