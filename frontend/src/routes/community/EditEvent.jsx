@@ -191,7 +191,7 @@ export const EditEventPage = () => {
       if (result.success) {
         setDialog({ open: true, type: "success", message: "Event updated successfully!" });
         setTimeout(() => {
-          navigate(`/community/event/${id}`);
+          navigate(`/community/${id}`);
         }, 1500);
       } else {
         let errorMessage;
