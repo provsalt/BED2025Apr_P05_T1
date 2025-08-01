@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { MapPin, Clock, User, Calendar, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { UserContext } from "@/provider/UserContext.js";
@@ -11,8 +12,10 @@ export function EventDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(0);
+  const [dialog, setDialog] = useState({ open: false, type: '', message: '' });
+  const [signUpLoading, setSignUpLoading] = useState(false);
   const navigate = useNavigate();
-  const userContext = React.useContext(UserContext);
+  const { id: currentUserId } = useContext(UserContext);
 
   useEffect(() => {
     async function fetchEvent() {
@@ -110,6 +113,57 @@ export function EventDetails() {
     }
   };
 
+  const handleSignUp = async () => {
+    setSignUpLoading(true);
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      const res = await fetcher(`${backendUrl}/api/community/${id}/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (res.success) {
+        setDialog({ open: true, type: 'success', message: res.message || "Successfully signed up for the event!" });
+      } else {
+        setDialog({ open: true, type: 'error', message: res.message || "Unable to sign up for the event" });
+      }
+    } catch (err) {
+      // Parse error message from the thrown error
+      let errorMessage = "Failed to sign up for the event. Please try again.";
+      
+      try {
+        const errorData = JSON.parse(err.message);
+        if (errorData.error) {
+          const backendMessage = errorData.error;
+          if (backendMessage === 'User is already signed up for this event') {
+            errorMessage = "You have already signed up for this event!";
+          } else if (backendMessage === 'Event not found') {
+            errorMessage = "This event could not be found. It may have been removed.";
+          } else if (backendMessage === 'Event is not approved') {
+            errorMessage = "This event is not yet approved by an admin";
+          } else if (backendMessage === 'Event is in the past or happening now') {
+            errorMessage = "This event has already passed";
+          } else if (backendMessage === 'You cannot sign up for your own event') {
+            errorMessage = "You cannot sign up for your own event";
+          } else {
+            errorMessage = backendMessage;
+          }
+        }
+      } catch (parseError) {
+        // If parsing fails, use the original error message
+        errorMessage = err.message || "Failed to sign up for the event. Please try again.";
+      }
+      
+      setDialog({ open: true, type: 'error', message: errorMessage });
+    } finally {
+      setSignUpLoading(false);
+    }
+  };
+
+  
+
   return (
     <div className="w-full max-w-3xl mx-auto mt-8 px-2 md:px-0 pb-7">
       <div className="mb-4 flex items-center gap-1 text-sm text-muted-foreground cursor-pointer -ml-2">
@@ -194,7 +248,7 @@ export function EventDetails() {
           <div className="text-xs text-muted-foreground">Event Organizer</div>
         </div>
         <div className="flex gap-2">
-          {userContext.id && userContext.id === event.user_id && (
+          {currentUserId && currentUserId === event.user_id && (
             <Button 
               className="h-10 px-6 cursor-pointer" 
               onClick={() => navigate(`/community/event/${id}/edit`)}
@@ -206,8 +260,61 @@ export function EventDetails() {
         </div>
       </div>
       <div className="w-full max-w-3xl mx-auto">
-        <Button className="h-10 w-full cursor-pointer font-semibold">Sign Up for Event</Button>
+        {(() => {
+          if (currentUserId && event.user_id && currentUserId === event.user_id) {
+            return (
+              <div className="text-center py-4 text-gray-600 bg-gray-50 rounded-lg">
+                <p className="text-sm">You cannot sign up for your own event</p>
+              </div>
+            );
+          } else {
+            return (
+              <Button 
+                className="h-10 w-full cursor-pointer font-semibold" 
+                onClick={handleSignUp}
+                disabled={signUpLoading}
+              >
+                  {(() => {
+                   let buttonText = "Sign Up for Event";
+                   if (signUpLoading) {
+                     buttonText = "Signing up...";
+                   }
+                   return buttonText;
+                 })()}
+              </Button>
+            );
+          }
+        })()}
       </div>
+
+      {/* Success/Error Dialog */}
+      <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
+        <DialogContent className="rounded-xl">
+          <DialogHeader>
+            {(() => {
+              let titleClass = 'text-green-700';
+              let titleText = 'Success';
+              
+              if (dialog.type === 'error') {
+                titleClass = 'text-red-700';
+                titleText = 'Error';
+              }
+              
+              return (
+                <DialogTitle className={titleClass}>
+                  {titleText}
+                </DialogTitle>
+              );
+            })()}
+          </DialogHeader>
+          <div className="py-2">{dialog.message}</div>
+          <DialogFooter>
+            <Button className="cursor-pointer" onClick={() => setDialog(d => ({ ...d, open: false }))}>
+              Okay
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
     
   );

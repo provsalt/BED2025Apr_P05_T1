@@ -292,6 +292,196 @@ export async function updateCommunityEvent(eventId, eventData, userId) {
         if (connection) {
             await connection.close();
         }
+    };
+};
+
+// POST: Sign up a user for a community event
+export async function signUpForCommunityEvent(userId, eventId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+
+        //check if user is already signed up for this event
+        const signupResult = await connection.request()
+            .input('userId', sql.Int, userId)
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                SELECT user_id, community_event_id, signed_up_at
+                FROM CommunityEventSignup 
+                WHERE user_id = @userId AND community_event_id = @eventId
+            `);
+
+        if (signupResult.recordset.length > 0) {
+            return {
+                success: false,
+                message: 'User is already signed up for this event'
+            };
+        }
+
+        // Check if event exists
+        const eventResult = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                SELECT CommunityEvent.*, Users.name as created_by_name
+                FROM CommunityEvent
+                JOIN Users ON CommunityEvent.user_id = Users.id
+                WHERE CommunityEvent.id = @eventId
+            `);
+
+        if (eventResult.recordset.length === 0) {
+            return {
+                success: false,
+                message: 'Event not found'
+            };
+        }
+
+        const event = eventResult.recordset[0];
+        if (!event.approved_by_admin_id) {
+            return {
+                success: false,
+                message: 'Event is not approved'
+            };
+        }
+
+        // Check if event is in the past
+        const eventDate = event.date;
+        const eventTime = event.time;
+
+        const eventDateObj = new Date(eventDate);
+
+        // Parse the time 
+        if (eventTime) {
+            let hours, minutes, seconds;
+
+            if (eventTime instanceof Date) {
+                const utcHours = eventTime.getUTCHours();
+                const utcMinutes = eventTime.getUTCMinutes();
+                const utcSeconds = eventTime.getUTCSeconds();
+
+                hours = utcHours;
+                minutes = utcMinutes;
+                seconds = utcSeconds;
+            } else {
+                // If eventTime is a string, parse it
+                const timeString = eventTime.toString();
+                if (timeString.includes(':')) {
+                    const timeParts = timeString.split(':');
+                    if (timeParts.length >= 2) {
+                        hours = parseInt(timeParts[0], 10);
+                        minutes = parseInt(timeParts[1], 10);
+                        seconds = timeParts.length > 2 ? parseInt(timeParts[2], 10) : 0;
+                    }
+                }
+            }
+
+            // Set the time if we successfully parsed it
+            if (hours !== undefined && minutes !== undefined) {
+                eventDateObj.setHours(hours, minutes, seconds || 0, 0);
+            }
+        }
+
+        const eventDateTime = eventDateObj;
+        const currentDateTime = new Date();
+
+        //convert both to UTC timestamps for accuracy
+        const eventTimestamp = eventDateTime.getTime();
+        const currentTimestamp = currentDateTime.getTime();
+
+        //round both timestamps to the nearest minute (60 seconds * 1000 milliseconds)
+        const eventTimestampRounded = Math.floor(eventTimestamp / 60000) * 60000;
+        const currentTimestampRounded = Math.floor(currentTimestamp / 60000) * 60000;
+
+
+        //check if event is in the past or happening now (less than or equal to current time)
+        if (eventTimestampRounded <= currentTimestampRounded) {
+            return {
+                success: false,
+                message: 'Event is in the past or happening now'
+            };
+        }
+
+
+        //dont allow user to sign up for their own event
+        if (event.user_id === userId) {
+            return {
+                success: false,
+                message: 'You cannot sign up for your own event'
+            };
+        }
+
+        // Insert the signup record
+        try {
+            await connection.request()
+                .input('userId', sql.Int, userId)
+                .input('eventId', sql.Int, eventId)
+                .query(`
+                    INSERT INTO CommunityEventSignup (user_id, community_event_id)
+                    VALUES (@userId, @eventId)
+                `);
+        } catch (insertError) {
+            throw insertError;
+        }
+
+        return {
+            success: true,
+            message: 'Successfully signed up for event',
+            eventName: event.name
+        };
+
+    } catch (error) {
+        console.error('Error in signUpForEvent:', error);
+        return {
+            success: false,
+            message: 'Database error occurred'
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
+// GET: Get all events that a user has signed up for
+export async function getUserSignedUpEvents(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+
+        const result = await connection.request()
+            .input('userId', sql.Int, userId)
+            .query(`
+                SELECT 
+                    CommunityEvent.id,
+                    CommunityEvent.name,
+                    CommunityEvent.location,
+                    CommunityEvent.category,
+                    CommunityEvent.date,
+                    CommunityEvent.time,
+                    CommunityEvent.description,
+                    CommunityEventSignup.signed_up_at,
+                    Users.name as created_by_name
+                FROM CommunityEventSignup 
+                INNER JOIN CommunityEvent ON CommunityEventSignup.community_event_id = CommunityEvent.id
+                INNER JOIN Users ON CommunityEvent.user_id = Users.id
+                WHERE CommunityEventSignup.user_id = @userId
+                ORDER BY CommunityEvent.date ASC, CommunityEvent.time ASC
+            `);
+
+        return {
+            success: true,
+            events: result.recordset
+        };
+
+    } catch (error) {
+        console.error('Error in getUserSignedUpEvents:', error);
+        return {
+            success: false,
+            message: 'Database error occurred'
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
     }
 }
 
@@ -378,8 +568,58 @@ export async function deleteUnwantedImages(eventId, userId, keepImageIds) {
         if (connection) {
             await connection.close();
         }
-    };
-};
+    }
+}
+
+// DELETE: Cancel a user's signup for a community event
+export async function cancelCommunityEventSignup(userId, eventId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+
+        // Check if user is signed up for this event
+        const signupResult = await connection.request()
+            .input('userId', sql.Int, userId)
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                SELECT user_id, community_event_id, signed_up_at
+                FROM CommunityEventSignup 
+                WHERE user_id = @userId AND community_event_id = @eventId
+            `);
+
+        if (signupResult.recordset.length === 0) {
+            return {
+                success: false,
+                message: 'User is not signed up for this event'
+            };
+        }
+
+        // Delete the signup record
+        await connection.request()
+            .input('userId', sql.Int, userId)
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                DELETE FROM CommunityEventSignup 
+                WHERE user_id = @userId AND community_event_id = @eventId
+            `);
+
+        return {
+            success: true,
+            message: 'Successfully cancelled event signup'
+        };
+
+    } catch (error) {
+        console.error('Error in cancelEventSignup:', error);
+        return {
+            success: false,
+            message: 'Database error occurred'
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
 
 // GET: Get all community events pending (for admin approval)
 export async function getPendingEvents() {
