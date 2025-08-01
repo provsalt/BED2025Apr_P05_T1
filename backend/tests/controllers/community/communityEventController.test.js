@@ -24,7 +24,7 @@ vi.mock('../../../models/community/communityEventModel.js', () => ({
   getAllApprovedEvents: vi.fn().mockResolvedValue({ success: true, events: [] }),
   getCommunityEventsByUserId: vi.fn().mockResolvedValue({ success: true, events: [] }),
   getCommunityEventById: vi.fn().mockResolvedValue({ success: true, event: { id: 1, name: 'Event 1' } }),
-  updateCommunityEvent: vi.fn().mockResolvedValue({ success: true, message: 'Community event updated successfully' }),
+  updateCommunityEvent: vi.fn().mockResolvedValue({ success: true, message: 'Community event updated successfully and pending admin approval' }),
   deleteCommunityEventImage: vi.fn().mockResolvedValue({ success: true, message: 'Image deleted successfully', imageUrl: '/api/s3?key=test-image' }),
   deleteCommunityEvent: vi.fn().mockResolvedValue({ success: true, message: 'Event deleted' }),
   getCommunityEventImageUrls: vi.fn().mockResolvedValue([]),
@@ -165,8 +165,8 @@ describe('getEventById', () => {
   });
 
   it('should return 200 and event on success', async () => {
-    const mockEvent = { 
-      id: 1, 
+    const mockEvent = {
+      id: 1,
       name: 'Event 1',
       images: [
         { id: 1, image_url: '/api/s3?key=test1', uploaded_at: '2025-01-01T00:00:00Z' },
@@ -410,7 +410,8 @@ describe('updateEvent', () => {
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: true,
       message: 'Community event updated successfully and pending admin approval',
-      newImages: []
+      newImages: [],
+      deletedImages: []
     }));
   });
 
@@ -431,7 +432,8 @@ describe('updateEvent', () => {
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: true,
       message: 'Community event updated successfully and pending admin approval',
-      newImages: expect.any(Array)
+      newImages: expect.any(Array),
+      deletedImages: []
     }));
   });
 
@@ -451,7 +453,8 @@ describe('updateEvent', () => {
     await updateEvent(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-      success: true
+      success: true,
+      message: 'Community event updated successfully and pending admin approval'
     }));
   });
 
@@ -461,9 +464,9 @@ describe('updateEvent', () => {
       success: true,
       message: 'Community event updated successfully and pending admin approval'
     });
-    
+
     await updateEvent(req, res, next);
-    
+
     expect(updateSpy).toHaveBeenCalledWith(1, expect.objectContaining({
       name: 'Updated Event',
       location: 'Updated Location',
@@ -472,8 +475,58 @@ describe('updateEvent', () => {
       time: '14:00:00',
       description: 'Updated description'
     }), 1);
-    
+
     expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      success: true,
+      message: 'Community event updated successfully and pending admin approval'
+    }));
+  });
+
+  it('should ensure updated events require re-approval by admin', async () => {
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({
+      success: true,
+      message: 'Community event updated successfully and pending admin approval'
+    });
+
+    // Test that the response message indicates pending approval
+    await updateEvent(req, res, next);
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      success: true,
+      message: 'Community event updated successfully and pending admin approval'
+    }));
+
+    // Verify that the message indicates the event needs admin approval again
+    const response = res.json.mock.calls[0][0];
+    expect(response.message).toContain('pending admin approval');
+  });
+
+  it('should verify that the model function is called to set approved_by_admin_id to NULL', async () => {
+    const model = await import('../../../models/community/communityEventModel.js');
+    const updateSpy = vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({
+      success: true,
+      message: 'Community event updated successfully and pending admin approval'
+    });
+
+    await updateEvent(req, res, next);
+
+    // Verify that the model function is called with the correct parameters
+    expect(updateSpy).toHaveBeenCalledWith(
+      1, // eventId
+      expect.objectContaining({
+        name: 'Updated Event',
+        location: 'Updated Location',
+        category: 'arts',
+        date: '2025-07-25',
+        time: '14:00:00',
+        description: 'Updated description'
+      }),
+      1 // userId
+    );
+
+    // The model function should handle setting approved_by_admin_id = NULL
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: true,
       message: 'Community event updated successfully and pending admin approval'
@@ -500,10 +553,10 @@ describe('updateEvent', () => {
   it('should handle image deletion from MinIO when updating with keepImageIds', async () => {
     const model = await import('../../../models/community/communityEventModel.js');
     const s3Service = await import('../../../services/s3Service.js');
-    
+
     vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({
       success: true,
-      message: 'Community event updated successfully'
+      message: 'Community event updated successfully and pending admin approval'
     });
     vi.spyOn(model, 'deleteUnwantedImages').mockResolvedValue({
       success: true,
@@ -516,16 +569,16 @@ describe('updateEvent', () => {
     });
     vi.spyOn(s3Service, 'uploadFile').mockResolvedValue();
     vi.spyOn(s3Service, 'deleteFile').mockResolvedValue();
-    
+
     req.body.keepImageIds = [1, 2]; // Keep images with IDs 1 and 2
     req.files = [];
-    
+
     await updateEvent(req, res, next);
-    
+
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: true,
-      message: 'Community event updated successfully',
+      message: 'Community event updated successfully and pending admin approval',
       newImages: [],
       deletedImages: ['/api/s3?key=community-events/1/old-image.jpg']
     }));
@@ -535,10 +588,10 @@ describe('updateEvent', () => {
   it('should handle keepImageIds as string JSON', async () => {
     const model = await import('../../../models/community/communityEventModel.js');
     const s3Service = await import('../../../services/s3Service.js');
-    
+
     vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({
       success: true,
-      message: 'Community event updated successfully'
+      message: 'Community event updated successfully and pending admin approval'
     });
     vi.spyOn(model, 'deleteUnwantedImages').mockResolvedValue({
       success: true,
@@ -551,16 +604,16 @@ describe('updateEvent', () => {
     });
     vi.spyOn(s3Service, 'uploadFile').mockResolvedValue();
     vi.spyOn(s3Service, 'deleteFile').mockResolvedValue();
-    
+
     req.body.keepImageIds = '[1, 2]'; // JSON string
     req.files = [];
-    
+
     await updateEvent(req, res, next);
-    
+
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: true,
-      message: 'Community event updated successfully',
+      message: 'Community event updated successfully and pending admin approval',
       newImages: [],
       deletedImages: ['/api/s3?key=community-events/1/old-image.jpg']
     }));

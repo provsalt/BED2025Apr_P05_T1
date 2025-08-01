@@ -36,10 +36,10 @@ describe('communityEventModel', () => {
       const result = await model.createCommunityEvent({
         name: 'Event', location: 'Loc', category: 'sports', date: '2025-07-20', time: '12:00:00', description: 'desc', user_id: 1
       });
-      expect(result).toEqual({ 
-        success: true, 
-        message: 'Community event created successfully and pending admin approval', 
-        eventId: 42 
+      expect(result).toEqual({
+        success: true,
+        message: 'Community event created successfully and pending admin approval',
+        eventId: 42
       });
       expect(mockConnection.close).toHaveBeenCalled();
     });
@@ -49,10 +49,10 @@ describe('communityEventModel', () => {
       const result = await model.createCommunityEvent({
         name: 'Art Event', location: 'Gallery', category: 'arts', date: '2025-08-15', time: '14:30:00', description: 'Art exhibition', user_id: 2
       });
-      expect(result).toEqual({ 
-        success: true, 
-        message: 'Community event created successfully and pending admin approval', 
-        eventId: 43 
+      expect(result).toEqual({
+        success: true,
+        message: 'Community event created successfully and pending admin approval',
+        eventId: 43
       });
       expect(mockConnection.close).toHaveBeenCalled();
     });
@@ -180,19 +180,19 @@ describe('communityEventModel', () => {
 
   describe('getPendingEvents', () => {
     it('returns success with pending events', async () => {
-      mockRequest.query.mockResolvedValue({ 
+      mockRequest.query.mockResolvedValue({
         recordset: [
           { id: 1, name: 'Pending Event 1', approved_by_admin_id: null },
           { id: 2, name: 'Pending Event 2', approved_by_admin_id: null }
-        ] 
+        ]
       });
       const result = await model.getPendingEvents();
-      expect(result).toEqual({ 
-        success: true, 
+      expect(result).toEqual({
+        success: true,
         events: [
           { id: 1, name: 'Pending Event 1', approved_by_admin_id: null },
           { id: 2, name: 'Pending Event 2', approved_by_admin_id: null }
-        ] 
+        ]
       });
       expect(mockConnection.close).toHaveBeenCalled();
     });
@@ -547,7 +547,7 @@ describe('communityEventModel', () => {
         time: '14:00:00',
         description: 'Updated description'
       }, 1);
-      expect(result).toEqual({ success: true, message: 'Community event updated successfully' });
+      expect(result).toEqual({ success: true, message: 'Community event updated successfully and pending admin approval' });
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
