@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { Link } from "react-router";
@@ -6,20 +7,16 @@ import { UserContext } from "@/provider/UserContext";
 import { NutritionAnalyticsCard } from "@/components/nutrition/NutritionAnalyticsCard";
 import { AIPredictions } from "@/components/ai/AIPredictions";
 import { NutritionAreaChart } from "@/components/charts/NutritionAreaChart";
-import { 
-  Apple, 
-  Dumbbell, 
-  Pill, 
-  Calendar, 
-  Utensils,
-  Camera,
-  Clock,
-  PartyPopper,
-  Bus,
-  MapPin,
-  CalendarDays,
-  User
-} from "lucide-react";
+import { Apple, Dumbbell, Pill, Calendar, Utensils, Camera, Clock, PartyPopper, Bus, MapPin, CalendarDays, User } from "lucide-react";
+
+// Utility function to construct image URLs
+function getImageUrl(url) {
+  if (!url) return '';
+  if (url.startsWith("/api/")) {
+    return (import.meta.env.VITE_BACKEND_URL || "http://localhost:3001") + url;
+  }
+  return url;
+}
 
 export const Dashboard = ({ summary }) => {
   const { id: userId } = useContext(UserContext);
@@ -124,11 +121,7 @@ export const Dashboard = ({ summary }) => {
                       >
                         {meal.image_url && (
                           <img 
-                            src={
-                              meal.image_url.startsWith("/api/")
-                                ? (import.meta.env.VITE_BACKEND_URL || "http://localhost:3001") + meal.image_url
-                                : meal.image_url
-                            } 
+                            src={getImageUrl(meal.image_url)}
                             alt={meal.name} 
                             className="w-16 h-16 object-cover rounded-lg border border-gray-200" 
                           />
@@ -197,11 +190,7 @@ export const Dashboard = ({ summary }) => {
                         <div className="flex items-start gap-4">
                           {event.image_url && (
                             <img 
-                              src={
-                                event.image_url.startsWith("/api/")
-                                  ? (import.meta.env.VITE_BACKEND_URL || "http://localhost:3001") + event.image_url
-                                  : event.image_url
-                              } 
+                              src={getImageUrl(event.image_url)}
                               alt={event.name} 
                               className="w-16 h-16 object-cover rounded-lg border border-gray-200 flex-shrink-0" 
                             />
@@ -275,11 +264,7 @@ export const Dashboard = ({ summary }) => {
                       >
                         {med.image_url && (
                           <img
-                            src={
-                              med.image_url.startsWith("/api/")
-                                ? (import.meta.env.VITE_BACKEND_URL || "http://localhost:3001") + med.image_url
-                                : med.image_url
-                            }
+                            src={getImageUrl(med.image_url)}
                             alt={med.medicine_name}
                             className="w-12 h-12 object-cover rounded-lg border border-gray-200"
                           />
