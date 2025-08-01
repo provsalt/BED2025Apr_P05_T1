@@ -122,13 +122,11 @@ export const getAIPredictionsController = async (req, res) => {
     });
 
   } catch (error) {
-    logError("Error generating AI predictions:", error);
-    
+    logError(error, req, { message: "Error generating AI predictions" });
     if (error.message === 'User not found') {
       return res.status(404).json({ error: "User not found" });
     }
-    
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to generate AI predictions",
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });

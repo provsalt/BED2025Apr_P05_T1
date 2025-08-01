@@ -77,6 +77,9 @@ export const chatWithAI = async (req, res) => {
 
   } catch (error) {
     console.error("AI Support error:", error);
-    res.status(500).json({ message: "Failed to get AI response" });
+    res.status(500).json({
+      message: "Failed to get AI response",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };

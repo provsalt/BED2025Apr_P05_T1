@@ -74,7 +74,7 @@ export const getNutritionAnalyticsController = async (req, res) => {
       analytics: analytics || {}
     });
   } catch (error) {
-        logError("Error fetching nutrition analytics:", error);
+    logError(error, req, { message: "Error fetching nutrition analytics" });
     res.status(500).json({ 
       error: "Failed to fetch nutrition analytics",
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -123,7 +123,7 @@ export const getDailyBreakdownController = async (req, res) => {
       breakdown: breakdown || []
     });
   } catch (error) {
-    logError("Error fetching daily breakdown:", error);
+    logError(error, req, { message: "Error fetching daily breakdown" });
     res.status(500).json({ 
       error: "Failed to fetch daily breakdown",
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -172,7 +172,7 @@ export const getCaloriesTrendController = async (req, res) => {
       trend: trend || []
     });
   } catch (error) {
-    logError("Error fetching calories trend:", error);
+    logError(error, req, { message: "Error fetching calories trend" });
     res.status(500).json({ 
       error: "Failed to fetch calories trend",
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
