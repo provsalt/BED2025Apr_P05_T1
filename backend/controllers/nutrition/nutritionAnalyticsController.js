@@ -56,7 +56,8 @@ import { ErrorFactory } from "../../utils/AppError.js";
  */
 export const getNutritionAnalyticsController = async (req, res, next) => {
   try {
-    const days = req.query.days || 7;
+    const days = parseInt(req.query.days) || 7;
+
     // Validate days parameter
     if (![7, 30].includes(days)) {
       throw ErrorFactory.validation("Days parameter must be 7 or 30");
