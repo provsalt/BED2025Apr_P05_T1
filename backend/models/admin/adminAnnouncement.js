@@ -1,42 +1,6 @@
 import {dbConfig} from "../../config/db.js";
 import sql from "mssql";
 
-/**
- * Admin model for interacting with the database.
- * Create server-wide announcements.
- */
-
-// In-memory storage for dismissed announcements
-// Structure: { userId: Set of announcementIds }
-const dismissedAnnouncements = new Map();
-
-export const createAnnouncement = async (announcementData) => {
-    const db = await sql.connect(dbConfig);
-    const query = `
-        INSERT INTO Announcement (title, content, user_id, created_at, updated_at)
-        VALUES (@title, @content, @user_id, GETDATE(), GETDATE());
-        SELECT SCOPE_IDENTITY() AS id;
-    `;
-    const request = db.request();
-    
-    request.input("title", sql.VarChar(255), announcementData.title);
-    request.input("content", sql.Text, announcementData.content);
-    request.input("user_id", sql.Int, announcementData.user_id);
-    
-    const result = await request.query(query);
-    
-    if (result.recordset.length === 0) {
-        throw new Error("Failed to create announcement");
-    }
-    
-    return { 
-        id: result.recordset[0].id, 
-        ...announcementData,
-        created_at: new Date(),
-        updated_at: new Date()
-    };
-}
-
 export const getAnnouncements = async () => {
     const db = await sql.connect(dbConfig);
     const query = `
@@ -123,43 +87,4 @@ export const deleteAnnouncement = async (id) => {
     }
     
     return result.recordset[0].affectedRows;
-}
-
-export const getAnnouncementsForUser = async (userId) => {
-    const db = await sql.connect(dbConfig);
-    const query = `
-        SELECT 
-            a.id, 
-            a.title, 
-            a.content, 
-            a.created_at, 
-            a.updated_at,
-            COALESCE(u.name, 'Unknown User') as author_name,
-            COALESCE(u.email, 'unknown@email.com') as author_email
-        FROM Announcement a
-        LEFT JOIN Users u ON a.user_id = u.id
-        ORDER BY a.created_at DESC
-    `;
-    const request = db.request();
-    const result = await request.query(query);
-    
-    // Filter out dismissed announcements for this user
-    const userDismissed = dismissedAnnouncements.get(userId) || new Set();
-    const filteredAnnouncements = result.recordset.filter(
-        announcement => !userDismissed.has(announcement.id)
-    );
-    
-    return filteredAnnouncements;
-}
-
-export const dismissAnnouncement = async (userId, announcementId) => {
-    // Add to in-memory storage
-    if (!dismissedAnnouncements.has(userId)) {
-        dismissedAnnouncements.set(userId, new Set());
-    }
-    
-    const userDismissed = dismissedAnnouncements.get(userId);
-    userDismissed.add(announcementId);
-    
-    return { success: true };
 }

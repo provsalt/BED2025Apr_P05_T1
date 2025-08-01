@@ -70,10 +70,12 @@ export const Home = () => {
     <div className="flex-1 bg-gray-50 text-gray-900">
       <div className="mx-auto px-6 py-12">
         {!announcementsLoading && announcements.length > 0 && (
-          <AnnouncementsList
-            isAdmin={false}
-            onDismiss={isAuthenticated ? handleDismissAnnouncement : undefined}
-          />
+          <div className="mb-8">
+            <AnnouncementsList
+              isAdmin={false}
+              onDismiss={isAuthenticated ? handleDismissAnnouncement : undefined}
+            />
+          </div>
         )}
         {isAuthenticated ? <Dashboard summary={summary} /> : <Landing />}
       </div>
