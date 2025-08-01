@@ -92,7 +92,7 @@ export const createOAuthUser = async (userData) => {
     const request = db.request();
     request.input("name", userData.name);
     request.input("email", userData.email);
-    request.input("dob", userData.date_of_birth ? new Date(userData.date_of_birth) : new Date());
+    request.input("dob", userData.date_of_birth ? new Date(userData.date_of_birth) : null);
     request.input("gender", userData.gender || null);
     request.input("profile_picture_url", userData.profile_picture_url || null);
     const res = await request.query(query);
