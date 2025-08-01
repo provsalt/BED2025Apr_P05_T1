@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Clock, User, Calendar, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 
@@ -10,6 +18,8 @@ export function EventDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(0);
+  const [dialog, setDialog] = useState({ open: false, type: "", message: "" });
+  const [messageDialog, setMessageDialog] = useState({ open: false, message: "" });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -106,6 +116,64 @@ export function EventDetails() {
     }
   };
 
+const handleSendMessage = async () => {
+  const organiserId = event.user_id;
+  if (!organiserId) {
+    setDialog({ open: true, type: "error", message: "Organizer ID is missing." });
+    return;
+  }
+
+  // Open message input dialog
+  setMessageDialog({ 
+    open: true, 
+    message: `Hi` 
+  });
+};
+
+const sendChatMessage = async () => {
+  const organiserId = event.user_id;
+  const userMessage = messageDialog.message;
+
+  if (!userMessage || userMessage.trim() === "") {
+    setDialog({ open: true, type: "error", message: "Message cannot be empty." });
+    return;
+  }
+
+  try {
+    const res = await fetcher(`/chats`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        recipientId: organiserId,
+        message: userMessage.trim()
+      }),
+    });
+    
+    if (res.chatId) {
+      setMessageDialog({ open: false, message: "" });
+      navigate(`/chats/${res.chatId}`);
+    }
+  } catch (err) {
+    setMessageDialog({ open: false, message: "" });
+    if (err.status === 409 && err.message) {
+      setDialog({ open: true, type: "error", message: "Chat already exists between these users." });
+    } else {
+      let errorMessage;
+      if (err.message) {
+        try {
+          const parsedError = JSON.parse(err.message);
+          errorMessage = parsedError.error || "Failed to create chat";
+        } catch {
+          errorMessage = err.message || "Failed to create chat";
+        }
+      } else {
+        errorMessage = "Network error. Please try again.";
+      }
+      setDialog({ open: true, type: "error", message: errorMessage });
+    }
+  }
+};
+
   return (
     <div className="w-full max-w-3xl mx-auto mt-8 px-2 md:px-0 pb-7">
       <div className="mb-4 flex items-center gap-1 text-sm text-muted-foreground cursor-pointer -ml-2">
@@ -190,11 +258,64 @@ export function EventDetails() {
           <div className="font-semibold text-foreground capitalize">{organizerName}</div>
           <div className="text-xs text-muted-foreground">Event Organizer</div>
         </div>
-        <Button className="h-10 px-6 cursor-pointer">Send Message</Button>
+        <Button
+          className="h-10 px-6 cursor-pointer"
+          onClick={handleSendMessage}
+        >
+          Send Message
+        </Button>
       </div>
       <div className="w-full max-w-3xl mx-auto">
         <Button className="h-10 w-full cursor-pointer font-semibold">Sign Up for Event</Button>
       </div>
+      
+      <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
+        <DialogContent className="rounded-xl">
+          <DialogHeader>
+            <DialogTitle className={dialog.type === 'error' ? 'text-destructive' : 'text-primary'}>
+              {dialog.type === 'error' ? 'Error' : 'Success'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-2">{dialog.message}</div>
+          <DialogFooter>
+            <Button className="cursor-pointer" onClick={() => setDialog(d => ({ ...d, open: false }))}>
+              Okay
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Message Input Dialog */}
+      <Dialog open={messageDialog.open} onOpenChange={open => setMessageDialog(d => ({ ...d, open }))}>
+        <DialogContent className="rounded-xl">
+          <DialogHeader>
+            <DialogTitle>Send Message to {organizerName}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="Type your message here..."
+              value={messageDialog.message}
+              onChange={(e) => setMessageDialog(d => ({ ...d, message: e.target.value }))}
+              className="min-h-[100px]"
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setMessageDialog({ open: false, message: "" })}
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={sendChatMessage}
+              className="cursor-pointer"
+            >
+              Send Message
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
     
   );
