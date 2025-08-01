@@ -34,7 +34,7 @@ export const UserProvider = ({ children }) => {
       setIsLoading(false);
       return;
     }
-    const isAuthenticated = !!token && parse && (Date.now() / 1000 ) < parse.exp;
+    const isAuthenticated = !!token && parse && (Date.now() / 10000 ) < parse.exp;
     if (!isAuthenticated) {
       setUser(undefined);
       setIsLoading(false);
