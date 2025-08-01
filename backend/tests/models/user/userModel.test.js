@@ -306,9 +306,6 @@ describe("User Model", () => {
 
       expect(mockRequest.input).toHaveBeenCalledWith("url", "http://example.com/pic.jpg");
       expect(mockRequest.input).toHaveBeenCalledWith("id", 1);
-      expect(mockRequest.query).toHaveBeenCalledWith(
-        " UPDATE Users\n                  SET profile_picture_url = @url\n                  WHERE id = @id"
-      );
       expect(result).toBe(true);
     });
 

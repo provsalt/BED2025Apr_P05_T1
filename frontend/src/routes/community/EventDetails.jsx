@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Clock, User, Calendar, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
+import { UserContext } from "@/provider/UserContext.js";
 
 export function EventDetails() {
   const { id } = useParams();
@@ -18,9 +19,11 @@ export function EventDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(0);
-  const [dialog, setDialog] = useState({ open: false, type: "", message: "" });
+  const [dialog, setDialog] = useState({ open: false, type: '', message: '' });
+  const [signUpLoading, setSignUpLoading] = useState(false);
   const [messageDialog, setMessageDialog] = useState({ open: false, message: "" });
   const navigate = useNavigate();
+  const { id: currentUserId } = useContext(UserContext);
 
   useEffect(() => {
     async function fetchEvent() {
@@ -47,15 +50,13 @@ export function EventDetails() {
   if (error) return <div className="text-center py-8 text-destructive">{error}</div>;
   if (!event) return null;
 
-  //Images array
-  let images = [];
-  if (Array.isArray(event.images)) {
-    images = event.images;
-  }
-  let hasImages = false;
-  if (images.length > 0) {
-    hasImages = true;
-  }
+  const images = (() => {
+    if (Array.isArray(event.images)) {
+      return event.images;
+    }
+    return [];
+  })();
+  const hasImages = images.length > 0;
   let imageSrc;
   if (hasImages) {
     imageSrc = images[currentImage] && images[currentImage].image_url;
@@ -72,25 +73,29 @@ export function EventDetails() {
     }
   }
 
-  //format date and time
-  let dateStr = "";
-  if (event.date) {
-    dateStr = new Date(event.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-  }
-  let timeStr = "";
-  if (event.time) {
-    const match = event.time.match(/T(\d{2}:\d{2}:\d{2})/);
-    if (match) {
-      timeStr = match[1].slice(0, 5);
+  const dateStr = (() => {
+    if (event.date) {
+      return new Date(event.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
     }
-  }
+    return "";
+  })();
+  const timeStr = (() => {
+    if (event.time) {
+      const match = event.time.match(/T(\d{2}:\d{2}:\d{2})/);
+      if (match) {
+        return match[1].slice(0, 5);
+      }
+    }
+    return "";
+  })();
 
-  // Organizer info (placeholder avatar)
-  let organizerName = "Event Organizer";
-  if (event.created_by_name) {
-    organizerName = event.created_by_name;
-  }
-  let organizerAvatar = event.created_by_profile_picture;
+  const organizerName = (() => {
+    if (event.created_by_name) {
+      return event.created_by_name;
+    }
+    return "Event Organizer";
+  })();
+  const organizerAvatar = event.created_by_profile_picture;
 
   //carousel navigation
   const goLeft = () => {
@@ -116,6 +121,57 @@ export function EventDetails() {
     }
   };
 
+  const handleSignUp = async () => {
+    setSignUpLoading(true);
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      const res = await fetcher(`${backendUrl}/api/community/${id}/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (res.success) {
+        setDialog({ open: true, type: 'success', message: res.message || "Successfully signed up for the event!" });
+      } else {
+        setDialog({ open: true, type: 'error', message: res.message || "Unable to sign up for the event" });
+      }
+    } catch (err) {
+      // Parse error message from the thrown error
+      let errorMessage = "Failed to sign up for the event. Please try again.";
+
+      try {
+        const errorData = JSON.parse(err.message);
+        if (errorData.error) {
+          const backendMessage = errorData.error;
+          if (backendMessage === 'User is already signed up for this event') {
+            errorMessage = "You have already signed up for this event!";
+          } else if (backendMessage === 'Event not found') {
+            errorMessage = "This event could not be found. It may have been removed.";
+          } else if (backendMessage === 'Event is not approved') {
+            errorMessage = "This event is not yet approved by an admin";
+          } else if (backendMessage === 'Event is in the past or happening now') {
+            errorMessage = "This event has already passed";
+          } else if (backendMessage === 'You cannot sign up for your own event') {
+            errorMessage = "You cannot sign up for your own event";
+          } else {
+            errorMessage = backendMessage;
+          }
+        }
+      } catch (parseError) {
+        // If parsing fails, use the original error message
+        errorMessage = err.message || "Failed to sign up for the event. Please try again.";
+      }
+
+      setDialog({ open: true, type: 'error', message: errorMessage });
+    } finally {
+      setSignUpLoading(false);
+    }
+  };
+
+
+
 const handleSendMessage = async () => {
   const organiserId = event.user_id;
   if (!organiserId) {
@@ -124,9 +180,9 @@ const handleSendMessage = async () => {
   }
 
   // Open message input dialog
-  setMessageDialog({ 
-    open: true, 
-    message: `Hi` 
+  setMessageDialog({
+    open: true,
+    message: `Hi`
   });
 };
 
@@ -148,7 +204,7 @@ const sendChatMessage = async () => {
         message: userMessage.trim()
       }),
     });
-    
+
     if (res.chatId) {
       setMessageDialog({ open: false, message: "" });
       navigate(`/chats/${res.chatId}`);
@@ -250,25 +306,58 @@ const sendChatMessage = async () => {
         {(() => {
           if (organizerAvatar) {
             return <img src={organizerAvatar} alt={organizerName} className="w-12 h-12 rounded-full border" />;
-          } else {
-            return <User className="w-12" />;
           }
+          return <User className="w-12" />;
         })()}
         <div className="flex-1">
           <div className="font-semibold text-foreground capitalize">{organizerName}</div>
           <div className="text-xs text-muted-foreground">Event Organizer</div>
         </div>
-        <Button
-          className="h-10 px-6 cursor-pointer"
-          onClick={handleSendMessage}
-        >
-          Send Message
-        </Button>
+        <div className="flex gap-2">
+          {currentUserId && currentUserId === event.user_id && (
+            <Button
+              className="h-10 px-6 cursor-pointer"
+              onClick={() => navigate(`/community/event/${id}/edit`)}
+            >
+              Edit Event
+            </Button>
+          )}
+          <Button
+            className="h-10 px-6 cursor-pointer"
+            onClick={handleSendMessage}
+          >
+            Send Message
+          </Button>
+        </div>
       </div>
       <div className="w-full max-w-3xl mx-auto">
-        <Button className="h-10 w-full cursor-pointer font-semibold">Sign Up for Event</Button>
+        {(() => {
+          if (currentUserId && event.user_id && currentUserId === event.user_id) {
+            return (
+              <div className="text-center py-4 text-gray-600 bg-gray-50 rounded-lg">
+                <p className="text-sm">You cannot sign up for your own event</p>
+              </div>
+            );
+          } else {
+            return (
+              <Button
+                className="h-10 w-full cursor-pointer font-semibold"
+                onClick={handleSignUp}
+                disabled={signUpLoading}
+              >
+                  {(() => {
+                   let buttonText = "Sign Up for Event";
+                   if (signUpLoading) {
+                     buttonText = "Signing up...";
+                   }
+                   return buttonText;
+                 })()}
+              </Button>
+            );
+          }
+        })()}
       </div>
-      
+
       <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
         <DialogContent className="rounded-xl">
           <DialogHeader>
@@ -300,18 +389,47 @@ const sendChatMessage = async () => {
             />
           </div>
           <DialogFooter className="gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setMessageDialog({ open: false, message: "" })}
               className="cursor-pointer"
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={sendChatMessage}
               className="cursor-pointer"
             >
               Send Message
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success/Error Dialog */}
+      <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
+        <DialogContent className="rounded-xl">
+          <DialogHeader>
+            {(() => {
+              let titleClass = 'text-green-700';
+              let titleText = 'Success';
+
+              if (dialog.type === 'error') {
+                titleClass = 'text-red-700';
+                titleText = 'Error';
+              }
+
+              return (
+                <DialogTitle className={titleClass}>
+                  {titleText}
+                </DialogTitle>
+              );
+            })()}
+          </DialogHeader>
+          <div className="py-2">{dialog.message}</div>
+          <DialogFooter>
+            <Button className="cursor-pointer" onClick={() => setDialog(d => ({ ...d, open: false }))}>
+              Okay
             </Button>
           </DialogFooter>
         </DialogContent>

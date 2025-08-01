@@ -109,11 +109,18 @@ export const MealsList = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-left">Your Meals</h1>
-          <Link to="/nutrition/upload" className="ml-4">
-          <Button className="cursor-pointer">
-            Upload Image
-          </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link to="/nutrition/analytics">
+              <Button variant="outline" className="cursor-pointer">
+                View Analytics
+              </Button>
+            </Link>
+            <Link to="/nutrition/upload">
+              <Button className="cursor-pointer">
+                Upload Image
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Search Section */}

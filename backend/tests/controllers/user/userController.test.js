@@ -582,12 +582,12 @@ describe('User Controller', () => {
     });
 
     it('should call next with notFound AppError if user not found', async () => {
-      adminDeleteUser.mockRejectedValue(new Error('User not found'));
+      const notFoundError = ErrorFactory.notFound("User");
+      adminDeleteUser.mockRejectedValue(notFoundError);
 
       await deleteUserController(req, res, next);
 
-      expect(ErrorFactory.notFound).toHaveBeenCalledWith("User");
-      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(next).toHaveBeenCalledWith(notFoundError);
       expect(res.status).not.toHaveBeenCalled();
       expect(res.json).not.toHaveBeenCalled();
     });
