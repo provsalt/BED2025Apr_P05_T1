@@ -1,5 +1,5 @@
 import { getNutritionAnalytics, getDailyNutritionBreakdown, getCaloriesTrend } from "../../models/nutrition/nutritionAnalyticsModel.js";
-import { logger } from "../../utils/logger.js";
+import { logError } from "../../utils/logger.js";
 
 /**
  * @openapi
@@ -74,7 +74,7 @@ export const getNutritionAnalyticsController = async (req, res) => {
       analytics: analytics || {}
     });
   } catch (error) {
-        logger.error("Error fetching nutrition analytics:", error);
+        logError("Error fetching nutrition analytics:", error);
     res.status(500).json({ 
       error: "Failed to fetch nutrition analytics",
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -123,7 +123,7 @@ export const getDailyBreakdownController = async (req, res) => {
       breakdown: breakdown || []
     });
   } catch (error) {
-    logger.error("Error fetching daily breakdown:", error);
+    logError("Error fetching daily breakdown:", error);
     res.status(500).json({ 
       error: "Failed to fetch daily breakdown",
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -172,7 +172,7 @@ export const getCaloriesTrendController = async (req, res) => {
       trend: trend || []
     });
   } catch (error) {
-    logger.error("Error fetching calories trend:", error);
+    logError("Error fetching calories trend:", error);
     res.status(500).json({ 
       error: "Failed to fetch calories trend",
       details: process.env.NODE_ENV === 'development' ? error.message : undefined

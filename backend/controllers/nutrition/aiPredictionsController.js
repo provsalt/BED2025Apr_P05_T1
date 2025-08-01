@@ -1,6 +1,6 @@
 import { AIPredictionService } from "../../services/nutrition/aiPredictionService.js";
 import { NutritionDataService } from "../../services/nutrition/nutritionDataService.js";
-import { logger } from "../../utils/logger.js";/**
+import { logError } from "../../utils/logger.js";/**
  * @openapi
  * /api/nutrition/ai-predictions:
  *   get:
@@ -85,7 +85,7 @@ export const getAIPredictionsController = async (req, res) => {
     const days = parseInt(req.query.days) || 7;
     const useAgentic = req.query.agentic !== 'false'; // Default to true
     
-    logger.info(`Generating AI predictions for user ${req.user.id}, days: ${days}, agentic: ${useAgentic}`);
+    logError(`Generating AI predictions for user ${req.user.id}, days: ${days}, agentic: ${useAgentic}`);
     
     // Get user nutrition data
     const { user, analytics, trendData } = await NutritionDataService.getUserNutritionData(
@@ -122,7 +122,7 @@ export const getAIPredictionsController = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error("Error generating AI predictions:", error);
+    logError("Error generating AI predictions:", error);
     
     if (error.message === 'User not found') {
       return res.status(404).json({ error: "User not found" });
