@@ -199,3 +199,123 @@ export async function createMedicationQuestion(userId, data) {
         }
     }
 } 
+
+// GET (Latest Medication Questionnaire for user)
+export async function getLatestMedicationQuestion(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
+            .input("user_id", sql.Int, userId)
+            .query(`
+                SELECT TOP 1 
+                    difficulty_walking,
+                    assistive_device,
+                    symptoms_or_pain,
+                    allergies,
+                    medical_conditions,
+                    exercise_frequency,
+                    created_at
+                FROM MedicationQuestion
+                WHERE user_id = @user_id
+                ORDER BY created_at DESC
+            `);
+        
+        if (result.recordset.length > 0) {
+            return { 
+                success: true, 
+                data: result.recordset[0] 
+            };
+        } else {
+            return { 
+                success: false, 
+                message: "No questionnaire found for this user" 
+            };
+        }
+    } catch (error) {
+        console.error('Error retrieving medication questionnaire:', error);
+        return { 
+            success: false, 
+            message: "Failed to retrieve questionnaire", 
+            error: error.message 
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
+// POST (Create Health Summary)
+export async function createHealthSummary(userId, summary) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        await connection.request()
+            .input("user_id", sql.Int, userId)
+            .input("summary", sql.Text, summary)
+            .query(`
+                INSERT INTO HealthSummary
+                  (user_id, summary)
+                VALUES
+                  (@user_id, @summary)
+            `);
+        return { 
+            success: true, 
+            message: "Health summary created successfully" 
+        };
+    } catch (error) {
+        console.error('Error creating health summary:', error);
+        return { 
+            success: false, 
+            message: "Failed to create health summary", 
+            error: error.message 
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
+// GET (Latest Health Summary for user)
+export async function getLatestHealthSummary(userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
+            .input("user_id", sql.Int, userId)
+            .query(`
+                SELECT TOP 1 
+                    id,
+                    summary,
+                    created_at
+                FROM HealthSummary
+                WHERE user_id = @user_id
+                ORDER BY created_at DESC
+            `);
+        
+        if (result.recordset.length > 0) {
+            return { 
+                success: true, 
+                data: result.recordset[0] 
+            };
+        } else {
+            return { 
+                success: false, 
+                message: "No health summary found for this user" 
+            };
+        }
+    } catch (error) {
+        console.error('Error retrieving health summary:', error);
+        return { 
+            success: false, 
+            message: "Failed to retrieve health summary", 
+            error: error.message 
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+} 

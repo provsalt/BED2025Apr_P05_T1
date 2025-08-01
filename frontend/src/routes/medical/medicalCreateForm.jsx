@@ -104,4 +104,4 @@ export const MedicalCreateForm = () =>  {
       navigateOnSuccess={() => navigate('/medical/reminders')}
     />
   );
-}
+};
