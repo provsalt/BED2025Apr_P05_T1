@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { MapPin, Clock, User, Calendar, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
-import { UserContext } from '../../provider/UserContext.js';
+import { UserContext } from "@/provider/UserContext.js";
 
 export function EventDetails() {
   const { id } = useParams();
@@ -195,8 +195,8 @@ export function EventDetails() {
         </div>
         <div className="flex gap-2">
           {userContext.id && userContext.id === event.user_id && (
-            <Button
-              className="h-10 px-6 cursor-pointer"
+            <Button 
+              className="h-10 px-6 cursor-pointer" 
               onClick={() => navigate(`/community/event/${id}/edit`)}
             >
               Edit Event
@@ -209,6 +209,6 @@ export function EventDetails() {
         <Button className="h-10 w-full cursor-pointer font-semibold">Sign Up for Event</Button>
       </div>
     </div>
-
+    
   );
 } 

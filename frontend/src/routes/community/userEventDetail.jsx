@@ -5,7 +5,7 @@ import { MapPin, Clock, User, Calendar, Tag, ChevronLeft, ChevronRight, ArrowLef
 import { fetcher } from "@/lib/fetcher";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { UserContext } from '../../provider/UserContext.js';
+import { UserContext } from "@/provider/UserContext.js";
 import { decodeJwt } from "jose";
 
 export function EventDetail() {
