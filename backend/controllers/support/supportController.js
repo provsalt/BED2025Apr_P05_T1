@@ -65,6 +65,9 @@ export const chatWithAI = async (req, res) => {
     throw ErrorFactory.unauthorized();
   }
   const { conversation, context } = req.body;
+  if (!Array.isArray(conversation) || conversation.length === 0) {
+    throw ErrorFactory.validation("Conversation array is required");
+  }
 
   try {
     const toolExecutor = async (functionName, parameters) => {

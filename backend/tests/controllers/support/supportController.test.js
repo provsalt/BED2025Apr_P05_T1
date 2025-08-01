@@ -109,10 +109,10 @@ describe("Support Controller", () => {
                 context: "general"
             };
 
-            await chatWithAI(req, res);
-
-            expect(res.status).toHaveBeenCalledWith(401);
-            expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
+            await expect(chatWithAI(req, res)).rejects.toMatchObject({
+                statusCode: 401,
+                message: "Authentication required"
+            });
             expect(aiSupportService.generateAIResponse).not.toHaveBeenCalled();
         });
 
@@ -123,10 +123,10 @@ describe("Support Controller", () => {
             req.body = { conversation, context };
             aiSupportService.generateAIResponse.mockRejectedValue(new Error("OpenAI API error"));
 
-            await chatWithAI(req, res);
-
-            expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({ message: "Failed to get AI response" });
+            await expect(chatWithAI(req, res)).rejects.toMatchObject({
+                statusCode: 500,
+                message: "Failed to get AI response"
+            });
         });
 
         it("should return 500 if tool execution fails", async () => {
@@ -137,10 +137,10 @@ describe("Support Controller", () => {
             toolExecutionService.executeAITool.mockRejectedValue(new Error("Database connection failed"));
             aiSupportService.generateAIResponse.mockRejectedValue(new Error("Tool execution failed"));
 
-            await chatWithAI(req, res);
-
-            expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({ message: "Failed to get AI response" });
+            await expect(chatWithAI(req, res)).rejects.toMatchObject({
+                statusCode: 500,
+                message: "Failed to get AI response"
+            });
         });
 
         it("should handle context parameter correctly", async () => {
@@ -194,13 +194,11 @@ describe("Support Controller", () => {
 
         it("should handle empty conversation array gracefully", async () => {
             req.body = { conversation: [], context: "general" };
-            
-            aiSupportService.generateAIResponse.mockRejectedValue(new Error("Empty conversation"));
 
-            await chatWithAI(req, res);
-
-            expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({ message: "Failed to get AI response" });
+            await expect(chatWithAI(req, res)).rejects.toMatchObject({
+                statusCode: 400,
+                message: "Conversation array is required"
+            });
         });
 
         it("should handle missing context parameter", async () => {
@@ -223,15 +221,17 @@ describe("Support Controller", () => {
         it("should log errors appropriately", async () => {
             const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
             const testError = new Error("Test error");
-            
+
             req.body = {
                 conversation: [{ role: "user", content: "Hello" }],
                 context: "general"
             };
             aiSupportService.generateAIResponse.mockRejectedValue(testError);
 
-            await chatWithAI(req, res);
-
+            await expect(chatWithAI(req, res)).rejects.toMatchObject({
+                statusCode: 500,
+                message: "Failed to get AI response"
+            });
             expect(consoleSpy).toHaveBeenCalledWith("AI Support error:", testError);
             consoleSpy.mockRestore();
         });
