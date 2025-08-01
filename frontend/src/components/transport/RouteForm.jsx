@@ -105,7 +105,7 @@ const RouteForm = ({ initialData = null, onSubmit, isLoading = false, submitButt
   })) : [];
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-white shadow-md rounded-md px-8 pt-6 pb-8 mb-4 space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="bg-background shadow-md rounded-md px-8 pt-6 pb-8 mb-4 space-y-4">
       <div>
         <Label htmlFor="name">Route Name</Label>
         <Controller
@@ -116,12 +116,12 @@ const RouteForm = ({ initialData = null, onSubmit, isLoading = false, submitButt
               id="name"
               placeholder="Enter route name"
               {...field}
-              className={errors.name ? "border-red-500" : ""}
+              className={errors.name ? "border-destructive" : ""}
             />
           )}
         />
         {errors.name && (
-          <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+          <p className="text-destructive text-sm mt-1">{errors.name.message}</p>
         )}
       </div>
 
@@ -137,7 +137,7 @@ const RouteForm = ({ initialData = null, onSubmit, isLoading = false, submitButt
                   variant="outline"
                   role="combobox"
                   aria-expanded={openStart}
-                  className={`w-full justify-between ${errors.startStation ? "border-red-500" : ""}`}
+                  className={`w-full justify-between ${errors.startStation ? "border-destructive" : ""}`}
                 >
                   {watchedStartStation ? watchedStartStation.label : "Select start station..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -170,7 +170,7 @@ const RouteForm = ({ initialData = null, onSubmit, isLoading = false, submitButt
           )}
         />
         {errors.startStation && (
-          <p className="text-red-500 text-sm mt-1">{errors.startStation.message}</p>
+          <p className="text-destructive text-sm mt-1">{errors.startStation.message}</p>
         )}
       </div>
 
@@ -186,7 +186,7 @@ const RouteForm = ({ initialData = null, onSubmit, isLoading = false, submitButt
                   variant="outline"
                   role="combobox"
                   aria-expanded={openEnd}
-                  className={`w-full justify-between ${errors.endStation ? "border-red-500" : ""}`}
+                  className={`w-full justify-between ${errors.endStation ? "border-destructive" : ""}`}
                 >
                   {watchedEndStation ? watchedEndStation.label : "Select end station..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -219,7 +219,7 @@ const RouteForm = ({ initialData = null, onSubmit, isLoading = false, submitButt
           )}
         />
         {errors.endStation && (
-          <p className="text-red-500 text-sm mt-1">{errors.endStation.message}</p>
+          <p className="text-destructive text-sm mt-1">{errors.endStation.message}</p>
         )}
       </div>
 

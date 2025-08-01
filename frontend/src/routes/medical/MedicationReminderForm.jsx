@@ -109,7 +109,7 @@ export function MedicationReminderForm({
     );
   };
 
-  const renderSubmitButtonText = () => {
+  const getSubmitButtonText = () => {
     if (isSubmitting) {
       if (mode === 'edit') {
         return 'Saving...';
@@ -125,19 +125,19 @@ export function MedicationReminderForm({
     }
   };
 
-  const renderDialogTitle = () => {
+  const getDialogTitleClass = () => {
+    if (dialog.type === 'error') {
+      return 'text-destructive';
+    } else {
+      return 'text-primary';
+    }
+  };
+
+  const getDialogTitleText = () => {
     if (dialog.type === 'error') {
       return 'Error';
     } else {
       return 'Success';
-    }
-  };
-
-  const renderDialogTitleClass = () => {
-    if (dialog.type === 'error') {
-      return 'text-red-700';
-    } else {
-      return 'text-green-700';
     }
   };
 
@@ -159,8 +159,8 @@ export function MedicationReminderForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full p-6 bg-gray-50">
-      <div className="bg-white rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+    <form onSubmit={handleSubmit} className="w-full p-6 bg-muted">
+      <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
         <div className="space-y-6">
           {/* Medication Name */}
           <div className="space-y-2">
@@ -227,14 +227,14 @@ export function MedicationReminderForm({
               <div className="flex items-center justify-center w-full">
                 <label
                   htmlFor="imageUpload"
-                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-muted-foreground border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80"
                 >
                   <div className="flex flex-col items-center justify-center p-2">
-                    <Upload className="w-6 h-6 mb-1 text-gray-500" />
-                    <p className="text-xs text-gray-500">
+                    <Upload className="w-6 h-6 mb-1 text-muted-foreground" />
+                    <p className="text-xs text-muted-foreground">
                       <span className="font-semibold">Click to upload</span> image
                     </p>
-                    <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
                   </div>
                   <input
                     id="imageUpload"
@@ -245,16 +245,42 @@ export function MedicationReminderForm({
                   />
                 </label>
               </div>
-              {renderImagePreview()}
+              {(formData.imagePreview || formData.oldImageUrl) && (() => {
+                let imageSrc = '';
+                if (formData.imagePreview) {
+                  imageSrc = formData.imagePreview;
+                } else if (formData.oldImageUrl) {
+                  if (formData.oldImageUrl.startsWith('http')) {
+                    imageSrc = formData.oldImageUrl;
+                  } else {
+                    imageSrc = (import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, '') + formData.oldImageUrl);
+                  }
+                }
+                return (
+                  <div className="relative">
+                    <img
+                      src={imageSrc}
+                      alt="Medication preview"
+                      className="w-full h-32 object-cover rounded-lg border"
+                    />
+                    {formData.imagePreview && (
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute top-2 right-2 bg-destructive text-primary-foreground rounded-full p-1 hover:bg-destructive/90"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
           {/* Submit/Cancel */}
           <div className="flex gap-3 pt-4">
-            <Button 
-              type="submit" 
-              disabled={isSubmitting} 
-              className="bg-black text-white hover:bg-gray-900 px-6 cursor-pointer">
-              {renderSubmitButtonText()}
+            <Button type="submit" disabled={isSubmitting} className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 cursor-pointer">
+              {getSubmitButtonText()}
             </Button>
             <Button 
               type="button" 
@@ -269,8 +295,8 @@ export function MedicationReminderForm({
             <Dialog open={dialog.open} onOpenChange={handleDialogOpenChange}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle className={renderDialogTitleClass()}>
-                    {renderDialogTitle()}
+                  <DialogTitle className={getDialogTitleClass()}>
+                    {getDialogTitleText()}
                   </DialogTitle>
                 </DialogHeader>
                 <div className="py-2">{dialog.message}</div>

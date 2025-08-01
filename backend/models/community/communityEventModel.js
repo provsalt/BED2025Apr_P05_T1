@@ -14,16 +14,15 @@ export async function createCommunityEvent(eventData) {
             .input('time', sql.VarChar(8), eventData.time)
             .input('description', sql.NVarChar(500), eventData.description)
             .input('user_id', sql.Int, eventData.user_id)
-            .input('approved_by_admin_id', sql.Int, eventData.approved_by_admin_id)
             .query(`
-                INSERT INTO CommunityEvent (name, location, category, date, time, description, user_id, approved_by_admin_id, created_at)
-                VALUES (@name, @location, @category, @date, @time, @description, @user_id, @approved_by_admin_id, GETDATE());
+                INSERT INTO CommunityEvent (name, location, category, date, time, description, user_id, created_at)
+                VALUES (@name, @location, @category, @date, @time, @description, @user_id, GETDATE());
                 SELECT SCOPE_IDENTITY() AS id;
             `);
         const eventId = result.recordset[0].id;
         return {
             success: true,
-            message: 'Community event created successfully',
+            message: 'Community event created successfully and pending admin approval',
             eventId: eventId
         };
     } catch (error) {
@@ -64,7 +63,7 @@ export async function addCommunityEventImage(community_event_id, image_url) {
             error: error.message
         };
     } finally {
-        if (connection){
+        if (connection) {
             await connection.close();
         };
     };
@@ -82,9 +81,10 @@ export async function getAllApprovedEvents() {
                 FROM CommunityEvent
                 JOIN Users ON CommunityEvent.user_id = Users.id
                 WHERE CommunityEvent.approved_by_admin_id IS NOT NULL
+                AND (CommunityEvent.date > CAST(GETDATE() AS DATE) OR (CommunityEvent.date = CAST(GETDATE() AS DATE) AND CommunityEvent.time > CAST(GETDATE() AS TIME)))
                 ORDER BY CommunityEvent.date ASC, CommunityEvent.time ASC
             `);
-        
+
         return {
             success: true,
             events: result.recordset
@@ -191,13 +191,67 @@ export async function getCommunityEventById(eventId) {
     }
 }
 
-// PUT: Update a community event (only by the creator)
+// GET: Get image URLs for a community event
+export async function getCommunityEventImageUrls(eventId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const imagesResult = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .query(`SELECT image_url FROM CommunityEventImage WHERE community_event_id = @eventId`);
+
+        return imagesResult.recordset.map(record => record.image_url);
+    } catch (error) {
+        console.error('Error getting community event image URLs:', error);
+        throw error;
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
+// DELETE: Delete a community event
+export async function deleteCommunityEvent(eventId, userId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+
+        // Delete images from CommunityEventImage table first
+        await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                DELETE FROM CommunityEventImage 
+                WHERE community_event_id = @eventId
+            `);
+
+        // Delete the event from CommunityEvent table
+        const result = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .input('userId', sql.Int, userId)
+            .query(`
+                DELETE FROM CommunityEvent 
+                WHERE id = @eventId AND user_id = @userId
+            `);
+
+        return result.rowsAffected[0] > 0;
+    } catch (error) {
+        console.error('Error deleting community event:', error);
+        throw error;
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
+// PUT: Update a community event (only by the creator) - sets approved_by_admin_id to NULL for re-approval
 export async function updateCommunityEvent(eventId, eventData, userId) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        
-        // Update the event, filtering by user_id to ensure ownership
+
+        // Update the event and set approved_by_admin_id to NULL for re-approval
         const result = await connection.request()
             .input('eventId', sql.Int, eventId)
             .input('userId', sql.Int, userId)
@@ -210,7 +264,8 @@ export async function updateCommunityEvent(eventId, eventData, userId) {
             .query(`
                 UPDATE CommunityEvent 
                 SET name = @name, location = @location, category = @category, 
-                    date = @date, time = @time, description = @description
+                    date = @date, time = @time, description = @description,
+                    approved_by_admin_id = NULL
                 WHERE id = @eventId AND user_id = @userId
             `);
 
@@ -224,7 +279,7 @@ export async function updateCommunityEvent(eventId, eventData, userId) {
 
         return {
             success: true,
-            message: 'Community event updated successfully'
+            message: 'Community event updated successfully and pending admin approval'
         };
     } catch (error) {
         console.error('Error updating community event:', error);
@@ -237,17 +292,15 @@ export async function updateCommunityEvent(eventId, eventData, userId) {
         if (connection) {
             await connection.close();
         }
-    };
-};
-
-
+    }
+}
 
 // DELETE: Delete unwanted images from a community event
 export async function deleteUnwantedImages(eventId, userId, keepImageIds) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        
+
         // First verify the user owns the event
         const eventCheck = await connection.request()
             .input('eventId', sql.Int, eventId)
@@ -256,7 +309,7 @@ export async function deleteUnwantedImages(eventId, userId, keepImageIds) {
                 SELECT id FROM CommunityEvent 
                 WHERE id = @eventId AND user_id = @userId
             `);
-        
+
         if (eventCheck.recordset.length === 0) {
             return {
                 success: false,
@@ -264,40 +317,49 @@ export async function deleteUnwantedImages(eventId, userId, keepImageIds) {
             };
         }
 
-        // Get all images for this event that are NOT in keepImageIds
-        let imagesToDelete;
+        // Get the image URLs that will be deleted before deleting them
+        let imagesToDeleteQuery;
         if (keepImageIds.length === 0) {
-            // If no images to keep, delete all images for this event
-            imagesToDelete = await connection.request()
+            // Delete all images for this event
+            imagesToDeleteQuery = `
+                SELECT image_url FROM CommunityEventImage 
+                WHERE community_event_id = @eventId
+            `;
+        } else {
+            // Delete only unwanted images
+            imagesToDeleteQuery = `
+                SELECT image_url FROM CommunityEventImage 
+                WHERE community_event_id = @eventId 
+                AND id NOT IN (SELECT value FROM STRING_SPLIT(@keepImageIds, ','))
+            `;
+        }
+
+        const imagesToDelete = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .input('keepImageIds', sql.NVarChar, keepImageIds.join(','))
+            .query(imagesToDeleteQuery);
+
+        const deletedUrls = imagesToDelete.recordset.map(record => record.image_url);
+
+        //delete database data
+        if (keepImageIds.length === 0) {
+            // Delete all images for this event
+            await connection.request()
                 .input('eventId', sql.Int, eventId)
                 .query(`
-                    SELECT id, image_url 
-                    FROM CommunityEventImage 
+                    DELETE FROM CommunityEventImage 
                     WHERE community_event_id = @eventId
                 `);
         } else {
-            // If there are images to keep, delete only the unwanted ones
-            const keepIdsParam = keepImageIds.join(',');
-            imagesToDelete = await connection.request()
-                .input('eventId', sql.Int, eventId)
-                .query(`
-                    SELECT id, image_url 
-                    FROM CommunityEventImage 
-                    WHERE community_event_id = @eventId 
-                    AND id NOT IN (${keepIdsParam})
-                `);
-        }
-
-        const deletedUrls = [];
-
-        // Delete each unwanted image
-        for (const image of imagesToDelete.recordset) {
+            // Delete only unwanted images
             await connection.request()
-                .input('imageId', sql.Int, image.id)
+                .input('eventId', sql.Int, eventId)
+                .input('keepImageIds', sql.NVarChar, keepImageIds.join(','))
                 .query(`
-                    DELETE FROM CommunityEventImage WHERE id = @imageId
+                    DELETE FROM CommunityEventImage 
+                    WHERE community_event_id = @eventId 
+                    AND id NOT IN (SELECT value FROM STRING_SPLIT(@keepImageIds, ','))
                 `);
-            deletedUrls.push(image.image_url);
         }
 
         return {
@@ -318,4 +380,115 @@ export async function deleteUnwantedImages(eventId, userId, keepImageIds) {
         }
     };
 };
+
+// GET: Get all community events pending (for admin approval)
+export async function getPendingEvents() {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
+            .query(`
+                SELECT CommunityEvent.*, Users.name as created_by_name,
+                  (SELECT TOP 1 image_url FROM CommunityEventImage WHERE community_event_id = CommunityEvent.id ORDER BY uploaded_at ASC) as image_url
+                FROM CommunityEvent
+                JOIN Users ON CommunityEvent.user_id = Users.id
+                WHERE CommunityEvent.approved_by_admin_id IS NULL
+                ORDER BY CommunityEvent.created_at DESC
+            `);
+
+        return {
+            success: true,
+            events: result.recordset
+        };
+    } catch (error) {
+        console.error('Error getting pending events:', error);
+        return {
+            success: false,
+            message: 'Failed to get pending events',
+            error: error.message
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
+// PUT: Approve a community event (as an admin)
+export async function approveCommunityEvent(eventId, adminId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .input('adminId', sql.Int, adminId)
+            .query(`
+                UPDATE CommunityEvent 
+                SET approved_by_admin_id = @adminId 
+                WHERE id = @eventId AND approved_by_admin_id IS NULL;
+                SELECT @@ROWCOUNT as affectedRows;
+            `);
+
+        if (result.recordset[0].affectedRows === 0) {
+            return {
+                success: false,
+                message: 'Event not found or already approved/rejected'
+            };
+        }
+
+        return {
+            success: true,
+            message: 'Community event approved successfully'
+        };
+    } catch (error) {
+        console.error('Error approving community event:', error);
+        return {
+            success: false,
+            message: 'Failed to approve community event',
+            error: error.message
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
+
+// DELETE: Reject/delete a community event
+export async function rejectCommunityEvent(eventId) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const result = await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                DELETE FROM CommunityEvent 
+                WHERE id = @eventId AND approved_by_admin_id IS NULL;
+                SELECT @@ROWCOUNT as affectedRows;
+            `);
+
+        if (result.recordset[0].affectedRows === 0) {
+            return {
+                success: false,
+                message: 'Event not found or already approved'
+            };
+        }
+
+        return {
+            success: true,
+            message: 'Community event rejected successfully'
+        };
+    } catch (error) {
+        console.error('Error rejecting community event:', error);
+        return {
+            success: false,
+            message: 'Failed to reject community event',
+            error: error.message
+        };
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+}
 

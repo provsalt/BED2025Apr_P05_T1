@@ -11,4 +11,4 @@ router.use(authorizeRole(["Admin"]))
 router.get("/deletion-requests", getDeletionRequestsController);
 router.post("/approve-delete", approveUserDeletionController);
 
-export default router; 
+export default router;

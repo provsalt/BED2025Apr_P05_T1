@@ -74,7 +74,7 @@ export const ChatMessages = ({ messages: initialMessages, currentUserId, chatId 
     >
       <div className="flex flex-col space-y-2">
         {messages.length === 0 ? (
-          <p className="text-center text-gray-500">No messages found</p>
+          <p className="text-center text-muted-foreground">No messages found</p>
         ) : (
           messages.map((msg) => (
             <Message

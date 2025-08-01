@@ -103,7 +103,7 @@ export function MedicationEditForm() {
   };
 
   if (loading || !formData) {
-    return <div className="text-center py-8 text-gray-500">Loading...</div>;
+    return <div className="text-center py-8 text-muted-foreground">Loading...</div>;
   }
 
   return (

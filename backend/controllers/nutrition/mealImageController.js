@@ -63,19 +63,32 @@ export const uploadNutritionImage = async (req, res, next) => {
         throw ErrorFactory.external("OpenAI", analysisResult.error, "Please ensure the image is clear and contains food items.");
       }
     } catch (analysisError) {
-      next(analysisError);
+      return next(analysisError);
+    }
+
+    // Validate nutrition data: require at least calories > 0
+    if (
+      !analysisResult ||
+      analysisResult.error ||
+      !analysisResult.calories ||
+      Number(analysisResult.calories) <= 0
+    ) {
+      return res.status(422).json({
+        success: false,
+        message: "Could not analyze image or no nutritional values detected. No meal was created."
+      });
     }
 
     const mealData = {
-      name: analysisResult?.name || "Unknown Food",
-      category: analysisResult?.category || "Unknown",
-      carbohydrates: Number(analysisResult?.carbohydrates) || 0,
-      protein: Number(analysisResult?.protein) || 0,
-      fat: Number(analysisResult?.fat) || 0,
-      calories: Math.ceil(Number(analysisResult?.calories) || 0), // Round up to nearest whole number
-      ingredients: Array.isArray(analysisResult?.ingredients)
+      name: analysisResult.name,
+      category: analysisResult.category,
+      carbohydrates: Number(analysisResult.carbohydrates),
+      protein: Number(analysisResult.protein),
+      fat: Number(analysisResult.fat),
+      calories: Math.ceil(Number(analysisResult.calories)),
+      ingredients: Array.isArray(analysisResult.ingredients)
         ? analysisResult.ingredients.join(", ")
-        : (analysisResult?.ingredients || ""),
+        : (analysisResult.ingredients || ""),
       image_url: publicUrl,
       user_id: req.user.id
     };
@@ -420,7 +433,7 @@ export const searchMealsController = async (req, res, next) => {
     const meals = await searchMeals(req.user.id, searchTerm.trim());
     
     if (!meals || meals.length === 0) {
-      throw ErrorFactory.notFound("No meals found for the given search term");
+      throw ErrorFactory.notFound("Meals");
     }
 
     res.status(200).json({ 

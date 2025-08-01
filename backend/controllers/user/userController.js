@@ -219,13 +219,14 @@ export const loginUserController = async (req, res, next) => {
     const body = req.body;
 
     const user = await getUserByEmail(body.email);
-    if (!user) {
-      throw ErrorFactory.unauthorized("Invalid email or password");
-    }
-    const isPasswordValid = await bcrypt.compare(body.password, user.password);
+    
+    // always perform password comparison to prevent timing attacks
+    // use dummy hash if user doesn't exist
+    const passwordToCompare = user?.password || "$2a$10$dummy.hash.to.prevent.timing.attacks.dummy.hash.dummy";
+    const isPasswordValid = await bcrypt.compare(body.password, passwordToCompare);
 
-    if (!isPasswordValid) {
-      throw ErrorFactory.unauthorized("Invalid email or password");
+    if (!user || !isPasswordValid) {
+      throw ErrorFactory.notFound("Email or password");
     }                       
     await insertLoginHistory(user.id);
 
@@ -530,9 +531,6 @@ export const deleteUserController = async (req, res, next) => {
       deletedUserId: parseInt(userId)
     });
   } catch (error) {
-    if (error.message.includes("not found")) {
-      return next(ErrorFactory.notFound("User"));
-    }
     next(error);
   }
 };

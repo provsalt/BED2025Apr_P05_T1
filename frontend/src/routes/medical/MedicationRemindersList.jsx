@@ -6,9 +6,6 @@ import { useNavigate } from 'react-router';
 import { fetcher } from '@/lib/fetcher.js';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 
-
-
-
 function formatSqlTime(sqlTime) {
   if (!sqlTime) {
     return '';
@@ -75,17 +72,41 @@ export const MedicationRemindersList = () => {
     }
   };
 
+  const getDeleteButtonText = (reminderId) => {
+    if (deletingId === reminderId) {
+      return 'Deleting...';
+    } else {
+      return 'Delete';
+    }
+  };
+
+  const getDialogTitleClass = () => {
+    if (dialog.type === 'error') {
+      return 'text-destructive';
+    } else {
+      return 'text-primary';
+    }
+  };
+
+  const getDialogTitleText = () => {
+    if (dialog.type === 'error') {
+      return 'Error';
+    } else {
+      return 'Success';
+    }
+  };
+
   const renderContent = () => {
     if (loading) {
-      return <div className="text-center py-8 text-gray-500">Loading...</div>;
+      return <div className="text-center py-8 text-muted-foreground">Loading...</div>;
     }
     
     if (error) {
-      return <div className="text-center py-8 text-red-500">{error}</div>;
+      return <div className="text-center py-8 text-destructive">{error}</div>;
     }
     
     if (reminders.length === 0) {
-      return <div className="text-center py-8 text-gray-500">No reminders</div>;
+      return <div className="text-center py-8 text-muted-foreground">No reminders</div>;
     }
     
     return (
@@ -94,23 +115,19 @@ export const MedicationRemindersList = () => {
           <Card key={reminder.id} className="flex flex-col md:flex-row items-start md:items-center justify-between">
             <CardContent className="flex-1 w-full">
               <div className="font-bold text-base mb-1">{reminder.medicine_name}</div>
-              <div className="text-gray-500 text-sm">
+              <div className="text-muted-foreground text-sm">
                 {reminder.reason} • {reminder.dosage} • {formatSqlTime(reminder.medicine_time)} • {reminder.frequency_per_day} per day
               </div>
             </CardContent>
             <div className="flex gap-2 px-6 pb-4 md:pb-0">
-              <Button 
-                className="bg-black text-white hover:bg-gray-900 cursor-pointer" 
-                onClick={() => navigate(`/medical/edit/${reminder.id}`)}>
-                Edit
+              <Button variant="secondary" className="cursor-pointer" onClick={() => navigate(`/medical/edit/${reminder.id}`)}>Edit</Button>
+              <Button
+                variant="destructive"
+                className="cursor-pointer"
+                disabled={deletingId === reminder.id}
+                onClick={() => handleDelete(reminder.id)}>
+                {getDeleteButtonText(reminder.id)}
               </Button>
-                <Button
-                  variant="destructive"
-                  className="bg-red-500 hover:bg-red-600 text-white cursor-pointer"
-                  disabled={deletingId === reminder.id}
-                  onClick={() => handleDelete(reminder.id)}>
-                  {renderDeleteButtonText(reminder.id)}
-                </Button>
             </div>
           </Card>
         ))}
@@ -118,53 +135,24 @@ export const MedicationRemindersList = () => {
     );
   };
 
-  const renderDialogTitle = () => {
-    if (dialog.type === 'error') {
-      return 'Error';
-    } else {
-      return 'Success';
-    }
-  };
-
-  const renderDialogTitleClass = () => {
-    if (dialog.type === 'error') {
-      return 'text-red-700';
-    } else {
-      return 'text-green-700';
-    }
-  };
-
-  const renderDeleteButtonText = (reminderId) => {
-    if (deletingId === reminderId) {
-      return 'Deleting...';
-    } else {
-      return 'Delete';
-    }
-  };
-
   return (
     <div className="w-full max-w-3xl mx-auto mt-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">My Medication Reminders</h2>
-        <Button 
-          className="bg-black text-white hover:bg-gray-900 cursor-pointer" 
-          onClick={() => navigate('/medical/create')}
-        >
-          + Add New Reminder
-        </Button>
+        <Button variant="default" className="bg-primary hover:bg-primary/90 cursor-pointer" onClick={() => navigate('/medical/create')}>+ Add New Reminder</Button>
       </div>
       {renderContent()}
       <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className={renderDialogTitleClass()}>
-              {renderDialogTitle()}
+            <DialogTitle className={getDialogTitleClass()}>
+              {getDialogTitleText()}
             </DialogTitle>
             <DialogDescription>{dialog.message}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button 
-              className="bg-black text-white hover:bg-gray-900 cursor-pointer" 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" 
               onClick={() => {
                 setDialog(d => ({ ...d, open: false }));
                 //window.location.reload();

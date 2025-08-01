@@ -1,13 +1,13 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
-import { Button } from "../../components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { Upload, X } from "lucide-react";
-import { fetcher } from "../../lib/fetcher";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
-import { UserContext } from '../../provider/UserContext.js';
+import { fetcher } from "@/lib/fetcher";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { UserContext } from "@/provider/UserContext.js";
 
 export const CreateEventPage = () => {
   const navigate = useNavigate();
@@ -19,7 +19,52 @@ export const CreateEventPage = () => {
   const fileInputRef = useRef(null);
   const userContext = React.useContext(UserContext);
 
+  //show loading state while user context is initializing
+  if (userContext?.isLoading) {
+    return (
+      <div className="w-full p-6 bg-muted min-h-screen">
+        <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+          <div className="text-center py-8 text-muted-foreground">
+            Loading user authentication...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
+  //check if user context exists and  properly loaded
+  if (!userContext) {
+    return (
+      <div className="w-full p-6 bg-muted min-h-screen">
+        <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+          <div className="text-center py-8 text-muted-foreground">
+            Loading user authentication...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check authentication status with better error handling
+  const localStorageToken = localStorage.getItem('token');
+  const hasToken = localStorageToken || userContext.token;
+  const isAuthenticated = (userContext.isAuthenticated && userContext.id) || hasToken;
+  
+  if (!isAuthenticated) {
+    return (
+      <div className="w-full p-6 bg-muted min-h-screen">
+        <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+          <div className="text-center py-8">
+            <h2 className="text-xl font-semibold text-foreground mb-4">Authentication Required</h2>
+            <p className="text-muted-foreground mb-4">You must be logged in to create an event.</p>
+            <Button onClick={() => navigate('/login')} className="cursor-pointer">
+              Go to Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Handle file selection
   const handleImageChange = (e) => {
@@ -27,7 +72,7 @@ export const CreateEventPage = () => {
     const validFiles = files.filter(file =>
       ["image/jpeg", "image/png", "image/webp", "image/jpg"].includes(file.type) && file.size <= 30 * 1024 * 1024
     );
-    // Allow all valid files to be added 
+
     const newImages = [...images];
     const newPreviews = [...imagePreviews];
     validFiles.forEach(file => {
@@ -55,24 +100,18 @@ export const CreateEventPage = () => {
     handleImageChange({ target: { files } });
   };
 
-  // Form submit
+  //handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    //check if user logged in
-    if (!userContext || !userContext.isAuthenticated || !userContext.id) {
-      setDialog({ open: true, type: 'error', message: 'You must be logged in to create an event.' });
-      setIsSubmitting(false);
-      return;
-    }
-    
-    // Get form values
+    //form values
     const eventName = e.target.name.value.trim();
     const location = e.target.location.value.trim();
     const date = e.target.date.value;
     const time = e.target.time.value;
     const description = e.target.description.value.trim();
+
     if (!eventName || !location || !category || !date || !time || !description) {
       setDialog({ open: true, type: 'error', message: 'Please fill in all required fields.' });
       setIsSubmitting(false);
@@ -92,9 +131,12 @@ export const CreateEventPage = () => {
       setIsSubmitting(false);
       return;
     }
-    
+
     const formData = new FormData(e.target);
-    images.forEach((file) => formData.append("images", file));
+
+    // Only add non-empty files to FormData
+    const validImages = images.filter(file => file.size > 0);
+    validImages.forEach((file) => formData.append("images", file));
 
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -103,7 +145,7 @@ export const CreateEventPage = () => {
         body: formData,
       });
       if (result.success) {
-        setDialog({ open: true, type: "success", message: "Event created!" });
+        setDialog({ open: true, type: "success", message: result.message || "Event created successfully and pending admin approval!" });
         setImages([]);
         setImagePreviews([]);
         e.target.reset();
@@ -126,10 +168,15 @@ export const CreateEventPage = () => {
     }
   };
 
+  let borderColor = "#d1d5db";
+  if (images.length) {
+    borderColor = "#4f46e5";
+  }
+
   return (
-    <div className="w-full p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-sm border p-6 max-w-md mx-auto">
-        <h2 className="text-xl font-semibold text-gray-800 mb-6">Create Event</h2>
+    <div className="w-full p-6 bg-muted min-h-screen">
+      <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+        <h2 className="text-xl font-semibold text-foreground mb-6">Create Event</h2>
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="eventName" className="mb-2 inline-block">Event Name *</Label>
@@ -146,7 +193,7 @@ export const CreateEventPage = () => {
               name="category"
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
               required
             >
               <option value="" disabled>Select a category</option>
@@ -173,22 +220,17 @@ export const CreateEventPage = () => {
           <div>
             <Label className="mb-2 inline-block">Event Images *</Label>
             <div
-              className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+              className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80 transition"
               onDrop={handleDrop}
               onDragOver={e => e.preventDefault()}
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
-              style={{ borderColor: (() => {
-                if (images.length) {
-                  return "#4f46e5";
-                }
-                return "#d1d5db";
-              })() }}
+              style={{ borderColor }}
             >
-              <Upload className="w-6 h-6 mb-1 text-gray-500" />
-              <p className="text-xs text-gray-500">
+              <Upload className="w-6 h-6 mb-1 text-muted-foreground" />
+              <p className="text-xs text-muted-foreground">
                 <span className="font-semibold">Click or drag images here</span>
               </p>
-              <p className="text-xs text-gray-400">PNG, JPG, WEBP up to 30MB each</p>
+              <p className="text-xs text-muted-foreground">PNG, JPG, WEBP up to 30MB each</p>
               <input
                 id="eventImages"
                 name="images"
@@ -212,7 +254,7 @@ export const CreateEventPage = () => {
                     <button
                       type="button"
                       onClick={e => { e.stopPropagation(); removeImage(idx); }}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-80 hover:opacity-100 cursor-pointer"
+                      className="absolute top-1 right-1 bg-destructive text-primary-foreground rounded-full p-1 opacity-80 hover:opacity-100 cursor-pointer"
                       title="Remove image"
                     >
                       <X className="w-4 h-4" />
@@ -222,21 +264,23 @@ export const CreateEventPage = () => {
               </div>
             )}
           </div>
-          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>{(() => {
-            if (isSubmitting) {
-              return "Submitting...";
-            }
-            return "Submit";
-          })()}</Button>
+          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>
+            {(() => {
+              if (isSubmitting) {
+                return "Submitting...";
+              }
+              return "Submit";
+            })()}
+          </Button>
         </form>
         <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
           <DialogContent className="rounded-xl">
             <DialogHeader>
               <DialogTitle className={(() => {
                 if (dialog.type === 'error') {
-                  return 'text-red-700';
+                  return 'text-destructive';
                 }
-                return 'text-green-700';
+                return 'text-primary';
               })()}>
                 {(() => {
                   if (dialog.type === 'error') {
@@ -246,15 +290,15 @@ export const CreateEventPage = () => {
                 })()}
               </DialogTitle>
             </DialogHeader>
-             <div className="py-2">{dialog.message}</div>
-             <DialogFooter>
-               <Button className="cursor-pointer" onClick={() => {
-                 setDialog(d => ({ ...d, open: false }));
-                 if (dialog.type === 'success') {
-                   navigate('/community/myevents');
-                 }
-               }}>Okay</Button>
-             </DialogFooter>
+            <div className="py-2">{dialog.message}</div>
+            <DialogFooter>
+              <Button className="cursor-pointer" onClick={() => {
+                setDialog(d => ({ ...d, open: false }));
+                if (dialog.type === 'success') {
+                  navigate('/community/myevents');
+                }
+              }}>Okay</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
@@ -262,4 +306,3 @@ export const CreateEventPage = () => {
   );
 };
 
- 

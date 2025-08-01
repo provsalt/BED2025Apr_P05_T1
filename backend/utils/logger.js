@@ -1,38 +1,69 @@
-import winston from "winston";
+import pino from "pino";
+import {context, trace} from "@opentelemetry/api";
+import dotenv from "dotenv";
+import packageJson from "../package.json" with { type: "json" };
 
-const createLogger = () => {
-  const logFormat = winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
+dotenv.config();
+
+const LokiTransport = pino.transport({
+  target: "pino-loki",
+  options: {
+    batching: true,
+    interval: 5,
+    host: process.env.LOKI_ENDPOINT,
+    labels: {
+      service: process.env.SERVICE_NAME || packageJson.name || "eldercare_backend",
+      environment: process.env.NODE_ENV || "development",
+      version: packageJson.version || "1.0.0"
+    }
+  },
+});
+
+const logger = pino(
+  {
+    mixin() {
+      const span = trace.getSpan(context.active());
+      if (span) {
+        const ctx = span.spanContext();
+        return {
+          traceId: ctx.traceId,
+          spanId: ctx.spanId,
+        };
+      }
+      return {};
+    },
+  },
+  LokiTransport,
+);
+
+export const loggerMiddleware = (req, res, next) => {
+  const span = trace.getSpan(context.active());
+
+  logger.info(
+    {
+      method: req.method,
+      path: req.path,
+      traceId: span?.spanContext().traceId,
+      spanId: span?.spanContext().spanId,
+      headers: req.headers,
+      body: req.body,
+      query: req.query,
+      params: req.params,
+      ip:
+        req.ip ||
+        req.ips ||
+        req.socket.remoteAddress ||
+        req.connection.remoteAddress,
+      hostname: req.hostname,
+      protocol: req.protocol,
+      originalUrl: req.originalUrl,
+      baseUrl: req.baseUrl,
+    },
+    "API-HIT!",
   );
 
-  const transports = [
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.printf(({ level, message, timestamp, ...meta }) => {
-          let output = `${timestamp} [${level}]: ${message}`;
-          
-          if (Object.keys(meta).length > 0) {
-            output += `\n${JSON.stringify(meta, null, 2)}`;
-          }
-          
-          return output;
-        })
-      )
-    })
-  ];
-
-  return winston.createLogger({
-    level: process.env.LOG_LEVEL || "info",
-    format: logFormat,
-    transports,
-    exitOnError: false
-  });
-};
-
-export const logger = createLogger();
+  next();
+}
 
 export const logError = (error, req = null, additionalInfo = {}) => {
   const errorData = {
@@ -40,7 +71,10 @@ export const logError = (error, req = null, additionalInfo = {}) => {
     message: error.message,
     category: error.category || "unknown",
     statusCode: error.statusCode,
-    ...(process.env.NODE_ENV === "development" && { stack: error.stack })
+    stack: error.stack,
+    isOperational: error.isOperational,
+    timestamp: error.timestamp,
+    ...(error.details && { details: error.details })
   };
 
   const requestData = req ? {
@@ -52,17 +86,21 @@ export const logError = (error, req = null, additionalInfo = {}) => {
     traceId: req.traceId
   } : {};
 
-  logger.error("Application Error", {
+  const logData = {
+    msg: "Application Error",
     error: errorData,
     request: requestData,
+    timestamp: new Date().toISOString(),
     ...additionalInfo
-  });
+  };
+
+  logger.error(logData);
 };
 
 export const logInfo = (message, data = {}) => {
-  logger.info({ message, ...data, timestamp: new Date().toISOString() });
+  logger.info({message, ...data, timestamp: new Date().toISOString()});
 };
 
 export const logWarning = (message, data = {}) => {
-  logger.warn({ message, ...data, timestamp: new Date().toISOString() });
+  logger.warn({message, ...data, timestamp: new Date().toISOString()});
 };

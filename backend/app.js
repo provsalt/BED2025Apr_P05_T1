@@ -1,3 +1,4 @@
+import "./instrumentation.js";
 import express from "express"
 import {createServer} from "http"
 import {Server} from "socket.io"
@@ -12,8 +13,7 @@ import promBundle from "express-prom-bundle";
 import { connectedUsersGauge } from "./services/prometheusService.js";
 import client from "prom-client";
 import { errorHandler } from "./middleware/errorHandler.js";
-import { tracingMiddleware } from "./middleware/tracing.js";
-import {logInfo} from "./utils/logger.js";
+import {loggerMiddleware, logInfo} from "./utils/logger.js";
 
 const app = express();
 const server = createServer(app);
@@ -26,7 +26,7 @@ const io = new Server(server, {
 });
 
 app.set("trust proxy", 1);
-
+app.use(loggerMiddleware)
 app.use(express.static("dist"))
 app.use(cors({
     origin: origins,
@@ -35,7 +35,6 @@ app.use(cors({
 
 app.use(express.json());
 
-app.use(tracingMiddleware)
 
 // Apply rate limiting globally
 app.use(defaultRateLimit);

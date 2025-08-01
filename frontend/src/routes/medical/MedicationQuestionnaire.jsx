@@ -118,13 +118,13 @@ export function MedicationQuestionnaire() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full p-6 bg-gray-50">
-      <div className="bg-white rounded-lg shadow-sm border p-6 max-w-md mx-auto">
-        <h1 className="text-xl font-semibold text-gray-800 mb-6">Wellness Questionnaire</h1>
+    <form onSubmit={handleSubmit} className="w-full p-6 bg-muted">
+      <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+        <h1 className="text-xl font-semibold text-foreground mb-6">Wellness Questionnaire</h1>
         <div className="space-y-6">
           {/* Difficulty Walking */}
           <div className="space-y-2">
-            <Label htmlFor="difficulty_walking" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="difficulty_walking" className="text-sm font-medium text-foreground">
               Do you have difficulty walking? *
             </Label>
             <RadioGroup
@@ -146,7 +146,7 @@ export function MedicationQuestionnaire() {
 
           {/* Assistive Device */}
           <div className="space-y-2">
-            <Label htmlFor="assistive_device" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="assistive_device" className="text-sm font-medium text-foreground">
               Do you use any assistive device? *
             </Label>
             <Input
@@ -160,7 +160,7 @@ export function MedicationQuestionnaire() {
 
           {/* Symptoms or Pain */}
           <div className="space-y-2">
-            <Label htmlFor="symptoms_or_pain" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="symptoms_or_pain" className="text-sm font-medium text-foreground">
               Please describe any symptoms or pain: *
             </Label>
             <Textarea
@@ -174,7 +174,7 @@ export function MedicationQuestionnaire() {
 
           {/* Allergies */}
           <div className="space-y-2">
-            <Label htmlFor="allergies" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="allergies" className="text-sm font-medium text-foreground">
               Do you have any allergies? *
             </Label>
             <Textarea
@@ -188,7 +188,7 @@ export function MedicationQuestionnaire() {
 
           {/* Medical Conditions */}
           <div className="space-y-2">
-            <Label htmlFor="medical_conditions" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="medical_conditions" className="text-sm font-medium text-foreground">
               Do you have any medical conditions? *
             </Label>
             <Textarea
@@ -202,7 +202,7 @@ export function MedicationQuestionnaire() {
 
           {/* Exercise Frequency */}
           <div className="space-y-2">
-            <Label htmlFor="exercise_frequency" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="exercise_frequency" className="text-sm font-medium text-foreground">
               How often do you exercise? *
             </Label>
             <RadioGroup
@@ -245,8 +245,8 @@ export function MedicationQuestionnaire() {
       <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className={renderDialogTitleClass()}>
-              {renderDialogTitle()}
+            <DialogTitle className={dialog.type === 'error' ? 'text-destructive' : 'text-primary'}>
+              {dialog.type === 'error' ? 'Error' : 'Success'}
             </DialogTitle>
           </DialogHeader>
           <div className="py-2">{dialog.message}</div>

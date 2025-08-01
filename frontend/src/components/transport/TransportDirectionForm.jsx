@@ -126,7 +126,7 @@ const TransportDirectionForm = ({ stations, onSearch }) => {
 
         <Button onClick={handleSearch}>Find Path</Button>
       </div>
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-destructive">{error}</p>}
     </div>
   );
 };
