@@ -20,7 +20,7 @@ export class AIPredictionService {
     try {
       // Try agentic mode first if enabled
       if (useAgentic) {
-        console.log('Attempting agentic nutrition analysis...');
+        console.warn('Attempting agentic nutrition analysis...');
         try {
           const agenticResponse = await generateAgenticNutritionPredictions(nutritionData);
           const validatedResponse = this.validateAndEnforceCalorieLimits(agenticResponse, user);
