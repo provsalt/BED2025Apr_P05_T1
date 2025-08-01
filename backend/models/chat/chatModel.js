@@ -26,7 +26,7 @@ export const getChats = async (userId) => {
 
     return result.recordset.length === 0 ? null : result.recordset
   } catch (error) {
-    throw ErrorFactory.database(`Failed to get chats: ${error.message}`);
+    throw ErrorFactory.database(`Failed to get chats: ${error.message}`, "Unable to process request at this time", error);
   }
 }
 
@@ -40,7 +40,7 @@ export const getChat = async (chatId) => {
 
     return result.recordset.length === 0 ? null : result.recordset[0]
   } catch (error) {
-    throw ErrorFactory.database(`Failed to get chat: ${error.message}`);
+    throw ErrorFactory.database(`Failed to get chat: ${error.message}`, "Unable to process request at this time", error);
   }
 }
 
@@ -59,7 +59,7 @@ export const createChat = async (initiatorId, recipientId) => {
     
     return result.recordset[0].id;
   } catch (error) {
-    throw ErrorFactory.database(`Failed to create chat: ${error.message}`);
+    throw ErrorFactory.database(`Failed to create chat: ${error.message}`, "Unable to process request at this time", error);
   }
 }
 
@@ -78,7 +78,7 @@ export const getChatBetweenUsers = async (userId1, userId2) => {
     
     return result.recordset.length > 0 ? result.recordset[0] : null;
   } catch (error) {
-    throw ErrorFactory.database(`Failed to get chat between users: ${error.message}`);
+    throw ErrorFactory.database(`Failed to get chat between users: ${error.message}`, "Unable to process request at this time", error);
   }
 }
 
@@ -92,6 +92,6 @@ export const updateChatTimestamp = async (chatId) => {
     
     return result.rowsAffected[0] > 0;
   } catch (error) {
-    throw ErrorFactory.database(`Failed to update chat timestamp: ${error.message}`);
+    throw ErrorFactory.database(`Failed to update chat timestamp: ${error.message}`, "Unable to process request at this time", error);
   }
 }
