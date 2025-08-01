@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
-import { isResponseSafe } from './openaiService.js';
+import { z } from "zod/v4";
+import { healthSummarySchema } from '../../utils/validation/medical.js';
 
 dotenv.config();
 
@@ -8,10 +9,12 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+
+
 /**
  * Generate a comprehensive health summary based on questionnaire data
  * @param {Object} questionnaireData - The user's questionnaire responses
- * @returns {Promise<Object>} Generated health summary with safety validation
+ * @returns {Promise<Object>} Generated health summary
  */
 export const generateHealthSummary = async (questionnaireData) => {
   try {
@@ -24,8 +27,16 @@ export const generateHealthSummary = async (questionnaireData) => {
       exercise_frequency
     } = questionnaireData;
 
-    // Create a comprehensive prompt for health summary generation
-    const prompt = `As a healthcare professional, analyze the following wellness questionnaire responses and provide a comprehensive, personalized health summary. 
+    const response = await openai.responses.parse({
+      model: "gpt-4.1-mini",
+      input: [
+        {
+          role: "system",
+          content: "You are a healthcare professional providing general wellness summaries. Always encourage professional medical consultation for specific health concerns."
+        },
+        {
+          role: "user",
+          content: `As a healthcare professional, analyze the following wellness questionnaire responses and provide a comprehensive, personalized health summary. 
 
 Please provide:
 1. A brief overview of the individual's current health status
@@ -50,49 +61,71 @@ Important Guidelines:
 - Focus on actionable, positive health recommendations
 - Keep the tone professional but accessible
 
-Please format the response as a well-structured health summary with clear sections.`;
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        {
-          role: "system",
-          content: "You are a healthcare professional providing general wellness summaries. Always encourage professional medical consultation for specific health concerns."
-        },
-        {
-          role: "user",
-          content: prompt
+Please format the response as a well-structured health summary with clear sections.`
         }
       ],
-      max_tokens: 800,
-      temperature: 0.7,
+      text: {
+        format: {
+          name: "health-summary",
+          type: "json_schema",
+          strict: true,
+          schema: z.toJSONSchema(healthSummarySchema, {target: 'draft-7'}),
+        },
+      },
     });
 
-    const summary = response.choices[0]?.message?.content;
+    const summary = response.output_parsed;
 
     if (!summary) {
       throw new Error("No response generated from OpenAI");
     }
 
     // Validate the response for safety
-    const isSafe = await isResponseSafe(summary);
+    const summaryString = JSON.stringify(summary);
+    const isSafe = await isResponseSafe(summaryString);
     if (!isSafe) {
       throw new Error("Generated content failed safety validation");
     }
 
-    return {
-      success: true,
-      summary: summary,
-      generated_at: new Date().toISOString()
-    };
+    // Additional validation for health summary content
+    const isValidHealthSummary = await validateHealthSummary(summaryString);
+    if (!isValidHealthSummary) {
+      throw new Error("Generated health summary failed content validation");
+    }
+
+    return summary;
 
   } catch (error) {
-    console.error("Health summary generation error:", error);
-    return {
-      success: false,
-      error: error.message || "Failed to generate health summary"
-    };
+    throw new Error(`Failed to generate health summary: ${error.message}`);
   }
+}; 
+
+/**
+ * Validate AI response for safety and appropriateness
+ * @param {string} response - AI response to validate
+ * @returns {Promise<boolean>} Whether response is safe
+ */
+export const isResponseSafe = async (response) => {
+  if (!response || typeof response !== 'string') return false;
+  
+  const lowerResponse = response.toLowerCase();
+  
+  const rolePlayingIndicators = [
+    'i am now', 'i have become', 'switching to', 'roleplaying as',
+    'pretending to be', 'my new role', 'i will now act as'
+  ];
+  
+  if (rolePlayingIndicators.some(indicator => lowerResponse.includes(indicator))) {
+    console.warn('AI response contains role-playing indicators');
+    return false;
+  }
+  
+  const systemLeakIndicators = [
+    'my instructions are', 'my system prompt', 'i was programmed to',
+    'the developers told me', 'according to my training'
+  ];
+  
+  return !systemLeakIndicators.some(indicator => lowerResponse.includes(indicator));
 };
 
 /**
@@ -140,4 +173,4 @@ export const validateHealthSummary = async (summary) => {
     console.error("Health summary validation error:", error);
     return false;
   }
-}; 
+};

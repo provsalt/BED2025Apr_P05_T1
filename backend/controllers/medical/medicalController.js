@@ -495,14 +495,13 @@ export const generateUserHealthSummary = async (req, res, next) => {
     }
     
     // Generate health summary using OpenAI
-    const summaryResult = await generateHealthSummary(questionnaireResult.data);
+    const summaryData = await generateHealthSummary(questionnaireResult.data);
     
-    if (!summaryResult.success) {
-      throw ErrorFactory.internal("Failed to generate health summary", summaryResult.error);
-    }
+    // Convert the structured summary to a formatted string
+    const formattedSummary = formatHealthSummary(summaryData);
     
     // Save the generated summary to database
-    const saveResult = await createHealthSummary(userId, summaryResult.summary);
+    const saveResult = await createHealthSummary(userId, formattedSummary);
     
     if (!saveResult.success) {
       throw ErrorFactory.database("Failed to save health summary", saveResult.message);
@@ -510,14 +509,45 @@ export const generateUserHealthSummary = async (req, res, next) => {
     
     res.status(200).json({
       success: true,
-      summary: summaryResult.summary,
-      generated_at: summaryResult.generated_at,
+      summary: formattedSummary,
+      generated_at: new Date().toISOString(),
       message: "Health summary generated successfully"
     });
     
   } catch (error) {
     next(error);
   }
+};
+
+// Helper function to format the structured summary data into a readable string
+const formatHealthSummary = (summaryData) => {
+  const sections = [];
+  
+  if (summaryData.overview) {
+    sections.push(`**Health Overview**\n${summaryData.overview}`);
+  }
+  
+  if (summaryData.keyConsiderations) {
+    sections.push(`**Key Health Considerations**\n${summaryData.keyConsiderations}`);
+  }
+  
+  if (summaryData.wellnessRecommendations) {
+    sections.push(`**Wellness Recommendations**\n${summaryData.wellnessRecommendations}`);
+  }
+  
+  if (summaryData.areasForAttention) {
+    sections.push(`**Areas for Professional Attention**\n${summaryData.areasForAttention}`);
+  }
+  
+  if (summaryData.positivePractices) {
+    sections.push(`**Positive Health Practices**\n${summaryData.positivePractices}`);
+  }
+  
+  if (summaryData.disclaimer) {
+    sections.push(`**Important Disclaimer**\n${summaryData.disclaimer}`);
+  }
+  
+  return sections.join('\n\n');
 };
 
 /**

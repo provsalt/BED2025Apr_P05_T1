@@ -36,7 +36,7 @@ export const HealthSummary = () => {
       setLoading(true);
       setError(null);
       const response = await fetcher(`${backendUrl}/api/medications/health-summary`);
-      
+
       if (response.success) {
         setSummary(response.data);
       } else {
@@ -54,7 +54,7 @@ export const HealthSummary = () => {
     } catch (err) {
       // Parse error message from response if available
       let errorMessage = "We can't load your health summary at this time.";
-      
+
       if (err.message) {
         try {
           // Try to parse JSON error response
@@ -75,7 +75,7 @@ export const HealthSummary = () => {
           }
         }
       }
-      
+
       setError(errorMessage);
       // Check for existing questionnaire
       await checkExistingQuestionnaire();
@@ -86,7 +86,7 @@ export const HealthSummary = () => {
 
   const handleHealthSummaryError = (errorMessage) => {
     let finalErrorMessage = "We couldn't generate your health summary at this time.";
-    
+
     if (errorMessage) {
       if (errorMessage.includes("No questionnaire found")) {
         finalErrorMessage = "Please complete the wellness questionnaire first. This helps us create a personalized health summary for you.";
@@ -96,7 +96,7 @@ export const HealthSummary = () => {
         finalErrorMessage = errorMessage;
       }
     }
-    
+
     setDialog({
       open: true,
       type: 'error',
@@ -113,7 +113,7 @@ export const HealthSummary = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
-      
+
       if (response.success) {
         setSummary({
           summary: response.summary,
@@ -131,7 +131,7 @@ export const HealthSummary = () => {
     } catch (err) {
       // Parse error message if it's JSON
       let errorMessage = "We encountered an issue while generating your health summary. Please try again.";
-      
+
       if (err.message) {
         try {
           const errorData = JSON.parse(err.message);
@@ -142,7 +142,7 @@ export const HealthSummary = () => {
           errorMessage = err.message;
         }
       }
-      
+
       handleHealthSummaryError(errorMessage);
     } finally {
       setGenerating(false);
@@ -162,11 +162,11 @@ export const HealthSummary = () => {
     });
   };
 
-  const handleDialogAction = () => {
+  const handleDialogAction = (action) => {
     if (dialog.type === 'confirm') {
-      if (dialog.action === 'useExisting') {
+      if (action === 'useExisting') {
         generateHealthSummary();
-      } else if (dialog.action === 'newQuestionnaire') {
+      } else if (action === 'newQuestionnaire') {
         navigate('/medical/questionnaire');
       }
     }
@@ -190,7 +190,8 @@ export const HealthSummary = () => {
       open: true,
       type: 'confirm',
       title: 'Generate Health Summary',
-      message: 'Would you like to create a new health summary using your existing questionnaire data? This will provide fresh insights based on your current responses.'
+      message: 'Would you like to create a new health summary using your existing questionnaire data? This will provide fresh insights based on your current responses.',
+      action: 'useExisting'
     });
   };
 
@@ -205,7 +206,7 @@ export const HealthSummary = () => {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: 'UTC' 
+      timeZone: 'UTC'
     });
   };
 
@@ -249,14 +250,14 @@ export const HealthSummary = () => {
         <CardContent className="p-8 text-center">
           <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-800 mb-2">No Health Summary Found</h2>
-          
+
           {checkingQuestionnaire && (
             <div className="flex items-center justify-center space-x-2 mb-6">
               <Loader2 className="h-4 w-4 animate-spin text-black" />
               <p className="text-gray-600">Checking for existing questionnaire...</p>
             </div>
           )}
-          
+
           {!checkingQuestionnaire && hasQuestionnaire && (
             <div className="space-y-4">
               <div className="flex items-center justify-center space-x-2 mb-4">
@@ -267,30 +268,30 @@ export const HealthSummary = () => {
                 You can generate a health summary using your existing questionnaire data or complete a new questionnaire.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button 
-                  className="bg-black text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer" 
+                <Button
+                  className="bg-black text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer"
                   onClick={handleGenerateFromExisting}>
 
                   Generate from Existing Data
                 </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate('/medical/questionnaire')} 
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/medical/questionnaire')}
                   className="w-full sm:w-auto cursor-pointer">
                   Complete New Questionnaire
                 </Button>
               </div>
             </div>
           )}
-          
+
           {!checkingQuestionnaire && !hasQuestionnaire && (
             <div className="space-y-4">
               <p className="text-gray-600 mb-6">
                 You haven't completed the wellness questionnaire yet. Complete the questionnaire to generate your personalized health summary.
               </p>
               <div className="flex justify-center">
-                <Button 
-                  className="bg-black text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer" 
+                <Button
+                  className="bg-black text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer"
                   onClick={() => navigate('/medical/questionnaire')}>
                   Complete Wellness Questionnaire
                 </Button>
@@ -313,26 +314,26 @@ export const HealthSummary = () => {
               {renderErrorContent()}
             </p>
           </div>
-          
+
           <div className="space-y-3">
-            <Button 
-              className="bg-black text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer" 
-              onClick={fetchHealthSummary} 
+            <Button
+              className="bg-black text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer"
+              onClick={fetchHealthSummary}
               disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 animate-spin mr-2 text-white" />}
               {!loading && <RefreshCw className="h-4 w-4 mr-2" />}
               Try Again
             </Button>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button 
+              <Button
                 className="bg-black text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer"
                 onClick={() => navigate('/medical/questionnaire')}>
                 Complete Questionnaire
               </Button>
 
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => navigate('/medical')}
                 className="w-full sm:w-auto cursor-pointer">
                 Back to Medical Home
@@ -350,78 +351,105 @@ export const HealthSummary = () => {
       if (!section.trim()) {
         return null;
       }
-      
+
       // Extract header and content
       const headerMatch = section.match(/^\*\*(.*?)\*\*/);
       if (headerMatch) {
         const header = headerMatch[1].trim();
         const content = section.replace(/^\*\*.*?\*\*\s*/, '').trim();
-        
+
 
         if (header.toLowerCase().includes('personalized health summary') && !content) {
           return null;
         }
-        
+
         return (
           <Card key={index} className="bg-white shadow-sm">
             <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-800">
-                    {header}
-                </CardTitle>
+              <CardTitle className="text-lg font-semibold text-gray-800">
+                {header}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-gray-700 leading-relaxed">
                 {content.split('\n\n').map((paragraph, pIndex) => {
                   if (paragraph.trim()) {
-                    //split by bullet points 
-                    const bulletPoints = paragraph.split(/(?=^- \*\*)/m);
-                     
-                    if (bulletPoints.length > 1) {
+                    // Check if this paragraph contains numbered lists
+                    const numberedListMatch = paragraph.match(/^- (\d+)\.\s+(.+)$/gm);
+
+                    if (numberedListMatch && numberedListMatch.length > 0) {
+                      // Process numbered lists
+                      const listItems = numberedListMatch.map((item, itemIndex) => {
+                        const match = item.match(/^- (\d+)\.\s+(.+)$/);
+                        if (match) {
+                          const number = match[1];
+                          const content = match[2];
+                          const processedContent = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                          return (
+                            <li key={itemIndex} className="mb-2 last:mb-0"
+                              dangerouslySetInnerHTML={{ __html: processedContent }}>
+                            </li>
+                          );
+                        }
+                        return null;
+                      });
+
+                      return (
+                        <ol key={pIndex} className="list-decimal list-inside space-y-2 mb-4 last:mb-0">
+                          {listItems}
+                        </ol>
+                      );
+                    } else {
+                      // Process regular bullet points
+                      const bulletPoints = paragraph.split(/(?=^- \*\*)/m);
+
+                      if (bulletPoints.length > 1) {
                         //if we have bullet points, render each one separately
                         return bulletPoints.map((bullet, bIndex) => {
-                            if (bullet.trim()) {
-                                //check if this bullet starts with "- " and has bold text after
-                                let processedText = bullet.trim();
-                                if (processedText.startsWith('- ') && processedText.includes('**')) {
-                                    //keep the dash and process bold text
-                                    processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                                } else if (processedText.startsWith('- ')) {
-                                    //remove the dash if no bold text follows
-                                    processedText = processedText.replace(/^- /, '');
-                                    processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                                } else {
-                                    //regular processing
-                                    processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                                }
-                            return (
-                                <p key={`${pIndex}-${bIndex}`} className="mb-3 last:mb-0" 
-                                    dangerouslySetInnerHTML={{ __html: processedText }}>
-                                </p>
-                            );
+                          if (bullet.trim()) {
+                            //check if this bullet starts with "- " and has bold text after
+                            let processedText = bullet.trim();
+                            if (processedText.startsWith('- ') && processedText.includes('**')) {
+                              //keep the dash and process bold text
+                              processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                            } else if (processedText.startsWith('- ')) {
+                              //remove the dash if no bold text follows
+                              processedText = processedText.replace(/^- /, '');
+                              processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                            } else {
+                              //regular processing
+                              processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                             }
-                            return null;
+                            return (
+                              <p key={`${pIndex}-${bIndex}`} className="mb-3 last:mb-0"
+                                dangerouslySetInnerHTML={{ __html: processedText }}>
+                              </p>
+                            );
+                          }
+                          return null;
                         });
-                    } else {
+                      } else {
                         let processedText = paragraph.trim();
                         //check if this paragraph starts with "- " and has bold text after
                         if (processedText.startsWith('- ') && processedText.includes('**')) {
-                            //keep the dash and process bold text
-                            processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                          //keep the dash and process bold text
+                          processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                         } else if (processedText.startsWith('- ')) {
-                            //remove the dash if no bold text follows
-                            processedText = processedText.replace(/^- /, '');
-                            processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                          //remove the dash if no bold text follows
+                          processedText = processedText.replace(/^- /, '');
+                          processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                         } else {
-                            //regular processing
-                            processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                          //regular processing
+                          processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                         }
                         return (
-                            <p key={pIndex} className="mb-3 last:mb-0" 
-                                dangerouslySetInnerHTML={{ __html: processedText }}>
-                            </p>
+                          <p key={pIndex} className="mb-3 last:mb-0"
+                            dangerouslySetInnerHTML={{ __html: processedText }}>
+                          </p>
                         );
+                      }
                     }
-                }
+                  }
                   return null;
                 })}
               </div>
@@ -436,55 +464,82 @@ export const HealthSummary = () => {
               <div className="text-gray-700 leading-relaxed">
                 {section.split('\n\n').map((paragraph, pIndex) => {
                   if (paragraph.trim()) {
-                    // split by bullet points
-                    const bulletPoints = paragraph.split(/(?=^- \*\*)/m);
-                     
-                    if (bulletPoints.length > 1) {
+                    // Check if this paragraph contains numbered lists
+                    const numberedListMatch = paragraph.match(/^- (\d+)\.\s+(.+)$/gm);
+
+                    if (numberedListMatch && numberedListMatch.length > 0) {
+                      // Process numbered lists
+                      const listItems = numberedListMatch.map((item, itemIndex) => {
+                        const match = item.match(/^- (\d+)\.\s+(.+)$/);
+                        if (match) {
+                          const number = match[1];
+                          const content = match[2];
+                          const processedContent = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                          return (
+                            <li key={itemIndex} className="mb-2 last:mb-0"
+                              dangerouslySetInnerHTML={{ __html: processedContent }}>
+                            </li>
+                          );
+                        }
+                        return null;
+                      });
+
+                      return (
+                        <ol key={pIndex} className="list-decimal list-inside space-y-2 mb-4 last:mb-0">
+                          {listItems}
+                        </ol>
+                      );
+                    } else {
+                      // split by bullet points
+                      const bulletPoints = paragraph.split(/(?=^- \*\*)/m);
+
+                      if (bulletPoints.length > 1) {
                         //if we have bullet points, render each one separately
                         return bulletPoints.map((bullet, bIndex) => {
-                            if (bullet.trim()) {
-                                //check if this bullet starts with "- " and has bold text after
-                                let processedText = bullet.trim();
+                          if (bullet.trim()) {
+                            //check if this bullet starts with "- " and has bold text after
+                            let processedText = bullet.trim();
                             if (processedText.startsWith('- ') && processedText.includes('**')) {
-                                //keep the dash and process bold text
-                                processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                              //keep the dash and process bold text
+                              processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                             } else if (processedText.startsWith('- ')) {
-                                //remove the dash if no bold text follows
-                                processedText = processedText.replace(/^- /, '');
-                                processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                              //remove the dash if no bold text follows
+                              processedText = processedText.replace(/^- /, '');
+                              processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                             } else {
-                                //regular processing
-                                processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                           }
-                            return (
-                                <p key={`${pIndex}-${bIndex}`} className="mb-3 last:mb-0" 
-                                    dangerouslySetInnerHTML={{ __html: processedText }}>
-                                </p>
-                            );
+                              //regular processing
+                              processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                             }
-                            return null;
+                            return (
+                              <p key={`${pIndex}-${bIndex}`} className="mb-3 last:mb-0"
+                                dangerouslySetInnerHTML={{ __html: processedText }}>
+                              </p>
+                            );
+                          }
+                          return null;
                         });
-                    } else {
+                      } else {
                         let processedText = paragraph.trim();
                         // Check if this paragraph starts with "- " and has bold text after
                         if (processedText.startsWith('- ') && processedText.includes('**')) {
-                            //keep the dash and process bold text
-                            processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                       } else if (processedText.startsWith('- ')) {
-                            //R emove the dash if no bold text follows
-                            processedText = processedText.replace(/^- /, '');
-                            processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                       } else {
-                            // Regular processing
-                            processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                          //keep the dash and process bold text
+                          processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        } else if (processedText.startsWith('- ')) {
+                          //Remove the dash if no bold text follows
+                          processedText = processedText.replace(/^- /, '');
+                          processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        } else {
+                          // Regular processing
+                          processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                         }
                         return (
-                            <p key={pIndex} className="mb-3 last:mb-0" 
-                                dangerouslySetInnerHTML={{ __html: processedText }}>
-                            </p>
+                          <p key={pIndex} className="mb-3 last:mb-0"
+                            dangerouslySetInnerHTML={{ __html: processedText }}>
+                          </p>
                         );
+                      }
                     }
-                }
+                  }
                   return null;
                 })}
               </div>
@@ -499,11 +554,11 @@ export const HealthSummary = () => {
     if (error && error.includes("No health summary found")) {
       return renderNoSummaryFound();
     }
-    
+
     if (error) {
       return renderErrorState();
     }
-    
+
     return (
       <div className="space-y-6">
         <Card>
@@ -595,7 +650,7 @@ export const HealthSummary = () => {
             </DialogTitle>
           </DialogHeader>
           <p className="text-gray-600">{dialog.message}</p>
-          
+
           {dialog.type === 'confirm' && dialog.options && (
             <div className="space-y-3 mt-4">
               {dialog.options.map((option, index) => {
@@ -605,7 +660,7 @@ export const HealthSummary = () => {
                     className={renderButtonVariant(index)}
                     onClick={() => {
                       setDialog({ ...dialog, action: option.action });
-                      handleDialogAction();
+                      handleDialogAction(option.action);
                     }}>
                     {option.label}
                   </Button>
@@ -613,28 +668,26 @@ export const HealthSummary = () => {
               })}
             </div>
           )}
-          
+
           <DialogFooter>
             {dialog.type === 'confirm' && !dialog.options && (
               <>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setDialog({ open: false, type: '', title: '', message: '', action: '' })} 
+                <Button
+                  variant="outline"
+                  onClick={() => setDialog({ open: false, type: '', title: '', message: '', action: '' })}
                   className="cursor-pointer">
-                    
                   Cancel
                 </Button>
-                <Button 
-                  className="bg-black text-white hover:bg-gray-900 cursor-pointer" 
-                  onClick={handleDialogAction}>
-                    
+                <Button
+                  className="bg-black text-white hover:bg-gray-900 cursor-pointer"
+                  onClick={() => handleDialogAction(dialog.action)}>
                   Continue
                 </Button>
               </>
             )}
             {dialog.type !== 'confirm' && (
-              <Button 
-                className="bg-black text-white hover:bg-gray-900 cursor-pointer" 
+              <Button
+                className="bg-black text-white hover:bg-gray-900 cursor-pointer"
                 onClick={() => setDialog({ open: false, type: '', title: '', message: '', action: '' })}>
                 OK
               </Button>
