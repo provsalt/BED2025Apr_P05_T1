@@ -4,7 +4,6 @@ import { resizeAndConvertImage } from "../../middleware/resizeAndConvertImage.js
 import { compressImage } from "../../middleware/compression.js";
 import { uploadNutritionImage, retrieveMeals, retrieveMealsById, removeMeal, amendMeal, searchMealsController } from "./mealImageController.js";
 import { getNutritionAnalyticsController, getDailyBreakdownController, getCaloriesTrendController } from "./nutritionAnalyticsController.js";
-import { getAIPredictionsController } from "./aiPredictionsController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import {openaiRateLimit} from "../../middleware/rateLimit.js";
 import { nutritionSchema } from "../../utils/validation/nutrition.js";
@@ -37,8 +36,6 @@ router.get("/analytics", validateQuery(days), getNutritionAnalyticsController);
 router.get("/analytics/daily", validateQuery(days), getDailyBreakdownController);
 router.get("/analytics/trend", validateQuery(days), getCaloriesTrendController);
 
-// AI Predictions route - protected by rate limiting
-router.get("/ai-predictions", openaiRateLimit, getAIPredictionsController);
 
 // Search route for searching meals
 router.get("/search", searchMealsController);

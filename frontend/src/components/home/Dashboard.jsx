@@ -5,7 +5,6 @@ import { Link } from "react-router";
 import { useContext } from "react";
 import { UserContext } from "@/provider/UserContext";
 import { NutritionAnalyticsCard } from "@/components/nutrition/NutritionAnalyticsCard";
-import { AIPredictions } from "@/components/ai/AIPredictions";
 import { NutritionAreaChart } from "@/components/charts/NutritionAreaChart";
 import { Apple, Dumbbell, Pill, Calendar, Utensils, Camera, Clock, PartyPopper, Bus, MapPin, CalendarDays, User } from "lucide-react";
 
@@ -326,8 +325,6 @@ export const Dashboard = ({ summary }) => {
               </div>
             </section>
 
-            {/* AI Predictions Section */}
-            <AIPredictions isAuthenticated={!!userId} />
 
             {/* Quick Actions */}
             <section>

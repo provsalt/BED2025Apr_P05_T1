@@ -1,56 +1,6 @@
 import { useState, useCallback } from 'react';
 import { fetcher } from '@/lib/fetcher';
 
-/**
- * Custom hook for managing AI predictions
- */
-export const useAIPredictions = () => {
-  const [predictions, setPredictions] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [hasGenerated, setHasGenerated] = useState(false);
-
-  const fetchPredictions = useCallback(async (days = 7) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const data = await fetcher(`/nutrition/ai-predictions?days=${days}`);
-      setPredictions(data);
-      setHasGenerated(true);
-    } catch (err) {
-      console.error('Failed to fetch AI predictions:', err);
-      
-      // Handle specific error cases
-      if (err.message.includes('User not authenticated')) {
-        setError('Please log in to view AI predictions');
-      } else if (err.message.includes('Failed to fetch meal') || err.message.includes('No nutrition data')) {
-        setError('No nutrition data available yet. Upload some meals to get AI insights!');
-      } else if (err.message.includes('Rate limit')) {
-        setError('Too many requests. Please try again in a few minutes.');
-      } else {
-        setError('Unable to load AI predictions at the moment');
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const reset = useCallback(() => {
-    setPredictions(null);
-    setError(null);
-    setHasGenerated(false);
-  }, []);
-
-  return {
-    predictions,
-    loading,
-    error,
-    hasGenerated,
-    fetchPredictions,
-    reset
-  };
-};
 
 /**
  * Custom hook for nutrition analytics

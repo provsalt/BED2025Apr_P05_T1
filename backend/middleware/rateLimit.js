@@ -50,6 +50,6 @@ export const authRateLimit = createRateLimit({
 
 export const openaiRateLimit = createRateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 5, // 5 req per min
+    max: 5,
     message: "Too many OpenAI requests, please try again later"
 });
