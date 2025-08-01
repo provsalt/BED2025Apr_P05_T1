@@ -12,14 +12,14 @@ const DebugSection = ({
   alert
 }) => (
   <div className="space-y-6">
-    <div className="bg-white rounded-lg shadow-md border">
+    <div className="bg-background rounded-lg shadow-md border">
       <div className="p-6 border-b">
         <h3 className="text-lg font-semibold">Debug Information</h3>
       </div>
       <div className="p-6 space-y-4">
         <div>
           <h4 className="font-medium mb-2">Environment:</h4>
-          <div className="bg-gray-100 p-3 rounded text-sm">
+          <div className="bg-muted p-3 rounded text-sm">
             <p><strong>Backend URL:</strong> {backendUrl}</p>
             <p><strong>Token exists:</strong> {!!user?.token ? 'Yes' : 'No'}</p>
             <p><strong>User role:</strong> {user?.role || 'None'}</p>
@@ -87,7 +87,7 @@ const DebugSection = ({
 
         <div>
           <h4 className="font-medium mb-2">Data Status:</h4>
-          <div className="bg-gray-100 p-3 rounded text-sm">
+          <div className="bg-muted p-3 rounded text-sm">
             <p><strong>Users loaded:</strong> {users.length} users</p>
             <p><strong>Admins loaded:</strong> {admins.length} admins</p>
             <p><strong>Loading state:</strong> {loading ? 'Loading...' : 'Ready'}</p>
@@ -96,7 +96,7 @@ const DebugSection = ({
 
         <div>
           <h4 className="font-medium mb-2">Raw Data:</h4>
-          <div className="bg-gray-100 p-3 rounded text-sm max-h-64 overflow-y-auto">
+          <div className="bg-muted p-3 rounded text-sm max-h-64 overflow-y-auto">
             <p><strong>Users:</strong></p>
             <pre>{JSON.stringify(users, null, 2)}</pre>
             <p><strong>Admins:</strong></p>

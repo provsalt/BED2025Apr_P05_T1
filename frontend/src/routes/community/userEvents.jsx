@@ -49,16 +49,16 @@ export function UserEvents() {
         <div className="flex items-center justify-between mb-4 w-full">
           <h2 className="text-xl font-semibold">My Events</h2>
           <div className="pr-14">
-            <Button className="bg-black text-white hover:bg-gray-900 cursor-pointer" onClick={() => navigate('/community/create')}>
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer" onClick={() => navigate('/community/create')}>
               Add New Event
             </Button>
           </div>
         </div>
         {(() => {
           if (loading) {
-            return <div className="text-center py-8 text-gray-500">Loading your events...</div>;
+            return <div className="text-center py-8 text-muted-foreground">Loading your events...</div>;
           } else if (error) {
-            return <div className="text-center py-8 text-red-500">{error}</div>;
+            return <div className="text-center py-8 text-destructive">{error}</div>;
           } else {
             return (
               <div className="flex flex-row flex-wrap gap-6">
@@ -85,7 +85,7 @@ export function UserEvents() {
                   return (
                     <Card
                       key={event.id}
-                      className="w-64 p-0 overflow-hidden flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow border border-gray-200 bg-white relative"
+                      className="w-64 p-0 overflow-hidden flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow border border-border bg-background relative"
                       onClick={() => navigate(`/community/event/${event.id}`)}
                       tabIndex={0}
                       role="button"
@@ -110,7 +110,7 @@ export function UserEvents() {
                         if (eventDateTime && eventDateTime < now) {
                           return (
                             <div className="absolute top-13 left-0 z-10">
-                              <div className="bg-red-600 text-white text-xs font-semibold px-5 py-1 transform -rotate-45 origin-bottom-left shadow-md rounded-sm">
+                              <div className="bg-destructive text-primary-foreground text-xs font-semibold px-5 py-1 transform -rotate-45 origin-bottom-left shadow-md rounded-sm">
                                 Event Ended
                               </div>
                             </div>
@@ -128,8 +128,8 @@ export function UserEvents() {
                       )}
                       <CardContent className="pb-3">
                         <div className="font-semibold text-base mb-1 truncate capitalize" title={event.name}>{event.name}</div>
-                        <div className="flex items-center text-gray-600 text-sm mb-1 gap-2">
-                          <Clock className="size-4 text-gray-400" />
+                        <div className="flex items-center text-foreground text-sm mb-1 gap-2">
+                          <Clock className="size-4 text-muted-foreground" />
                           <span>{dateTimeStr}{(() => {
                             if (timeStr) {
                               return ` • ${timeStr}`;
@@ -138,8 +138,8 @@ export function UserEvents() {
                             }
                           })()}</span>
                         </div>
-                        <div className="flex items-center text-gray-500 text-xs mb-1 gap-2">
-                          <MapPin className="size-4 text-gray-400" />
+                        <div className="flex items-center text-muted-foreground text-xs mb-1 gap-2">
+                          <MapPin className="size-4 text-muted-foreground" />
                           <span className="capitalize">{(() => {
                             if (event.location) {
                               return event.location;
@@ -149,8 +149,8 @@ export function UserEvents() {
                           })()}</span>
                         </div>
                         {event.category && (
-                          <div className="flex items-center text-gray-500 text-xs mb-1 gap-2">
-                            <Tag className="size-4 text-gray-400" />
+                          <div className="flex items-center text-muted-foreground text-xs mb-1 gap-2">
+                            <Tag className="size-4 text-muted-foreground" />
                             <span className="capitalize">{event.category}</span>
                           </div>
                         )}

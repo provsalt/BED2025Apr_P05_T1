@@ -11,6 +11,7 @@ import UserManagementSection from '@/components/admin/UserManagementSection.jsx'
 import AnnouncementManagementSection from '@/components/admin/AnnouncementManagementSection.jsx';
 import DebugSection from '@/components/admin/DebugSection.jsx';
 import DeletionRequestSection from "@/components/admin/DeletionRequestSection.jsx";
+import CommunityEventApprovalSection from "@/components/admin/CommunityEventApprovalSection.jsx";
 
 // Admin Dashboard Component
 const AdminDashboard = () => {
@@ -210,7 +211,7 @@ const AdminDashboard = () => {
     <div className="p-6 mx-auto w-3/4">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome, {user?.data?.email || 'Admin'}</p>
+        <p className="text-muted-foreground mt-2">Welcome, {user?.data?.email || 'Admin'}</p>
       </div>
 
       {loading && (
@@ -220,10 +221,11 @@ const AdminDashboard = () => {
       )}
 
       <Tabs defaultValue="overview" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="users">User Management</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
+          <TabsTrigger value="events">Event Approvals</TabsTrigger>
           <TabsTrigger value="deletion">Deletion Requests</TabsTrigger>
           <TabsTrigger value="debug">Debug</TabsTrigger>
         </TabsList>
@@ -243,6 +245,12 @@ const AdminDashboard = () => {
             announcementsKey={announcementsKey}
             handleDeleteAnnouncement={handleDeleteAnnouncement}
             backendUrl={import.meta.env.VITE_BACKEND_URL}
+          />
+        </TabsContent>
+        <TabsContent value="events">
+          <CommunityEventApprovalSection
+            backendUrl={import.meta.env.VITE_BACKEND_URL}
+            alert={alert}
           />
         </TabsContent>
         <TabsContent value="deletion">

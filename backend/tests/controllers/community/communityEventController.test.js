@@ -200,6 +200,21 @@ describe('getMyEvents', () => {
     expect(res.json).toHaveBeenCalledWith(mockResult);
   });
 
+  it('should return events with status information', async () => {
+    const mockEvents = [
+      { id: 1, name: 'My Event 1', status: 'approved' },
+      { id: 2, name: 'My Event 2', status: 'pending' }
+    ];
+    const mockResult = { success: true, events: mockEvents };
+    const model = await import('../../../models/community/communityEventModel.js');
+    vi.spyOn(model, 'getCommunityEventsByUserId').mockResolvedValue(mockResult);
+    await getMyEvents(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(mockResult);
+    expect(mockEvents[0].status).toBe('approved');
+    expect(mockEvents[1].status).toBe('pending');
+  });
+
 
 
   it('should throw unauthorized error if user ID is missing', async () => {
@@ -361,7 +376,7 @@ describe('updateEvent', () => {
     const s3Service = await import('../../../services/s3Service.js');
     vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({
       success: true,
-      message: 'Community event updated successfully'
+      message: 'Community event updated successfully and pending admin approval'
     });
     vi.spyOn(model, 'addCommunityEventImage').mockResolvedValue({
       success: true,
@@ -373,7 +388,7 @@ describe('updateEvent', () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: true,
-      message: 'Community event updated successfully',
+      message: 'Community event updated successfully and pending admin approval',
       newImages: []
     }));
   });
@@ -383,7 +398,7 @@ describe('updateEvent', () => {
     const s3Service = await import('../../../services/s3Service.js');
     vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({
       success: true,
-      message: 'Community event updated successfully'
+      message: 'Community event updated successfully and pending admin approval'
     });
     vi.spyOn(model, 'addCommunityEventImage').mockResolvedValue({
       success: true,
@@ -394,7 +409,7 @@ describe('updateEvent', () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: true,
-      message: 'Community event updated successfully',
+      message: 'Community event updated successfully and pending admin approval',
       newImages: expect.any(Array)
     }));
   });
@@ -404,7 +419,7 @@ describe('updateEvent', () => {
     const s3Service = await import('../../../services/s3Service.js');
     vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({
       success: true,
-      message: 'Community event updated successfully'
+      message: 'Community event updated successfully and pending admin approval'
     });
     vi.spyOn(model, 'addCommunityEventImage').mockResolvedValue({
       success: true,
@@ -416,6 +431,31 @@ describe('updateEvent', () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: true
+    }));
+  });
+
+  it('should verify that update sets event to pending approval', async () => {
+    const model = await import('../../../models/community/communityEventModel.js');
+    const updateSpy = vi.spyOn(model, 'updateCommunityEvent').mockResolvedValue({
+      success: true,
+      message: 'Community event updated successfully and pending admin approval'
+    });
+    
+    await updateEvent(req, res, next);
+    
+    expect(updateSpy).toHaveBeenCalledWith(1, expect.objectContaining({
+      name: 'Updated Event',
+      location: 'Updated Location',
+      category: 'arts',
+      date: '2025-07-25',
+      time: '14:00:00',
+      description: 'Updated description'
+    }), 1);
+    
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      success: true,
+      message: 'Community event updated successfully and pending admin approval'
     }));
   });
 

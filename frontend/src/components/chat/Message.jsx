@@ -70,9 +70,9 @@ export const Message = ({
   return (
     <div
       className={cn(
-        "max-w-max p-3 px-4 rounded-xl text-white relative group",
+        "max-w-max p-3 px-4 rounded-xl text-primary-foreground relative group",
         "break-words",
-        isSender ? "bg-blue-500 self-end" : "bg-gray-600 self-start",
+        isSender ? "bg-primary self-end" : "bg-muted-foreground self-start",
       )}
     >
       {children}
@@ -137,7 +137,7 @@ export const Message = ({
                 <AlertDialogAction
                   onClick={handleDeleteMessage}
                   disabled={isLoading}
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-destructive hover:bg-destructive/90"
                 >
                   {isLoading ? "Deleting..." : "Delete"}
                 </AlertDialogAction>

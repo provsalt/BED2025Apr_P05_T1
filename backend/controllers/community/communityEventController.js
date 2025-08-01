@@ -1,5 +1,5 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, deleteCommunityEvent, getCommunityEventImageUrls, updateCommunityEvent } from "../../models/community/communityEventModel.js";
+import { createCommunityEvent, addCommunityEventImage, getAllApprovedEvents, getCommunityEventsByUserId, getCommunityEventById, deleteCommunityEvent, deleteUnwantedImages, getCommunityEventImageUrls, updateCommunityEvent, getPendingEvents, approveCommunityEvent, rejectCommunityEvent, getCommunityEventImages } from "../../models/community/communityEventModel.js";
 import { v4 as uuidv4 } from 'uuid';
 import { ErrorFactory } from "../../utils/AppError.js";
 
@@ -52,7 +52,7 @@ import { ErrorFactory } from "../../utils/AppError.js";
  *                  - Filenames are automatically sanitized.
  *     responses:
  *       201:
- *         description: Community event created successfully
+ *         description: Community event created successfully and pending admin approval
  *         content:
  *           application/json:
  *             schema:
@@ -62,6 +62,7 @@ import { ErrorFactory } from "../../utils/AppError.js";
  *                   type: boolean
  *                 message:
  *                   type: string
+ *                   description: Success message indicating event is pending approval
  *                 eventId:
  *                   type: integer
  *                   description: ID of the created event
@@ -99,8 +100,7 @@ export const createEvent = async (req, res, next) => {
         const eventData = {
             ...rest,
             time,
-            user_id: userId,
-            approved_by_admin_id: 1 // For testing, set to admin ID 1 (to be removed when admin approval is done)
+            user_id: userId
         };
         const eventResult = await createCommunityEvent(eventData);
         if (!eventResult.success) {
@@ -133,7 +133,7 @@ export const createEvent = async (req, res, next) => {
 
         return res.status(201).json({
             success: true,
-            message: 'Community event created successfully',
+            message: 'Community event created successfully and pending admin approval',
             eventId: eventResult.eventId,
             images: imageUrls
         });
@@ -229,6 +229,30 @@ export const getApprovedEvents = async (req, res, next) => {
  *                   type: array
  *                   items:
  *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                       time:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       created_by_name:
+ *                         type: string
+ *                       image_url:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                         enum: [pending, approved]
+ *                         description: Event approval status
  *       400:
  *         description: User ID is required
  *       401:
@@ -348,7 +372,7 @@ export const getEventById = async (req, res, next) => {
  *     tags:
  *       - Community
  *     summary: Update a community event
- *     description: Allows a user to update their own community event. The event must belong to the authenticated user.
+ *     description: Allows a user to update their own community event. The event must belong to the authenticated user. After editing, the event will require admin approval again before being visible to other users.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -405,7 +429,7 @@ export const getEventById = async (req, res, next) => {
  *                  - Optional - if not provided, all existing images are kept.
  *     responses:
  *       200:
- *         description: Community event updated successfully
+ *         description: Community event updated successfully and pending admin approval
  *         content:
  *           application/json:
  *             schema:
@@ -415,6 +439,7 @@ export const getEventById = async (req, res, next) => {
  *                   type: boolean
  *                 message:
  *                   type: string
+ *                   description: Success message indicating event is pending approval
  *                 newImages:
  *                   type: array
  *                   items:
@@ -536,7 +561,7 @@ export const updateEvent = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            message: 'Community event updated successfully',
+            message: 'Community event updated successfully and pending admin approval',
             newImages: newImageUrls,
             deletedImages: deletedImageUrls
         });
@@ -663,4 +688,127 @@ export const deleteEvent = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+};
+/**
+ * @openapi
+ * /api/community/pending:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: Get all pending community events
+ *     description: Admin only. Get all community events that are waiting for admin approval.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of pending community events
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Server error
+ */
+export const getPendingCommunityEventsController = async (req, res, next) => {
+  try {
+    const result = await getPendingEvents();
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      throw ErrorFactory.server('Failed to get pending events');
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @openapi
+ * /api/community/approve:
+ *   post:
+ *     tags:
+ *       - Admin
+ *     summary: Approve a community event
+ *     description: Admin only. Approve a pending community event.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               eventId:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Event approved successfully
+ *       400:
+ *         description: Failed to approve event
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Server error
+ */
+export const approveCommunityEventController = async (req, res, next) => {
+  try {
+    const { eventId } = req.body;
+    const adminId = req.user.id;
+    if (!eventId || isNaN(eventId)) {
+      throw ErrorFactory.validation('Invalid event ID');
+    }
+    const result = await approveCommunityEvent(eventId, adminId);
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      throw ErrorFactory.notFound('Community event');
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @openapi
+ * /api/community/reject:
+ *   post:
+ *     tags:
+ *       - Admin
+ *     summary: Reject a community event
+ *     description: Admin only. Reject and delete a pending community event.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               eventId:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Event rejected successfully
+ *       400:
+ *         description: Failed to reject event
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Server error
+ */
+export const rejectCommunityEventController = async (req, res, next) => {
+  try {
+    const { eventId } = req.body;
+    if (!eventId || isNaN(eventId)) {
+      throw ErrorFactory.validation('Invalid event ID');
+    }
+    const result = await rejectCommunityEvent(eventId);
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      throw ErrorFactory.notFound('Community event');
+    }
+  } catch (error) {
+    next(error);
+  }
 };

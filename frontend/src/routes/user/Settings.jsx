@@ -163,9 +163,9 @@ export function Settings() {
   if (!auth.token) return null;
 
   return (
-    <div className="flex flex-col flex-1 bg-gray-50 min-h-screen">
+    <div className="flex flex-col flex-1 bg-muted min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <h2 className="text-3xl font-bold text-gray-800 mb-8">Profile Settings</h2>
+        <h2 className="text-3xl font-bold text-foreground mb-8">Profile Settings</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-1">
             <ProfilePictureCard
