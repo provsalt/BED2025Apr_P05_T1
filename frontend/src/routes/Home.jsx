@@ -23,25 +23,16 @@ export const Home = () => {
     const loadAnnouncements = async () => {
       try {
         setAnnouncementsLoading(true);
-        let endpoint;
+        // Use public endpoint for everyone
+        const endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/announcements`;
+        const response = await fetch(endpoint);
         
-        if (isAuthenticated) {
-          // Use user-specific endpoint for authenticated users
-          endpoint = "/announcements/user";
-          const data = await fetcher(endpoint);
-          setAnnouncements(data);
-        } else {
-          // Use public endpoint for non-authenticated users
-          endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/announcements`;
-          const response = await fetch(endpoint);
-          
-          if (!response.ok) {
-            throw new Error(`Failed to load announcements: ${response.status} ${response.statusText}`);
-          }
-          
-          const data = await response.json();
-          setAnnouncements(data);
+        if (!response.ok) {
+          throw new Error(`Failed to load announcements: ${response.status} ${response.statusText}`);
         }
+        
+        const data = await response.json();
+        setAnnouncements(data);
       } catch (error) {
         console.error('Error loading announcements:', error);
         setAnnouncements([]);
@@ -51,7 +42,7 @@ export const Home = () => {
     };
 
     loadAnnouncements();
-  }, [isAuthenticated]);
+  }, []);
 
   const handleDismissAnnouncement = async (announcementId) => {
     try {
@@ -74,6 +65,8 @@ export const Home = () => {
             <AnnouncementsList
               isAdmin={false}
               onDismiss={isAuthenticated ? handleDismissAnnouncement : undefined}
+              announcements={announcements}
+              loading={announcementsLoading}
             />
           </div>
         )}

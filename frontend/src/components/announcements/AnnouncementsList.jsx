@@ -1,59 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.jsx';
 import { Alert } from '@/components/ui/alert.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { X } from 'lucide-react';
-import { fetcher } from '@/lib/fetcher.js';
 
-const AnnouncementsList = ({ isAdmin = false, onDelete, onDismiss, adminApiEndpoint }) => {
-  const [announcements, setAnnouncements] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    loadAnnouncements();
-  }, [adminApiEndpoint, isAdmin]); // Add dependencies to reload when props change
-
-  const loadAnnouncements = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const endpoint = adminApiEndpoint || `${import.meta.env.VITE_BACKEND_URL}/api/announcements`;
-
-      let data;
-      if (isAdmin && adminApiEndpoint) {
-        // For admin endpoints, use fetcher with auth
-        console.log('Using fetcher with auth for admin endpoint');
-        data = await fetcher(adminApiEndpoint);
-      } else {
-        // For public endpoints, use plain fetch without auth
-        console.log('Using plain fetch for public endpoint');
-        const response = await fetch(endpoint);
-        
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-        
-        if (!response.ok) {
-          const errorData = await response.text();
-          console.error('Error response:', errorData);
-          throw new Error(`Failed to load announcements: ${response.status} ${response.statusText}`);
-        }
-        
-        data = await response.json();
-      }
-      
-      console.log('Announcements loaded successfully:', data);
-      console.log('Number of announcements:', data.length);
-      setAnnouncements(data);
-    } catch (error) {
-      console.error('Error loading announcements:', error);
-      setError(`Failed to load announcements: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const AnnouncementsList = ({ 
+  isAdmin = false, 
+  onDelete, 
+  onDismiss, 
+  announcements = [], 
+  loading = false, 
+  error = null 
+}) => {
   const handleDismiss = async (announcementId) => {
     if (onDismiss) {
       await onDismiss(announcementId);
