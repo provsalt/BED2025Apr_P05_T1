@@ -321,7 +321,7 @@ export const createUserController = async (req, res, next) => {
 
 /**
  * @openapi
- * /api/users/password:
+ * /api/users/me/password:
  *   put:
  *     tags:
  *       - User
