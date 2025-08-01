@@ -228,6 +228,30 @@ export const getApprovedEvents = async (req, res, next) => {
  *                   type: array
  *                   items:
  *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                       time:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       created_by_name:
+ *                         type: string
+ *                       image_url:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                         enum: [pending, approved]
+ *                         description: Event approval status
  *       400:
  *         description: User ID is required
  *       401:
@@ -347,7 +371,7 @@ export const getEventById = async (req, res, next) => {
  *     tags:
  *       - Community
  *     summary: Update a community event
- *     description: Allows a user to update their own community event. The event must belong to the authenticated user.
+ *     description: Allows a user to update their own community event. The event must belong to the authenticated user. After editing, the event will require admin approval again before being visible to other users.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -404,7 +428,7 @@ export const getEventById = async (req, res, next) => {
  *                  - Optional - if not provided, all existing images are kept.
  *     responses:
  *       200:
- *         description: Community event updated successfully
+ *         description: Community event updated successfully and pending admin approval
  *         content:
  *           application/json:
  *             schema:
@@ -414,6 +438,7 @@ export const getEventById = async (req, res, next) => {
  *                   type: boolean
  *                 message:
  *                   type: string
+ *                   description: Success message indicating event is pending approval
  *                 newImages:
  *                   type: array
  *                   items:
@@ -489,22 +514,20 @@ export const updateEvent = async (req, res, next) => {
         }
         const deleteResult = await deleteUnwantedImages(eventId, userId, keepIds);
         if (deleteResult.success) {
-          //delete from minio
-          if (deleteResult.deletedUrls && deleteResult.deletedUrls.length > 0) {
-            for (const imageUrl of deleteResult.deletedUrls) {
-              try {
-                // Extract S3 key from image URL
-                const keyMatch = imageUrl.match(/key=([^&]+)/);
-                if (keyMatch) {
-                  const s3Key = decodeURIComponent(keyMatch[1]);
-                  await deleteFile(s3Key);
-                  deletedImageUrls.push(imageUrl);
-                }
-              } catch (error) {
-                console.error('Error deleting image from MinIO:', error);
+          // Delete files from S3 for each deleted URL
+          for (const imageUrl of deleteResult.deletedUrls) {
+            try {
+              // Extract the key from the image URL
+              const keyMatch = imageUrl.match(/\/api\/s3\?key=(.+)/);
+              if (keyMatch) {
+                const key = decodeURIComponent(keyMatch[1]);
+                await deleteFile(key);
               }
+            } catch (s3Error) {
+              console.error('Error deleting file from S3:', imageUrl, s3Error);
             }
           }
+          deletedImageUrls.push(...deleteResult.deletedUrls);
         }
       } catch (error) {
         throw ErrorFactory.database("Failed to delete unwanted images", error.message);
@@ -537,7 +560,7 @@ export const updateEvent = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'Community event updated successfully',
+      message: 'Community event updated successfully and pending admin approval',
       newImages: newImageUrls,
       deletedImages: deletedImageUrls
     });

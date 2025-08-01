@@ -245,13 +245,13 @@ export async function deleteCommunityEvent(eventId, userId) {
     }
 }
 
-// PUT: Update a community event (only by the creator)
+// PUT: Update a community event (only by the creator) - sets approved_by_admin_id to NULL for re-approval
 export async function updateCommunityEvent(eventId, eventData, userId) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
 
-        // Update the event, filtering by user_id to ensure ownership
+        // Update the event and set approved_by_admin_id to NULL for re-approval
         const result = await connection.request()
             .input('eventId', sql.Int, eventId)
             .input('userId', sql.Int, userId)
@@ -264,7 +264,8 @@ export async function updateCommunityEvent(eventId, eventData, userId) {
             .query(`
                 UPDATE CommunityEvent 
                 SET name = @name, location = @location, category = @category, 
-                    date = @date, time = @time, description = @description
+                    date = @date, time = @time, description = @description,
+                    approved_by_admin_id = NULL
                 WHERE id = @eventId AND user_id = @userId
             `);
 
@@ -278,7 +279,7 @@ export async function updateCommunityEvent(eventId, eventData, userId) {
 
         return {
             success: true,
-            message: 'Community event updated successfully'
+            message: 'Community event updated successfully and pending admin approval'
         };
     } catch (error) {
         console.error('Error updating community event:', error);
@@ -490,3 +491,4 @@ export async function rejectCommunityEvent(eventId) {
         }
     }
 }
+
