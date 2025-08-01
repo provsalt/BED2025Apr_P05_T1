@@ -44,6 +44,15 @@ export class AppError extends Error {
 }
 
 export class ErrorFactory {
+  static internal(message = "Internal server error", details = null) {
+    return new AppError(
+      message,
+      500,
+      "internal",
+      "An unexpected error occurred. Please try again later.",
+      details
+    );
+  }
   static validation(message, details = null) {
     return new AppError(
       message,
@@ -90,21 +99,43 @@ export class ErrorFactory {
     );
   }
   
-  static database(message, userMessage = "Unable to process request at this time") {
+  static database(message, userMessage = "Unable to process request at this time", originalError = null) {
+    const details = originalError ? {
+      originalMessage: originalError.message,
+      originalStack: originalError.stack,
+      originalName: originalError.name,
+      ...(originalError.code && { code: originalError.code }),
+      ...(originalError.number && { sqlErrorNumber: originalError.number }),
+      ...(originalError.severity && { severity: originalError.severity }),
+      ...(originalError.state && { state: originalError.state }),
+      ...(originalError.procedure && { procedure: originalError.procedure }),
+      ...(originalError.lineNumber && { lineNumber: originalError.lineNumber })
+    } : null;
+
     return new AppError(
       message,
       500,
       "database",
-      userMessage
+      userMessage,
+      details
     );
   }
   
-  static external(service, message, userMessage = "External service unavailable") {
+  static external(service, message, userMessage = "External service unavailable", originalError = null) {
+    const details = originalError ? {
+      originalMessage: originalError.message,
+      originalStack: originalError.stack,
+      originalName: originalError.name,
+      ...(originalError.code && { code: originalError.code }),
+      ...(originalError.response && { response: originalError.response })
+    } : null;
+
     return new AppError(
       `${service}: ${message}`,
       503,
       "external_service",
-      userMessage
+      userMessage,
+      details
     );
   }
   

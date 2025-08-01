@@ -94,7 +94,6 @@ export const Login = () => {
             </div>
 
             <Button type="submit" className="w-full cursor-pointer">Log in</Button>
-
           </form>
 
         </CardContent>
