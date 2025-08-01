@@ -4,7 +4,7 @@
 auth_enabled: false
 
 server:
-  http_listen_port: 3100
+  http_listen_port: ${LOKI_PORT}
 
 common:
   storage:
