@@ -1,6 +1,6 @@
 import { AIPredictionService } from "../../services/nutrition/aiPredictionService.js";
 import { NutritionDataService } from "../../services/nutrition/nutritionDataService.js";
-import { logError } from "../../utils/logger.js";
+import {logError, logInfo} from "../../utils/logger.js";
 import { ErrorFactory } from "../../utils/AppError.js";
 /**
 * @openapi
@@ -79,14 +79,9 @@ import { ErrorFactory } from "../../utils/AppError.js";
  */
 export const getAIPredictionsController = async (req, res) => {
   try {
-    // Check if user is authenticated
-    if (!req.user?.id) {
-      throw ErrorFactory.unauthorized("User not authenticated");
-    }
-
     const days = parseInt(req.query.days) || 7;
     const useAgentic = req.query.agentic !== 'false'; // Default to true
-    logError(`Generating AI predictions for user ${req.user.id}, days: ${days}, agentic: ${useAgentic}`);
+    logInfo(`Generating AI predictions for user ${req.user.id}, days: ${days}, agentic: ${useAgentic}`);
 
     // Get user nutrition data
     const { user, analytics, trendData } = await NutritionDataService.getUserNutritionData(

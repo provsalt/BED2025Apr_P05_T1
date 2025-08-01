@@ -54,15 +54,9 @@ import { ErrorFactory } from "../../utils/AppError.js";
  *       500:
  *         description: Failed to fetch analytics
  */
-export const getNutritionAnalyticsController = async (req, res) => {
+export const getNutritionAnalyticsController = async (req, res, next) => {
   try {
-    // Check if user is authenticated
-    if (!req.user || !req.user.id) {
-      throw ErrorFactory.unauthorized("User not authenticated");
-    }
-
-    const days = parseInt(req.query.days) || 7;
-
+    const days = req.query.days || 7;
     // Validate days parameter
     if (![7, 30].includes(days)) {
       throw ErrorFactory.validation("Days parameter must be 7 or 30");
@@ -76,7 +70,7 @@ export const getNutritionAnalyticsController = async (req, res) => {
     });
   } catch (error) {
     logError(error, req, { message: "Error fetching nutrition analytics" });
-    throw ErrorFactory.internal("Failed to fetch nutrition analytics", error.message);
+    next(error);
   }
 };
 
@@ -106,13 +100,8 @@ export const getNutritionAnalyticsController = async (req, res) => {
  *       500:
  *         description: Failed to fetch daily breakdown
  */
-export const getDailyBreakdownController = async (req, res) => {
+export const getDailyBreakdownController = async (req, res, next) => {
   try {
-    // Check if user is authenticated
-    if (!req.user || !req.user.id) {
-      throw ErrorFactory.unauthorized("User not authenticated");
-    }
-
     const days = parseInt(req.query.days) || 7;
     const breakdown = await getDailyNutritionBreakdown(req.user.id, days);
 
@@ -122,7 +111,7 @@ export const getDailyBreakdownController = async (req, res) => {
     });
   } catch (error) {
     logError(error, req, { message: "Error fetching daily breakdown" });
-    throw ErrorFactory.internal("Failed to fetch daily breakdown", error.message);
+    next(error);
   }
 };
 
@@ -152,13 +141,8 @@ export const getDailyBreakdownController = async (req, res) => {
  *       500:
  *         description: Failed to fetch trend data
  */
-export const getCaloriesTrendController = async (req, res) => {
+export const getCaloriesTrendController = async (req, res, next) => {
   try {
-    // Check if user is authenticated
-    if (!req.user || !req.user.id) {
-      throw ErrorFactory.unauthorized("User not authenticated");
-    }
-
     const days = parseInt(req.query.days) || 7;
     const trend = await getCaloriesTrend(req.user.id, days);
 
@@ -168,6 +152,6 @@ export const getCaloriesTrendController = async (req, res) => {
     });
   } catch (error) {
     logError(error, req, { message: "Error fetching calories trend" });
-    throw ErrorFactory.internal("Failed to fetch calories trend", error.message);
+    next(error)
   }
 };

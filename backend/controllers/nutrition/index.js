@@ -8,7 +8,8 @@ import { getAIPredictionsController } from "./aiPredictionsController.js";
 import { getUserMiddleware } from "../../middleware/getUser.js";
 import {openaiRateLimit} from "../../middleware/rateLimit.js";
 import { nutritionSchema } from "../../utils/validation/nutrition.js";
-import { validateSchema } from "../../middleware/validateSchema.js";
+import {validateQuery, validateSchema} from "../../middleware/validateSchema.js";
+import { z } from "zod";
 
 const router = Router();
 
@@ -27,10 +28,14 @@ router.post(
 // Get route for fetching all meals for the user
 router.get("/", retrieveMeals);
 
+const days = z.object({
+  "days": z.number().min(1),
+})
+
 // Analytics routes - must come before search route to avoid conflicts
-router.get("/analytics", getNutritionAnalyticsController);
-router.get("/analytics/daily", getDailyBreakdownController);
-router.get("/analytics/trend", getCaloriesTrendController);
+router.get("/analytics", validateQuery(days), getNutritionAnalyticsController);
+router.get("/analytics/daily", validateQuery(days), getDailyBreakdownController);
+router.get("/analytics/trend", validateQuery(days), getCaloriesTrendController);
 
 // AI Predictions route - protected by rate limiting
 router.get("/ai-predictions", openaiRateLimit, getAIPredictionsController);
