@@ -225,7 +225,7 @@ export const loginUserController = async (req, res, next) => {
     const passwordToCompare = user?.password || "$2a$10$dummy.hash.to.prevent.timing.attacks.dummy.hash.dummy";
     
     // Prevent password login for Google users that uses passkey or with no password
-    if (user && !user.password) {
+    if (user && user.password === '') {
       return res.status(401).json({ error: "Please log in with Google." });
     }
     
