@@ -135,24 +135,93 @@ export const updateUser = async (id, userData) => {
 
 
 /**
- * Deletes a user from the database.
- * @param id {number}
- * @returns {Promise<boolean>}
+ * Permanently deletes a user and all related data.
+ * Performs cleanup of dependent tables to avoid foreign key issues.
+ * @param {number} id - The user ID
+ * @returns {Promise<boolean>} True if deleted, false if user not found
  */
 export const deleteUser = async (id) => {
-    try {
-        const db = await sql.connect(dbConfig);
-        const query = "DELETE FROM Users WHERE id = @id";
-        const request = db.request();
-        request.input("id", id);
+  let db;
+  const cleanupQueries = [
+    "DELETE FROM UserLoginHistory WHERE user_id = @id",
+    "DELETE FROM FeatureUsage WHERE user_id = @id",
+    "DELETE FROM EngagementSummary WHERE user_id = @id",
+    "DELETE FROM UserSessions WHERE user_id = @id",
+    "DELETE FROM CommunityEventSignup WHERE user_id = @id",
+    "DELETE FROM ChatMsg WHERE sender = @id",
+    "DELETE FROM Chat WHERE chat_initiator = @id OR chat_recipient = @id",
+    "DELETE FROM Meal WHERE user_id = @id",
+    "DELETE FROM Medication WHERE user_id = @id",
+    "DELETE FROM MedicationQuestion WHERE user_id = @id",
+    "DELETE FROM HealthSummary WHERE user_id = @id",
+    "DELETE FROM UserRoutes WHERE user_id = @id",
+    "DELETE FROM Announcement WHERE user_id = @id"
+  ];
 
-        const res = await request.query(query);
+  try {
+    db = await sql.connect(dbConfig);
 
-        return res.rowsAffected[0] !== 0;
-    } catch (error) {
-        throw ErrorFactory.database(`Failed to delete user: ${error.message}`, "Unable to process request at this time", error);
+    // Check user existence
+    const userCheck = await db.request()
+      .input("id", id)
+      .query("SELECT id FROM Users WHERE id = @id");
+
+    if (userCheck.recordset.length === 0) {
+      return false; // No such user
     }
-}
+
+    // Start transaction
+    const transaction = new sql.Transaction(db);
+    await transaction.begin();
+
+    try {
+      // 1. Cleanup dependent records
+      for (const query of cleanupQueries) {
+        await transaction.request().input("id", id).query(query);
+      }
+
+      // 2. Cleanup Community Events (special handling)
+      const request = transaction.request();
+      request.input("id", id);
+
+      // Delete related event images first
+      await request.query(`
+        DELETE FROM CommunityEventImage 
+        WHERE community_event_id IN (
+          SELECT id FROM CommunityEvent WHERE user_id = @id
+        )
+      `);
+
+      // Delete events created by the user
+      await request.query("DELETE FROM CommunityEvent WHERE user_id = @id");
+
+      // 3. Delete the user
+      const result = await transaction.request()
+        .input("id", id)
+        .query("DELETE FROM Users WHERE id = @id");
+
+      // Commit transaction
+      await transaction.commit();
+
+      return result.rowsAffected[0] > 0;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
+
+  } catch (error) {
+    throw ErrorFactory.database(
+      `Failed to delete user: ${error.message}`,
+      "Unable to process request at this time",
+      error
+    );
+  } finally {
+    if (db) {
+      try { await db.close(); } catch { /* ignore close errors */ }
+    }
+  }
+};
+
 
 export const updateUserProfilePicture = async (userId, fileUrl) => {
   try {
