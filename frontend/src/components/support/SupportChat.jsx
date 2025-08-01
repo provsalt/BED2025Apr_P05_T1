@@ -64,9 +64,19 @@ export const SupportChat = () => {
       setMessages([...newConversation, assistantMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      let errorContent = 'Sorry, I encountered an error. Please try again.';
+      
+      // Handle structured error responses from the new error handling scheme
+      if (error.error) {
+        errorContent = error.error;
+      } else if (error.message) {
+        errorContent = error.message;
+      }
+      
       const errorMessage = { 
         role: 'assistant', 
-        content: 'Sorry, I encountered an error. Please try again.' 
+        content: errorContent
       };
       setMessages([...newConversation, errorMessage]);
     } finally {

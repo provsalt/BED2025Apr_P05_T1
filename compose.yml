@@ -30,7 +30,6 @@ services:
       - db
       - loki
       - tempo
-#        condition: service_healthy
     environment:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}

@@ -420,7 +420,7 @@ export const searchMealsController = async (req, res, next) => {
     const meals = await searchMeals(req.user.id, searchTerm.trim());
     
     if (!meals || meals.length === 0) {
-      throw ErrorFactory.notFound("No meals found for the given search term");
+      throw ErrorFactory.notFound("Meals");
     }
 
     res.status(200).json({ 

@@ -60,26 +60,42 @@ import { ErrorFactory } from '../../utils/AppError.js';
  *       500:
  *         description: Internal server error
  */
-export const chatWithAI = async (req, res) => {
-  if (!req.user) {
-    throw ErrorFactory.unauthorized();
-  }
+export const chatWithAI = async (req, res, next) => {
   const { conversation, context } = req.body;
-  if (!Array.isArray(conversation) || conversation.length === 0) {
-    throw ErrorFactory.validation("Conversation array is required");
-  }
 
   try {
     const toolExecutor = async (functionName, parameters) => {
-      return await executeAITool(functionName, parameters, req.user);
+      return await executeAITool(functionName, parameters, req.user || null);
     };
 
     // Generate AI response with validated conversation and tool execution capabilities
     const result = await generateAIResponse(conversation, context, toolExecutor);
 
     res.status(200).json(result);
+
   } catch (error) {
-    console.error("AI Support error:", error);
-    throw ErrorFactory.internal("Failed to get AI response", error.message);
+    if (error.name === 'AppError') {
+      return next(error);
+    }
+    
+    // Handle OpenAI API errors
+    if (error.status === 401) {
+      return next(ErrorFactory.external("OpenAI", "Invalid API key", "AI service unavailable"));
+    }
+    
+    if (error.status === 429) {
+      return next(ErrorFactory.rateLimited("AI service rate limit exceeded"));
+    }
+    
+    if (error.status >= 400 && error.status < 500) {
+      return next(ErrorFactory.external("OpenAI", error.message, "Invalid request to AI service"));
+    }
+    
+    if (error.status >= 500) {
+      return next(ErrorFactory.external("OpenAI", error.message, "AI service temporarily unavailable"));
+    }
+
+    // Generic error fallback
+    return next(ErrorFactory.external("AI Support", error.message, "Failed to get AI response"));
   }
 };

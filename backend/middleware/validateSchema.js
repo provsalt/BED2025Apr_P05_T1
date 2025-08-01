@@ -1,10 +1,10 @@
 import { ErrorFactory } from "../utils/AppError.js";
 
 export function validateSchema(schema) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     // throws a ZodError if validation fails. this will be caught by the global error handler
     try {
-      schema.parse(req.body);
+      await schema.parseAsync(req.body);
 
       next();
     } catch (error) {
@@ -14,9 +14,9 @@ export function validateSchema(schema) {
 }
 
 export function validateQuery(schema) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     try {
-      schema.parse(req.query);
+      await schema.parseAsync(req.query);
 
       next();
     } catch (error) {
@@ -26,9 +26,9 @@ export function validateQuery(schema) {
 }
 
 export function validateParams(schema) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     try {
-      schema.parse(req.query);
+      await schema.parse(req.query);
 
       next();
     } catch (error) {
