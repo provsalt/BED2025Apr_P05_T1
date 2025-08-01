@@ -83,7 +83,7 @@ export const Signup = () => {
           profile_picture_url: resp.profile_picture_url || "",
         }
       });
-      setTimeout(() => navigate("/medicine"), 3000);
+      setTimeout(() => navigate("/"), 3000);
     } else {
       const errorData = await res.json();
       if (errorData.details && Array.isArray(errorData.details)) {
@@ -120,12 +120,12 @@ export const Signup = () => {
                 <div>
                   <Label htmlFor="name">Name</Label>
                   <Input type="text" placeholder="Enter Your Name" {...register("name", {required: true, min: 3, maxLength: 255})} />
-                  {errors.name && <span className="text-red-500">{errors.name.message || "Please enter a valid name."}</span>}
+                  {errors.name && <span className="text-destructive">{errors.name.message || "Please enter a valid name."}</span>}
                 </div>
                 <div>
                   <Label htmlFor="name">Email</Label>
                   <Input type="text" placeholder="Enter Your Email" {...register("email", {required: true, maxLength: 255})} />
-                  {errors.email && <span className="text-red-500">{errors.email.message || "Please enter a valid email."}</span>}
+                  {errors.email && <span className="text-destructive">{errors.email.message || "Please enter a valid email."}</span>}
                 </div>
                 <div className="space-y-2">
                   <div>
@@ -139,19 +139,19 @@ export const Signup = () => {
                         message: "Password must be 12 letters, contain at least one uppercase letter and one special character."
                       }
                     })} />
-                    {errors.password && <span className="text-red-500">{errors.password.message || "Password must be 12 letters, contain at least one uppercase letter and one special character."}</span>}
+                    {errors.password && <span className="text-destructive">{errors.password.message || "Password must be 12 letters, contain at least one uppercase letter and one special character."}</span>}
                   </div>
                   <div>
                     <Label htmlFor="confirm-password">Confirm Password</Label>
                     <Input type="password" placeholder="Confirm Your Password" {...register("confirm-password", {required: true, minLength: 12, maxLength: 255})} />
-                    {errors["confirm-password"] && <span className="text-red-500">{errors["confirm-password"].message || "Please confirm your password."}</span>}
+                    {errors["confirm-password"] && <span className="text-destructive">{errors["confirm-password"].message || "Please confirm your password."}</span>}
                   </div>
                 </div>
 
                 <div>
                   <Label htmlFor="dob">Date of Birth</Label>
                   <Input type="date" placeholder="Enter Your Date of Birth" {...register("dob", {required: true})} />
-                  {errors.dob && <span className="text-red-500">{errors.dob.message || "Please enter a valid date of birth."}</span>}
+                  {errors.dob && <span className="text-destructive">{errors.dob.message || "Please enter a valid date of birth."}</span>}
                 </div>
                 <div>
                   <Label htmlFor="gender" >Gender</Label>
@@ -173,7 +173,7 @@ export const Signup = () => {
                       </RadioGroup>
                     )}
                   />
-                  {errors.gender && <span className="text-red-500">{errors.gender.message || "Please enter a valid gender."}</span>}
+                  {errors.gender && <span className="text-destructive">{errors.gender.message || "Please enter a valid gender."}</span>}
                 </div>
 
                 <Button type="submit" className="w-full cursor-pointer">Sign up</Button>

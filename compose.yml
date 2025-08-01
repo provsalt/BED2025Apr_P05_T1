@@ -28,6 +28,8 @@ services:
       - "${BACKEND_PORT:-3001}:3001"
     depends_on:
       - db
+      - loki
+      - tempo
 #        condition: service_healthy
     environment:
       - DB_USER=${DB_USER}
@@ -83,6 +85,24 @@ services:
       - grafana:/var/lib/grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+  tempo:
+    image: grafana/tempo:2.7.2
+    ports:
+      - "${TEMPO_HTTP_PORT:-3200}:3200" # HTTP API port
+      - "${TEMPO_OTLP_PORT:-4318}:4318" # OTLP HTTP receiver port
+      - "${TEMPO_GRPC_PORT:-9095}:9095" # gRPC port
+    command: [ "-config.file=/etc/tempo/tempo.yaml" ]
+    volumes:
+      - ./tempo.yaml:/etc/tempo/tempo.yaml
+      - tempo-data:/var/tempo
 
 networks:
   bed-assignment:
@@ -97,3 +117,7 @@ volumes:
   prometheus_data:
 
   grafana:
+
+  tempo-data:
+
+  loki_data:

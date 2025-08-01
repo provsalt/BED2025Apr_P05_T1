@@ -33,8 +33,8 @@ export function EventDetails() {
     fetchEvent();
   }, [id]);
 
-  if (loading) return <div className="text-center py-8 text-gray-500">Loading event...</div>;
-  if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
+  if (loading) return <div className="text-center py-8 text-muted-foreground">Loading event...</div>;
+  if (error) return <div className="text-center py-8 text-destructive">{error}</div>;
   if (!event) return null;
 
   //Images array
@@ -119,26 +119,26 @@ export function EventDetails() {
       <h1 className="text-3xl font-bold mb-4 capitalize">{event.name}</h1>
       {/* Image Carousel */}
       {hasImages && (
-        <div className="relative flex items-center justify-center mb-6 mx-auto rounded-xl shadow-md aspect-[4/3] max-w-3xl w-full bg-gray-100 overflow-hidden">
+        <div className="relative flex items-center justify-center mb-6 mx-auto rounded-xl shadow-md aspect-[4/3] max-w-3xl w-full bg-muted overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-between px-2 pointer-events-none z-10">
             {images.length > 1 && (
               <Button
                 variant="outline"
-                className="rounded-full p-0 w-8 h-8 flex items-center justify-center shadow bg-white/70 hover:bg-white/90 pointer-events-auto border border-gray-200 cursor-pointer"
+                className="rounded-full p-0 w-8 h-8 flex items-center justify-center shadow bg-background/70 hover:bg-background/90 pointer-events-auto border border-border cursor-pointer"
                 onClick={goLeft}
                 aria-label="Previous image"
               >
-                <ChevronLeft className="w-4 h-4 text-gray-700" />
+                <ChevronLeft className="w-4 h-4 text-foreground" />
               </Button>
             )}
             {images.length > 1 && (
               <Button
                 variant="outline"
-                className="rounded-full p-0 w-8 h-8 flex items-center justify-center shadow bg-white/70 hover:bg-white/90 pointer-events-auto border border-gray-200 cursor-pointer"
+                className="rounded-full p-0 w-8 h-8 flex items-center justify-center shadow bg-background/70 hover:bg-background/90 pointer-events-auto border border-border cursor-pointer"
                 onClick={goRight}
                 aria-label="Next image"
               >
-                <ChevronRight className="w-4 h-4 text-gray-700" />
+                <ChevronRight className="w-4 h-4 text-foreground" />
               </Button>
             )}
           </div>
@@ -153,28 +153,28 @@ export function EventDetails() {
       {/* Event Details Section */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-2">Event Details</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8 text-gray-700 text-sm border-b pb-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8 text-foreground text-sm border-b pb-4 mb-4">
           <div>
-            <div className="text-xs text-gray-400 mb-1">Date</div>
-            <div className="flex items-center gap-2"><Calendar className="size-4 text-gray-400" />{dateStr}</div>
+            <div className="text-xs text-muted-foreground mb-1">Date</div>
+            <div className="flex items-center gap-2"><Calendar className="size-4 text-muted-foreground" />{dateStr}</div>
           </div>
           <div>
-            <div className="text-xs text-gray-400 mb-1">Time</div>
-            <div className="flex items-center gap-2"><Clock className="size-4 text-gray-400" />{timeStr}</div>
+            <div className="text-xs text-muted-foreground mb-1">Time</div>
+            <div className="flex items-center gap-2"><Clock className="size-4 text-muted-foreground" />{timeStr}</div>
           </div>
           <div>
-            <div className="text-xs text-gray-400 mb-1">Location</div>
-            <div className="flex items-center gap-2"><MapPin className="size-4 text-gray-400" /><span className="capitalize">{event.location}</span></div>
+            <div className="text-xs text-muted-foreground mb-1">Location</div>
+            <div className="flex items-center gap-2"><MapPin className="size-4 text-muted-foreground" /><span className="capitalize">{event.location}</span></div>
           </div>
           <div>
-            <div className="text-xs text-gray-400 mb-1">Organizer</div>
-            <div className="flex items-center gap-2 capitalize"><User className="size-4 text-gray-400" />{organizerName}</div>
+            <div className="text-xs text-muted-foreground mb-1">Organizer</div>
+            <div className="flex items-center gap-2 capitalize"><User className="size-4 text-muted-foreground" />{organizerName}</div>
           </div>
         </div>
       </div>
       {/* Description */}
       <h2 className="text-lg font-semibold mb-2">Description</h2>
-      <div className="text-gray-600 text-base mb-8 whitespace-pre-line">
+      <div className="text-foreground text-base mb-8 whitespace-pre-line">
         {event.description}
       </div>
       {/* Organizer Section */}
@@ -187,8 +187,8 @@ export function EventDetails() {
           }
         })()}
         <div className="flex-1">
-          <div className="font-semibold text-gray-800 capitalize">{organizerName}</div>
-          <div className="text-xs text-gray-500">Event Organizer</div>
+          <div className="font-semibold text-foreground capitalize">{organizerName}</div>
+          <div className="text-xs text-muted-foreground">Event Organizer</div>
         </div>
         <Button className="h-10 px-6 cursor-pointer">Send Message</Button>
       </div>

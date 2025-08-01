@@ -72,8 +72,8 @@ export function MedicationReminderForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full p-6 bg-gray-50">
-      <div className="bg-white rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+    <form onSubmit={handleSubmit} className="w-full p-6 bg-muted">
+      <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
         <div className="space-y-6">
           {/* Medication Name */}
           <div className="space-y-2">
@@ -140,14 +140,14 @@ export function MedicationReminderForm({
               <div className="flex items-center justify-center w-full">
                 <label
                   htmlFor="imageUpload"
-                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-muted-foreground border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80"
                 >
                   <div className="flex flex-col items-center justify-center p-2">
-                    <Upload className="w-6 h-6 mb-1 text-gray-500" />
-                    <p className="text-xs text-gray-500">
+                    <Upload className="w-6 h-6 mb-1 text-muted-foreground" />
+                    <p className="text-xs text-muted-foreground">
                       <span className="font-semibold">Click to upload</span> image
                     </p>
-                    <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
                   </div>
                   <input
                     id="imageUpload"
@@ -180,7 +180,7 @@ export function MedicationReminderForm({
                       <button
                         type="button"
                         onClick={removeImage}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        className="absolute top-2 right-2 bg-destructive text-primary-foreground rounded-full p-1 hover:bg-destructive/90"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -192,7 +192,7 @@ export function MedicationReminderForm({
           </div>
           {/* Submit/Cancel */}
           <div className="flex gap-3 pt-4">
-            <Button type="submit" disabled={isSubmitting} className="bg-blue-500 hover:bg-blue-600 text-white px-6 cursor-pointer">
+            <Button type="submit" disabled={isSubmitting} className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 cursor-pointer">
               {isSubmitting ? (mode === 'edit' ? 'Saving...' : 'Creating...') : (mode === 'edit' ? 'Save Changes' : 'Set Reminder')}
             </Button>
             <Button type="button" variant="outline" onClick={onCancel} className="px-6 cursor-pointer">
@@ -209,7 +209,7 @@ export function MedicationReminderForm({
             }}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle className={dialog.type === 'error' ? 'text-red-700' : 'text-green-700'}>
+                  <DialogTitle className={dialog.type === 'error' ? 'text-destructive' : 'text-primary'}>
                     {dialog.type === 'error' ? 'Error' : 'Success'}
                   </DialogTitle>
                 </DialogHeader>

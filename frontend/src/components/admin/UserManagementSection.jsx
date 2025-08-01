@@ -76,10 +76,10 @@ const UserManagementSection = ({ users, updateUserRole, deleteUser }) => {
   });
 
   return (
-    <div className="bg-white rounded-lg shadow-md border">
+    <div className="bg-background rounded-lg shadow-md border">
       <div className="p-6 border-b">
         <h3 className="text-lg font-semibold">User Management</h3>
-        <p className="text-gray-600">Manage user roles and permissions</p>
+        <p className="text-muted-foreground">Manage user roles and permissions</p>
       </div>
       
       <div className="p-4">

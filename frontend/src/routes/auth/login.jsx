@@ -54,7 +54,7 @@ export const Login = () => {
       
       // Redirect based on role
       if (payload.role === 'Admin') {
-        setTimeout(() => navigate("/admin/dashboard"), 1500);
+        setTimeout(() => navigate("/admin"), 1500);
       } else {
         setTimeout(() => navigate("/"), 1500);
       }
@@ -83,13 +83,13 @@ export const Login = () => {
             <div>
               <Label htmlFor="name">Email</Label>
               <Input type="text" placeholder="Enter Your Email" {...register("email", {required: true, maxLength: 255})} />
-              {errors.email && <span className="text-red-500">Please enter a valid email.</span>}
+              {errors.email && <span className="text-destructive">Please enter a valid email.</span>}
             </div>
             <div className="space-y-2">
               <div>
                 <Label htmlFor="password">Password</Label>
                 <Input type="password" placeholder="Enter Your Password" {...register("password", {required: true, min: 8, maxLength: 255})} />
-                {errors.password && <span className="text-red-500">Please enter a valid password.</span>}
+                {errors.password && <span className="text-destructive">Please enter a valid password.</span>}
               </div>
             </div>
 

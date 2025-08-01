@@ -77,29 +77,29 @@ export const MedicationRemindersList = () => {
     <div className="w-full max-w-3xl mx-auto mt-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">My Medication Reminders</h2>
-        <Button variant="default" className="bg-blue-500 hover:bg-blue-600 cursor-pointer" onClick={() => navigate('/medical/create')}>+ Add New Reminder</Button>
+        <Button variant="default" className="bg-primary hover:bg-primary/90 cursor-pointer" onClick={() => navigate('/medical/create')}>+ Add New Reminder</Button>
       </div>
       {loading ? (
-        <div className="text-center py-8 text-gray-500">Loading...</div>
+        <div className="text-center py-8 text-muted-foreground">Loading...</div>
       ) : error ? (
-        <div className="text-center py-8 text-red-500">{error}</div>
+        <div className="text-center py-8 text-destructive">{error}</div>
       ) : reminders.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">No reminders</div>
+        <div className="text-center py-8 text-muted-foreground">No reminders</div>
       ) : (
         <div className="space-y-4">
           {reminders.map(reminder => (
             <Card key={reminder.id} className="flex flex-col md:flex-row items-start md:items-center justify-between">
               <CardContent className="flex-1 w-full">
                 <div className="font-bold text-base mb-1">{reminder.medicine_name}</div>
-                <div className="text-gray-500 text-sm">
+                <div className="text-muted-foreground text-sm">
                   {reminder.reason} • {reminder.dosage} • {formatSqlTime(reminder.medicine_time)} • {reminder.frequency_per_day} per day
                 </div>
               </CardContent>
               <div className="flex gap-2 px-6 pb-4 md:pb-0">
-                <Button variant="secondary" className="bg-yellow-400 hover:bg-yellow-500 text-white cursor-pointer" onClick={() => navigate(`/medical/edit/${reminder.id}`)}>Edit</Button>
+                <Button variant="secondary" className="cursor-pointer" onClick={() => navigate(`/medical/edit/${reminder.id}`)}>Edit</Button>
                 <Button
                   variant="destructive"
-                  className="bg-red-500 hover:bg-red-600 text-white cursor-pointer"
+                  className="cursor-pointer"
                   disabled={deletingId === reminder.id}
                   onClick={() => handleDelete(reminder.id)}
                 >
@@ -113,7 +113,7 @@ export const MedicationRemindersList = () => {
       <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className={dialog.type === 'error' ? 'text-red-700' : 'text-green-700'}>
+            <DialogTitle className={dialog.type === 'error' ? 'text-destructive' : 'text-primary'}>
               {(() => { if (dialog.type === 'error') { return 'Error'; } else { return 'Success'; } })()}
             </DialogTitle>
             <DialogDescription>{dialog.message}</DialogDescription>
