@@ -306,9 +306,13 @@ describe('communityEventModel', () => {
 
   describe('deleteCommunityEvent', () => {
     it('returns true on successful delete', async () => {
-      // Mock the delete queries
-      mockRequest.query.mockResolvedValueOnce({});
-      mockRequest.query.mockResolvedValueOnce({ rowsAffected: [1] });
+      // Mock the delete queries 
+      // from CommunityEventSignup
+      // from CommunityEventImage  
+      // from CommunityEvent (returns rowsAffected)
+      mockRequest.query.mockResolvedValueOnce({}); // CommunityEventSignup delete
+      mockRequest.query.mockResolvedValueOnce({}); // CommunityEventImage delete
+      mockRequest.query.mockResolvedValueOnce({ rowsAffected: [1] }); // CommunityEvent delete
 
       const result = await model.deleteCommunityEvent(1, 1);
       expect(result).toBe(true);
@@ -316,9 +320,10 @@ describe('communityEventModel', () => {
     });
 
     it('returns true on successful delete with different IDs', async () => {
-      // Mock the delete queries
-      mockRequest.query.mockResolvedValueOnce({});
-      mockRequest.query.mockResolvedValueOnce({ rowsAffected: [1] });
+
+      mockRequest.query.mockResolvedValueOnce({}); 
+      mockRequest.query.mockResolvedValueOnce({}); 
+      mockRequest.query.mockResolvedValueOnce({ rowsAffected: [1] }); 
 
       const result = await model.deleteCommunityEvent(5, 3);
       expect(result).toBe(true);
@@ -326,9 +331,9 @@ describe('communityEventModel', () => {
     });
 
     it('returns false if event not found or user does not have permission', async () => {
-      // Mock the delete queries
-      mockRequest.query.mockResolvedValueOnce({});
-      mockRequest.query.mockResolvedValueOnce({ rowsAffected: [0] });
+      mockRequest.query.mockResolvedValueOnce({}); 
+      mockRequest.query.mockResolvedValueOnce({}); 
+      mockRequest.query.mockResolvedValueOnce({ rowsAffected: [0] }); 
 
       const result = await model.deleteCommunityEvent(999, 1);
       expect(result).toBe(false);
@@ -337,22 +342,35 @@ describe('communityEventModel', () => {
 
     it('returns false when user does not own the event', async () => {
       // Mock the delete queries
-      mockRequest.query.mockResolvedValueOnce({});
-      mockRequest.query.mockResolvedValueOnce({ rowsAffected: [0] });
+      // from CommunityEventSignup
+      // from CommunityEventImage  
+      // from CommunityEvent (returns rowsAffected)
+      mockRequest.query.mockResolvedValueOnce({}); 
+      mockRequest.query.mockResolvedValueOnce({}); 
+      mockRequest.query.mockResolvedValueOnce({ rowsAffected: [0] }); 
 
       const result = await model.deleteCommunityEvent(1, 999);
       expect(result).toBe(false);
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
+    it('throws error on db error during signup deletion', async () => {
+      mockRequest.query.mockRejectedValueOnce(new Error('Signup deletion failed'));
+
+      await expect(model.deleteCommunityEvent(1, 1)).rejects.toThrow('Signup deletion failed');
+      expect(mockConnection.close).toHaveBeenCalled();
+    });
+
     it('throws error on db error during image deletion', async () => {
-      mockRequest.query.mockRejectedValueOnce(new Error('Image deletion failed'));
+      mockRequest.query.mockResolvedValueOnce({}); // Signup deletion succeeds
+      mockRequest.query.mockRejectedValueOnce(new Error('Image deletion failed')); // Image deletion fails
 
       await expect(model.deleteCommunityEvent(1, 1)).rejects.toThrow('Image deletion failed');
       expect(mockConnection.close).toHaveBeenCalled();
     });
 
     it('throws error on db error during event deletion', async () => {
+      mockRequest.query.mockResolvedValueOnce({}); // Signup deletion succeeds
       mockRequest.query.mockResolvedValueOnce({}); // Image deletion succeeds
       mockRequest.query.mockRejectedValueOnce(new Error('Event deletion failed')); // Event deletion fails
 
