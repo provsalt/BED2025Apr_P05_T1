@@ -19,13 +19,22 @@ export const UserProvider = ({ children }) => {
       return;
     }
 
-    const token = localStorage.getItem("token");
+    // Check for token in URL parameters (Google OAuth callback)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get('token');
+    
+    if (urlToken) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      localStorage.setItem("token", urlToken);
+    }
+
+    const token = urlToken || localStorage.getItem("token");
     const parse = token ? decodeJwt(token) : null;
     if (!parse) {
       setIsLoading(false);
       return;
     }
-    const isAuthenticated = !!token && parse && (Date.now() / 10000 ) < parse.exp;
+    const isAuthenticated = !!token && parse && (Date.now() / 1000 ) < parse.exp;
     if (!isAuthenticated) {
       setUser(undefined);
       setIsLoading(false);

@@ -14,7 +14,6 @@ import { connectedUsersGauge } from "./services/prometheusService.js";
 import client from "prom-client";
 import { errorHandler } from "./middleware/errorHandler.js";
 import {loggerMiddleware, logInfo} from "./utils/logger.js";
-import { checkAndSendReminders } from './controllers/medical/reminderController.js';
 import passport from "passport";
 import dotenv from "dotenv";
 import "./config/passport.js";
@@ -45,11 +44,8 @@ app.use(express.json());
 // Apply rate limiting globally
 app.use(defaultRateLimit)
 
-// Remove Google OAuth and passport initialization
-// import passport from "passport";
-// import "./config/passport.js";
-
 app.use("/api", ApiController())
+app.use("/auth", AuthController())
 
 initSwagger(app);
 
