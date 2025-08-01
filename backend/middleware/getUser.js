@@ -23,10 +23,6 @@ export const getUserMiddleware = async (req, res, next) => {
       algorithms: ["HS256"]
     });
 
-    if (Date.now() > payload.exp * 1000) {
-      throw ErrorFactory.unauthorized("Token has expired");
-    }
-
     const user = await getUser(Number(payload.sub));
     if (!user) {
       throw ErrorFactory.unauthorized("User not found or has been deactivated");
