@@ -5,19 +5,27 @@ import packageJson from "../package.json" with { type: "json" };
 
 dotenv.config();
 
-const LokiTransport = pino.transport({
-  target: "pino-loki",
-  options: {
-    batching: true,
-    interval: 5,
-    host: process.env.LOKI_ENDPOINT,
-    labels: {
-      service: process.env.SERVICE_NAME || packageJson.name || "eldercare_backend",
-      environment: process.env.NODE_ENV || "development",
-      version: packageJson.version || "1.0.0"
+const transports = [
+  {
+    target: "pino-loki",
+    options: {
+      batching: true,
+      interval: 5,
+      host: process.env.LOKI_ENDPOINT,
+      labels: {
+        service: process.env.SERVICE_NAME || packageJson.name || "eldercare_backend",
+        environment: process.env.NODE_ENV || "development",
+        version: packageJson.version || "1.0.0"
+      }
     }
   },
-});
+  {
+    target: "pino-pretty",
+    options: {
+      colorize: true
+    }
+  }
+];
 
 const logger = pino(
   {
@@ -33,7 +41,7 @@ const logger = pino(
       return {};
     },
   },
-  LokiTransport,
+  pino.transport({ targets: transports }),
 );
 
 export const loggerMiddleware = (req, res, next) => {
