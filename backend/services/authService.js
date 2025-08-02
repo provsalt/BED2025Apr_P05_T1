@@ -35,13 +35,31 @@ export class AuthService {
    */
   static async handleGoogleAuthSuccess(user) {
     try {
-      await insertLoginHistory(user.id);
+      if (!user || !user.id) {
+        throw new Error("Invalid user object - missing required fields");
+      }
+
+      try {
+        await insertLoginHistory(user.id);
+      } catch (historyError) {
+        console.warn("Login history recording failed:", historyError.message);
+      }
       
       const token = await this.generateJWTToken(user);
       
+      if (!token) {
+        throw new Error("Token generation returned empty result");
+      }
+      
       return token;
     } catch (error) {
-      throw new Error(`Google auth success handling failed: ${error.message}`);
+      console.error("AuthService.handleGoogleAuthSuccess failed:", {
+        message: error.message,
+        userId: user?.id,
+        userEmail: user?.email
+      });
+      
+      throw new Error(`Authentication processing failed: ${error.message}`);
     }
   }
 

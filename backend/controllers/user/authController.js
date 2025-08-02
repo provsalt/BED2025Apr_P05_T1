@@ -1,6 +1,7 @@
 import express from "express";
 import passport from "passport";
 import { AuthService } from "../../services/authService.js";
+import { ErrorFactory } from "../../utils/AppError.js";
 
 /**
  * @openapi
@@ -58,23 +59,43 @@ const initiateGoogleAuth = (req, res, next) => {
  * Controller function to handle Google OAuth callback
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
+ * @param {Function} next - Express next middleware function
  */
-const handleGoogleCallback = async (req, res) => {
+const handleGoogleCallback = async (req, res, next) => {
   try {
     const user = req.user;
     
     if (!user) {
-      return res.status(401).send("Authentication failed - no user data");
+      throw ErrorFactory.unauthorized("Authentication failed - no user data received from Google");
+    }
+
+    if (!user.id) {
+      throw ErrorFactory.unauthorized("Authentication failed - invalid user data from Google");
     }
     // Handle authentication success through service layer
     const token = await AuthService.handleGoogleAuthSuccess(user);
     
+    if (!token) {
+      throw ErrorFactory.external("Token Service", "Failed to generate authentication token", "Unable to create session");
+    }
+
     const redirectUrl = AuthService.getAuthRedirectUrl(token);
     res.redirect(redirectUrl);
     
   } catch (error) {
-    console.error("Google callback error:", error);
-    res.status(500).send("Internal server error during authentication");
+    // Log error for debugging but don't expose details to user
+    console.error("Google OAuth callback error:", {
+      message: error.message,
+      stack: error.stack,
+      user: req.user ? { id: req.user.id, email: req.user.email } : null
+    });
+    
+    if (error.isOperational) {
+      return next(error);
+    }
+    
+    const authError = ErrorFactory.external("Authentication Service", "Google authentication failed", "Unable to complete sign-in process");
+    next(authError);
   }
 };
 
@@ -82,7 +103,9 @@ const handleGoogleCallback = async (req, res) => {
  * Controller function to handle Google OAuth failure
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
+ * @param {Function} next - Express next middleware function
  */
-const handleGoogleFailure = (req, res) => {
-  res.status(401).send("Google authentication failed");
+const handleGoogleFailure = (req, res, next) => {
+  const error = ErrorFactory.unauthorized("Google authentication was cancelled or failed");
+  next(error);
 }; 

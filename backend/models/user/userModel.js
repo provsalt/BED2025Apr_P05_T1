@@ -83,26 +83,34 @@ export const createUser = async (userData) => {
  * @returns {Promise<*>}
  */
 export const createOAuthUser = async (userData) => {
-    const db = await sql.connect(dbConfig);
-    
-    const randomPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const hashedPassword = await bcrypt.hash(randomPassword, 12);
-    
-    const query = `
-        INSERT INTO Users (name, email, password, date_of_birth, gender, profile_picture_url)
-        OUTPUT INSERTED.*
-        VALUES (@name, @email, @password, @dob, @gender, @profile_picture_url);
-    `;
-    const request = db.request();
-    request.input("name", userData.name);
-    request.input("email", userData.email);
-    request.input("password", hashedPassword);
-    request.input("dob", userData.date_of_birth ? new Date(userData.date_of_birth) : new Date('1990-01-01')); // Default date if null
-    request.input("gender", userData.gender || null);
-    request.input("profile_picture_url", userData.profile_picture_url || null);
-    
-    const res = await request.query(query);
-    return res.recordset[0];
+    try {
+        const db = await sql.connect(dbConfig);
+        
+        // Generate a random password for OAuth users (users will not used it)
+        const randomPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const hashedPassword = await bcrypt.hash(randomPassword, 12);
+        
+        const query = `
+            INSERT INTO Users (name, email, password, date_of_birth, gender, profile_picture_url)
+            OUTPUT INSERTED.*
+            VALUES (@name, @email, @password, @dob, @gender, @profile_picture_url);
+        `;
+        const request = db.request();
+        request.input("name", userData.name);
+        request.input("email", userData.email);
+        request.input("password", hashedPassword);
+        request.input("dob", userData.date_of_birth ? new Date(userData.date_of_birth) : new Date('1990-01-01')); // Default date if null
+        request.input("gender", userData.gender || null);
+        request.input("profile_picture_url", userData.profile_picture_url || null);
+        
+        const res = await request.query(query);
+        return res.recordset[0];
+    } catch (error) {
+        if (error.number === 2627) { // SQL Server unique constraint violation
+            throw ErrorFactory.conflict("Email already exists", "An account with this email already exists");
+        }
+        throw ErrorFactory.database(`Failed to create OAuth user: ${error.message}`, "Unable to process request at this time", error);
+    }
 }
 
 /**
@@ -323,4 +331,23 @@ export const getUsersWithDeletionRequested = async () => {
   } catch (error) {
     throw ErrorFactory.database(`Failed to get users with deletion requested: ${error.message}`, "Unable to process request at this time", error);
   }
+};
+
+/**
+ * Checks if a user is an OAuth user by checking if they have a profile picture from Google
+ * This is a temporary solution until we add an oauth_provider field to the database
+ * @param {Object} user - User object
+ * @returns {boolean} True if user is likely an OAuth user
+ */
+export const isOAuthUser = (user) => {
+  if (!user) return false;
+  
+  // Check if profile picture URL is from Google
+  if (user.profile_picture_url && user.profile_picture_url.includes('googleusercontent.com')) {
+    return true;
+  }
+  
+  // Check if user has a very long random password
+  // This is not foolproof but helps identify OAuth users created by our system
+  return false; // We can't check password length without hashing, so return false for now
 };
