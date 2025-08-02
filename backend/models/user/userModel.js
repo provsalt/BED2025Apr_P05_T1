@@ -99,7 +99,7 @@ export const createOAuthUser = async (userData) => {
         request.input("name", userData.name);
         request.input("email", userData.email);
         request.input("password", hashedPassword);
-        request.input("dob", userData.date_of_birth ? new Date(userData.date_of_birth) : new Date('1990-01-01')); // Default date if null
+        request.input("dob", userData.date_of_birth ? new Date(userData.date_of_birth) : new Date(DEFAULT_OAUTH_DOB)); // Default date if null
         request.input("gender", userData.gender || null);
         request.input("profile_picture_url", userData.profile_picture_url || null);
         
