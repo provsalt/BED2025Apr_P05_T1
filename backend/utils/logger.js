@@ -1,7 +1,7 @@
 import pino from "pino";
 import {context, trace} from "@opentelemetry/api";
 import dotenv from "dotenv";
-import packageJson from "../package.json" with { type: "json" };
+import packageJson from "../package.json" with {type: "json"};
 
 dotenv.config();
 
@@ -41,7 +41,7 @@ const logger = pino(
       return {};
     },
   },
-  pino.transport({ targets: transports }),
+  pino.transport({targets: transports}),
 );
 
 export const loggerMiddleware = (req, res, next) => {
@@ -57,11 +57,11 @@ export const loggerMiddleware = (req, res, next) => {
       body: req.body,
       query: req.query,
       params: req.params,
-      ip:
-        req.ip ||
-        req.ips ||
+      ip: req.headers["x-real-ip"] ||
+        req.headers["x-forwarded-for"]?.split(",")[0] ||
+        req.connection.remoteAddress ||
         req.socket.remoteAddress ||
-        req.connection.remoteAddress,
+        req.ip,
       hostname: req.hostname,
       protocol: req.protocol,
       originalUrl: req.originalUrl,
@@ -82,7 +82,7 @@ export const logError = (error, req = null, additionalInfo = {}) => {
     stack: error.stack,
     isOperational: error.isOperational,
     timestamp: error.timestamp,
-    ...(error.details && { details: error.details })
+    ...(error.details && {details: error.details})
   };
 
   const requestData = req ? {
