@@ -38,6 +38,7 @@ import {EventDetails} from '@/routes/community/EventDetails.jsx';
 import { SupportChat } from '@/components/support/SupportChat.jsx';
 import {MealImageUpload} from "@/routes/nutrition/MealImageUpload.jsx";
 import { Credits } from "@/routes/Credits.jsx";
+import { Footer } from "@/components/footer/Footer.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -89,6 +90,7 @@ createRoot(document.getElementById('root')).render(
                 </Routes>
               </div>
               <SupportChat />
+              <Footer />
             </div>
           </BrowserRouter>
         </SocketProvider>
