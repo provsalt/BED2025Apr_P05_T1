@@ -51,14 +51,14 @@ export const uploadNutritionImage = async (req, res, next) => {
     const key = `nutrition-images/${filename}`;
 
     // Upload to S3
-    await uploadFile(file, key);
+    await uploadFile(file, key, req.user.id);
 
     const publicUrl = process.env.BACKEND_URL + "/api/s3?key=" + encodeURIComponent(key);
 
     // Analyze the food image with OpenAI
     let analysisResult = null;
     try {
-      analysisResult = await analyzeFoodImage(file.buffer);
+      analysisResult = await analyzeFoodImage(file.buffer, req.user.id);
       if (analysisResult.error) {
         throw ErrorFactory.external("OpenAI", analysisResult.error, "Please ensure the image is clear and contains food items.");
       }

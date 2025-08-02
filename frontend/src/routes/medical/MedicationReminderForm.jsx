@@ -159,7 +159,7 @@ export function MedicationReminderForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full p-6 bg-muted">
+    <form onSubmit={handleSubmit} className="w-full p-6 ">
       <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
         <div className="space-y-6">
           {/* Medication Name */}

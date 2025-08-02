@@ -2,16 +2,37 @@ import React from 'react';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { NutritionAnalytics } from '@/components/nutrition/NutritionAnalytics';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 export const NutritionAnalyticsPage = () => {
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <Breadcrumb className="p-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/nutrition">Nutrition</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator/>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Analytics</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <div className="mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-black mb-2">Nutrition Analytics</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-6">Nutrition Analytics</h1>
               <p className="text-sm text-gray-600">
                 Track your nutrition progress and get insights into your eating patterns
               </p>
@@ -23,7 +44,7 @@ export const NutritionAnalyticsPage = () => {
                 </Button>
               </Link>
               <Link to="/nutrition/upload">
-                <Button className="bg-black hover:bg-gray-800 text-white">
+                <Button className="bg-primary hover:bg-gray-800 text-white">
                   Upload Meal
                 </Button>
               </Link>

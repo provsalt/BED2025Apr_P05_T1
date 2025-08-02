@@ -5,6 +5,14 @@ import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Search, X } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 export const MealsList = () => {
   const [meals, setMeals] = useState([]);
@@ -105,10 +113,11 @@ export const MealsList = () => {
   );
 
   return (
-    <div className="p-3">
-      <div className="max-w-6xl mx-auto">
+    <div className="mx-auto px-6 py-8 w-full">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-left">Your Meals</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            Nutrition
+          </h1>
           <div className="flex gap-2">
             <Link to="/nutrition/analytics">
               <Button variant="outline" className="cursor-pointer">
@@ -125,6 +134,7 @@ export const MealsList = () => {
 
         {/* Search Section */}
         <div className="mb-6">
+          <h2 className="text-2xl font-semibold mb-2">Your meals</h2>
           <div className="flex gap-2 max-w-md items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
@@ -134,7 +144,7 @@ export const MealsList = () => {
                 value={searchTerm}
                 onChange={handleSearchInputChange}
                 onKeyPress={handleSearchKeyPress}
-                className="pl-10 pr-10"
+                className="px-6"
               />
               {searchTerm && (
                 <button
@@ -177,7 +187,7 @@ export const MealsList = () => {
                     className="object-contain max-h-44 max-w-full rounded-md"
                   />
                 </div>
-                <div className="flex-1 p-4 flex flex-col justify-between">
+                <div className="flex-1 p-6 flex flex-col justify-between">
                   <div>
                     <h3 className="text-lg font-semibold mb-2">{meal.name}</h3>
                     <div className="space-y-1 text-sm text-muted-foreground">
@@ -191,7 +201,6 @@ export const MealsList = () => {
             </Link>
           ))}
         </div>
-      </div>
     </div>
   );
 };

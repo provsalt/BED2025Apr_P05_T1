@@ -8,7 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { UserContext } from "@/provider/UserContext.js";
 import { fetcher } from "@/lib/fetcher.js";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 const initialState = {
   difficulty_walking: "",
@@ -118,7 +126,21 @@ export function MedicationQuestionnaire() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full p-6 bg-muted">
+    <div>
+      <Breadcrumb className="p-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/medical">Medical</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator/>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Questionnaire</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <form onSubmit={handleSubmit} className="w-full p-6 ">
       <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
         <h1 className="text-xl font-semibold text-foreground mb-6">Wellness Questionnaire</h1>
         <div className="space-y-6">
@@ -237,7 +259,7 @@ export function MedicationQuestionnaire() {
           <Button 
             type="submit" 
             disabled={submitting} 
-            className="bg-black text-white hover:bg-gray-900 w-full cursor-pointer">
+            className="bg-primary text-white hover:bg-gray-900 w-full cursor-pointer">
             {renderSubmitButtonText()}
           </Button>
         </div>
@@ -252,13 +274,14 @@ export function MedicationQuestionnaire() {
           <div className="py-2">{dialog.message}</div>
           <DialogFooter>
             <Button 
-              className="bg-black text-white hover:bg-gray-900 cursor-pointer" 
+              className="bg-primary text-white hover:bg-gray-900 cursor-pointer"
               onClick={handleDialogOkayClick}>
               Okay
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </form>
+      </form>
+    </div>
   );
 } 

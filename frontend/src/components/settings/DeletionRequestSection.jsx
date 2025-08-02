@@ -44,7 +44,7 @@ const DeletionRequestSection = ({
           </div>
         )}
         {showDeleteConfirm && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="fixed inset-0 flex items-center justify-center bg-primary bg-opacity-50 z-50">
             <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full">
               <h3 className="text-lg font-bold mb-4">Confirm Account Deletion</h3>
               <p className="mb-4">Are you sure you want to request account deletion? This action requires admin approval and cannot be undone once processed.</p>

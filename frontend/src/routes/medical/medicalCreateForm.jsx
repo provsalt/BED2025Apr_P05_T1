@@ -2,7 +2,15 @@ import React, { useState, useContext } from 'react';
 import { MedicationReminderForm } from './MedicationReminderForm.jsx';
 import { UserContext } from '@/provider/UserContext.js';
 import { fetcher } from '@/lib/fetcher.js';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 //limit max reminder and max frequency
 const MAX_REMINDERS_PER_USER = 3;
@@ -93,15 +101,30 @@ export const MedicalCreateForm = () =>  {
   };
 
   return (
-    <MedicationReminderForm
-      initialValues={defaultValues}
-      mode="create"
-      onSubmit={handleCreate}
-      isSubmitting={isSubmitting}
-      dialog={dialog}
-      setDialog={setDialog}
-      onCancel={() => navigate('/medical')}
-      navigateOnSuccess={() => navigate('/medical/reminders')}
-    />
+    <div>
+      <Breadcrumb className="p-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/medical">Medical</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator/>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Create Medication</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <MedicationReminderForm
+        initialValues={defaultValues}
+        mode="create"
+        onSubmit={handleCreate}
+        isSubmitting={isSubmitting}
+        dialog={dialog}
+        setDialog={setDialog}
+        onCancel={() => navigate('/medical')}
+        navigateOnSuccess={() => navigate('/medical/reminders')}
+      />
+    </div>
   );
 };

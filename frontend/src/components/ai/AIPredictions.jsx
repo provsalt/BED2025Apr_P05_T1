@@ -24,7 +24,7 @@ export const AIPredictions = ({ isAuthenticated }) => {
     return (
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader className="text-center pb-8">
-          <div className="mx-auto w-16 h-16 bg-black rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
             <Brain className="h-8 w-8 text-white" />
           </div>
           <CardTitle className="text-xl text-black">
@@ -53,7 +53,7 @@ export const AIPredictions = ({ isAuthenticated }) => {
             <Button 
               onClick={generateInsights}
               size="lg"
-              className="bg-black hover:bg-gray-800 text-white"
+              className="bg-primary hover:bg-gray-800 text-white"
             >
               <Brain className="mr-2 h-5 w-5" />
               Generate AI Insights
@@ -70,7 +70,7 @@ export const AIPredictions = ({ isAuthenticated }) => {
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
               <Brain className="h-5 w-5 text-white animate-pulse" />
             </div>
             <CardTitle className="text-black">
@@ -102,7 +102,7 @@ export const AIPredictions = ({ isAuthenticated }) => {
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
               <Brain className="h-5 w-5 text-white" />
             </div>
             <CardTitle className="text-black">
@@ -168,7 +168,7 @@ export const AIPredictions = ({ isAuthenticated }) => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
               <Brain className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -236,7 +236,7 @@ export const AIPredictions = ({ isAuthenticated }) => {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
                       <Zap className="h-5 w-5 text-white" />
                     </div>
                     <div>

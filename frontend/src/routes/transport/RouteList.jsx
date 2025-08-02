@@ -82,11 +82,11 @@ export const RouteList = () => {
   };
 
   if (loading) {
-    return <div className="container mx-auto p-4">Loading routes...</div>;
+    return <div className="container mx-auto p-6">Loading routes...</div>;
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>

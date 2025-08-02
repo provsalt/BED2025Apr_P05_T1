@@ -25,6 +25,9 @@ export const TransportMap = () => {
   }, [])
 
   useEffect(() => {
+    if (!searchParams.get("start") || !searchParams.get("end")) {
+      return;
+    }
     handleSearch(searchParams.get("start"), searchParams.get("end"));
   }, [searchParams]);
 
@@ -38,9 +41,9 @@ export const TransportMap = () => {
   }
 
   return (
-    <div className="flex h-[calc(100vh-theme(spacing.16))]">
+    <div className="flex h-[calc(100vh-theme(spacing.16))] container mx-auto p-6">
       <div className="flex-1">
-        <Breadcrumb className="p-4">
+        <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink href="/transport">Transport</BreadcrumbLink>
@@ -53,7 +56,7 @@ export const TransportMap = () => {
         </Breadcrumb>
         <Map path={path} setPath={setPath} delay={300}/>
       </div>
-      <div className="m-4 max-w-1/4">
+      <div className="m-4 md:max-w-1/4">
         <TransportDirectionForm stations={stations} onSearch={handleSearch}/>
         <TransitPlan path={path} stations={stations}/>
       </div>

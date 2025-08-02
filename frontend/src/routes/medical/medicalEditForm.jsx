@@ -2,7 +2,15 @@ import React, { useState, useEffect, useContext } from 'react';
 import { MedicationReminderForm } from './MedicationReminderForm.jsx';
 import { UserContext } from '@/provider/UserContext.js';
 import { fetcher } from '@/lib/fetcher.js';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, Link } from 'react-router';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -107,14 +115,35 @@ export function MedicationEditForm() {
   }
 
   return (
-    <MedicationReminderForm
-      initialValues={formData}
-      mode="edit"
-      onSubmit={handleEdit}
-      isSubmitting={isSubmitting}
-      dialog={dialog}
-      setDialog={setDialog}
-      onCancel={() => navigate('/medical/reminders')}
-    />
+    <div>
+      <Breadcrumb className="p-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/medical">Medical</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator/>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/medical/reminders">My Reminders</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator/>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Edit Medication</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <MedicationReminderForm
+        initialValues={formData}
+        mode="edit"
+        onSubmit={handleEdit}
+        isSubmitting={isSubmitting}
+        dialog={dialog}
+        setDialog={setDialog}
+        onCancel={() => navigate('/medical/reminders')}
+      />
+    </div>
   );
 }; 
