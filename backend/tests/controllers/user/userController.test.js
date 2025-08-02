@@ -460,7 +460,7 @@ describe('User Controller', () => {
 
       await uploadUserProfilePictureController(req, res, next);
 
-      expect(uploadFile).toHaveBeenCalledWith(req.file, 'uploads/mock-uuid');
+      expect(uploadFile).toHaveBeenCalledWith(req.file, 'uploads/mock-uuid', 1);
       expect(updateUserProfilePicture).toHaveBeenCalledWith(1, 'http://localhost:3000/api/s3?key=uploads/mock-uuid');
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
@@ -481,7 +481,7 @@ describe('User Controller', () => {
 
       await uploadUserProfilePictureController(req, res, next);
 
-      expect(deleteFile).toHaveBeenCalledWith('/uploads/old-uuid');
+      expect(deleteFile).toHaveBeenCalledWith('/uploads/old-uuid', 1);
     });
 
     it('should call next with error if there is a server error', async () => {
@@ -520,7 +520,7 @@ describe('User Controller', () => {
 
       await deleteUserProfilePictureController(req, res, next);
 
-      expect(deleteFile).toHaveBeenCalledWith('uploads/test-uuid');
+      expect(deleteFile).toHaveBeenCalledWith('uploads/test-uuid', 1);
       expect(updateUserProfilePicture).toHaveBeenCalledWith(1, null);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ message: "Profile picture deleted successfully" });
