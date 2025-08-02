@@ -93,7 +93,7 @@ services:
       - loki_data:/loki
     command: -config.file=/etc/loki/local-config.yaml
   tempo:
-    image: grafana/tempo:2.7.2
+    image: grafana/tempo:latest
     ports:
       - "${TEMPO_HTTP_PORT:-3200}:3200" # HTTP API port
       - "${TEMPO_OTLP_PORT:-4318}:4318" # OTLP HTTP receiver port
