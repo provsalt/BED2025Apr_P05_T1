@@ -27,6 +27,7 @@ vi.mock('../../../models/user/userModel.js', () => ({
     cancelUserDeletionRequest: vi.fn(),
     getLoginHistoryByUserId: vi.fn(),
     deleteUser: vi.fn(),
+    isOAuthUser: vi.fn(),
 }));
 
 vi.mock('../../../models/admin/adminModel.js', () => ({
@@ -89,7 +90,8 @@ import {
   getUserByEmail,
   updateUser,
   updateUserProfilePicture,
-  insertLoginHistory
+  insertLoginHistory,
+  isOAuthUser
 } from '../../../models/user/userModel.js';
 import { deleteUser as adminDeleteUser } from '../../../models/admin/adminModel.js';
 import { uploadFile, deleteFile } from '../../../services/s3Service.js';
@@ -357,6 +359,7 @@ describe('User Controller', () => {
       };
       getUserByEmail.mockResolvedValue(mockUser);
       bcrypt.compare.mockResolvedValue(true);
+      isOAuthUser.mockReturnValue(false); // Ensure this is not treated as OAuth user
 
       await loginUserController(req, res, next);
 
