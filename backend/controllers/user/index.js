@@ -25,6 +25,13 @@ import {
 } from "./userRoleController.js";
 import {authorizeRole} from "../../middleware/authorizeRole.js";
 import { getUserLoginHistoryController } from "./loginHistoryController.js";
+import {
+  getUserLoginAnalyticsController,
+  getUserRecentLoginAttemptsController,
+  getUserFailedLoginAttemptsController,
+  getLoginAttemptsByEmailController,
+  getOverallLoginAnalyticsController
+} from "./loginAnalyticsController.js";
 import {Password, User} from "../../utils/validation/user.js";
 import {validateSchema} from "../../middleware/validateSchema.js";
 import { z } from "zod/v4";
@@ -63,5 +70,14 @@ router.put("/:id/role", getUserMiddleware, authorizeRole(["Admin"]), updateUserR
 router.get("/role/:role", getUserMiddleware, authorizeRole(["Admin"]), getUsersByRoleController);
 router.put("/role/bulk", getUserMiddleware, authorizeRole(["Admin"]), bulkUpdateUserRolesController);
 
+// Login Analytics Routes
+// User-specific analytics (users can view their own data)
+router.get("/:userId/login-analytics", getUserMiddleware, getUserLoginAnalyticsController);
+router.get("/:userId/login-attempts", getUserMiddleware, getUserRecentLoginAttemptsController);
+router.get("/:userId/failed-login-attempts", getUserMiddleware, getUserFailedLoginAttemptsController);
+
+// Admin-only analytics
+router.get("/analytics/login-attempts-by-email", getUserMiddleware, authorizeRole(["Admin"]), getLoginAttemptsByEmailController);
+router.get("/analytics/overall-login-stats", getUserMiddleware, authorizeRole(["Admin"]), getOverallLoginAnalyticsController);
 
 export default router;

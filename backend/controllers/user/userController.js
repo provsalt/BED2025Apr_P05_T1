@@ -9,7 +9,8 @@ import {
   requestUserDeletion,
   getUsersWithDeletionRequested,
   approveUserDeletionRequest,
-  cancelUserDeletionRequest
+  cancelUserDeletionRequest,
+  trackLoginAttempt
 } from "../../models/user/userModel.js";
 import {randomUUID} from "crypto";
 import {User, Password} from "../../utils/validation/user.js";
@@ -217,6 +218,8 @@ export const updateUserController = async (req, res, next) => {
 export const loginUserController = async (req, res, next) => {
   try {
     const body = req.body;
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const userAgent = req.get('User-Agent');
 
     const user = await getUserByEmail(body.email);
     
@@ -226,8 +229,28 @@ export const loginUserController = async (req, res, next) => {
     const isPasswordValid = await bcrypt.compare(body.password, passwordToCompare);
 
     if (!user || !isPasswordValid) {
+      // Track failed login attempt
+      await trackLoginAttempt({
+        userId: user?.id || null,
+        email: body.email,
+        success: false,
+        ipAddress,
+        userAgent,
+        failureReason: !user ? 'user_not_found' : 'invalid_password'
+      });
+      
       throw ErrorFactory.notFound("Email or password");
-    }                       
+    }
+    
+    // Track successful login attempt
+    await trackLoginAttempt({
+      userId: user.id,
+      email: body.email,
+      success: true,
+      ipAddress,
+      userAgent
+    });
+                       
     await insertLoginHistory(user.id);
 
     const secret = new TextEncoder().encode(process.env.SECRET || "");
