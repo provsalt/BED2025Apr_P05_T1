@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import nutritionImage from "/nutrition.png"
 import transportImage from "/transport.png"
+import communityImage from "/community.png"
+import medicalImage from "/medical.png"
 
 export const Landing = () => {
   const features = [
@@ -22,6 +24,7 @@ export const Landing = () => {
       title: "Medical Management",
       description: "Medication reminders, health tracking, and easy access to medical information.",
       size: "small",
+      img: medicalImage,
     },
     {
       title: "Transport Planning",
@@ -33,6 +36,7 @@ export const Landing = () => {
       title: "Community Events",
       description: "Discover local activities and social engagement opportunities in your area.",
       size: "horizontal-2",
+      img: communityImage
     }
   ];
 
