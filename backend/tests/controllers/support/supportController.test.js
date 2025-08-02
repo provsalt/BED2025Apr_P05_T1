@@ -50,7 +50,8 @@ describe("Support Controller", () => {
             expect(aiSupportService.generateAIResponse).toHaveBeenCalledWith(
                 conversation,
                 context,
-                expect.any(Function)
+                expect.any(Function),
+                1
             );
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(expectedResponse);
@@ -97,7 +98,8 @@ describe("Support Controller", () => {
             expect(aiSupportService.generateAIResponse).toHaveBeenCalledWith(
                 conversation,
                 context,
-                expect.any(Function)
+                expect.any(Function),
+                1
             );
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(expectedResponse);
@@ -156,7 +158,8 @@ describe("Support Controller", () => {
                 expect(aiSupportService.generateAIResponse).toHaveBeenCalledWith(
                     testCase.conversation,
                     testCase.context,
-                    expect.any(Function)
+                    expect.any(Function),
+                    1
                 );
                 vi.clearAllMocks();
             }
@@ -211,7 +214,8 @@ describe("Support Controller", () => {
             expect(aiSupportService.generateAIResponse).toHaveBeenCalledWith(
                 conversation,
                 undefined,
-                expect.any(Function)
+                expect.any(Function),
+                1
             );
             expect(res.status).toHaveBeenCalledWith(200);
         });
