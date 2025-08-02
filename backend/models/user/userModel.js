@@ -403,20 +403,20 @@ export const getUsersWithDeletionRequested = async () => {
 };
 
 /**
- * Checks if a user is an OAuth user by checking if they have a profile picture from Google
- * This is a temporary solution until we add an oauth_provider field to the database
+ * Checks if a user is an OAuth user by checking if they have a profile picture from a known OAuth provider.
+ * WARNING: This is a temporary and unreliable solution until we add an oauth_provider field to the database.
+ * Only checks for Google profile pictures. This may not be accurate for all users.
  * @param {Object} user - User object
- * @returns {boolean} True if user is likely an OAuth user
+ * @returns {boolean} True if user is likely an OAuth user (Google only)
  */
 export const isOAuthUser = (user) => {
-  if (!user) return false;
-  
-  // Check if profile picture URL is from Google
-  if (user.profile_picture_url && user.profile_picture_url.includes('googleusercontent.com')) {
+  if (!user || !user.profile_picture_url) return false;
+
+  // Check if profile picture URL is from Google (OAuth)
+  if (user.profile_picture_url.includes('googleusercontent.com')) {
     return true;
   }
-  
-  // Check if user has a very long random password
-  // This is not foolproof but helps identify OAuth users created by our system
-  return false; // We can't check password length without hashing, so return false for now
+
+  // TODO: Add more checks for other OAuth providers if needed in the future.
+  return false;
 };
