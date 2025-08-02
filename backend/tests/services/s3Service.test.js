@@ -14,6 +14,10 @@ vi.mock("@aws-sdk/client-s3", () => ({
     GetObjectCommand: vi.fn(),
 }));
 
+vi.mock("../../services/prometheusService.js", () => ({
+    trackS3Usage: vi.fn(),
+}));
+
 import { s3 } from "../../config/s3Client.js";
 
 describe("S3 Service", () => {
