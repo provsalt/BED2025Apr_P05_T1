@@ -259,7 +259,7 @@ export function MedicationQuestionnaire() {
           <Button 
             type="submit" 
             disabled={submitting} 
-            className="bg-black text-white hover:bg-gray-900 w-full cursor-pointer">
+            className="bg-primary text-white hover:bg-gray-900 w-full cursor-pointer">
             {renderSubmitButtonText()}
           </Button>
         </div>
@@ -274,7 +274,7 @@ export function MedicationQuestionnaire() {
           <div className="py-2">{dialog.message}</div>
           <DialogFooter>
             <Button 
-              className="bg-black text-white hover:bg-gray-900 cursor-pointer" 
+              className="bg-primary text-white hover:bg-gray-900 cursor-pointer"
               onClick={handleDialogOkayClick}>
               Okay
             </Button>

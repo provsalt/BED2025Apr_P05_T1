@@ -41,7 +41,7 @@ export const Dashboard = ({ summary }) => {
             {/* Nutrition Stats */}
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
-                <div className="bg-black p-2 rounded-full">
+                <div className="bg-primary p-2 rounded-full">
                   <Apple className="h-4 w-4 text-white" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-600">Total Calories</h3>
@@ -54,7 +54,7 @@ export const Dashboard = ({ summary }) => {
 
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
-                <div className="bg-black p-2 rounded-full">
+                <div className="bg-primary p-2 rounded-full">
                   <Dumbbell className="h-4 w-4 text-white" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-600">Protein Intake</h3>
@@ -67,7 +67,7 @@ export const Dashboard = ({ summary }) => {
 
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
-                <div className="bg-black p-2 rounded-full">
+                <div className="bg-primary p-2 rounded-full">
                   <Pill className="h-4 w-4 text-white" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-600">Medications</h3>
@@ -80,7 +80,7 @@ export const Dashboard = ({ summary }) => {
 
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
-                <div className="bg-black p-2 rounded-full">
+                <div className="bg-primary p-2 rounded-full">
                   <Calendar className="h-4 w-4 text-white" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-600">Upcoming Events</h3>
@@ -335,7 +335,7 @@ export const Dashboard = ({ summary }) => {
                     to="/nutrition" 
                     className="flex flex-col items-center p-6 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
                   >
-                    <div className="bg-black p-2 rounded-full mb-3">
+                    <div className="bg-primary p-2 rounded-full mb-3">
                       <Camera className="h-4 w-4 text-white" />
                     </div>
                     <span className="text-xs text-center text-gray-700 font-medium">Scan Meal</span>
@@ -344,7 +344,7 @@ export const Dashboard = ({ summary }) => {
                     to="/medical/reminders" 
                     className="flex flex-col items-center p-6 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
                   >
-                    <div className="bg-black p-2 rounded-full mb-3">
+                    <div className="bg-primary p-2 rounded-full mb-3">
                       <Clock className="h-4 w-4 text-white" />
                     </div>
                     <span className="text-xs text-center text-gray-700 font-medium">Add Reminder</span>
@@ -353,7 +353,7 @@ export const Dashboard = ({ summary }) => {
                     to="/community" 
                     className="flex flex-col items-center p-6 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
                   >
-                    <div className="bg-black p-2 rounded-full mb-3">
+                    <div className="bg-primary p-2 rounded-full mb-3">
                       <PartyPopper className="h-4 w-4 text-white" />
                     </div>
                     <span className="text-xs text-center text-gray-700 font-medium">Join Event</span>
@@ -362,7 +362,7 @@ export const Dashboard = ({ summary }) => {
                     to="/transport" 
                     className="flex flex-col items-center p-6 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
                   >
-                    <div className="bg-black p-2 rounded-full mb-3">
+                    <div className="bg-primary p-2 rounded-full mb-3">
                       <Bus className="h-4 w-4 text-white" />
                     </div>
                     <span className="text-xs text-center text-gray-700 font-medium">Plan Route</span>

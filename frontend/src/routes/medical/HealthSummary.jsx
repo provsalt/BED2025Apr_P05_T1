@@ -277,7 +277,7 @@ export const HealthSummary = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
-                  className="bg-black text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer"
+                  className="bg-primary text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer"
                   onClick={handleGenerateFromExisting}>
 
                   Generate from Existing Data
@@ -299,7 +299,7 @@ export const HealthSummary = () => {
               </p>
               <div className="flex justify-center">
                 <Button
-                  className="bg-black text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer"
+                  className="bg-primary text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer"
                   onClick={() => navigate('/medical/questionnaire')}>
                   Complete Wellness Questionnaire
                 </Button>
@@ -325,7 +325,7 @@ export const HealthSummary = () => {
 
           <div className="space-y-3">
             <Button
-              className="bg-black text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer"
+              className="bg-primary text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer"
               onClick={fetchHealthSummary}
               disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 animate-spin mr-2 text-white" />}
@@ -335,7 +335,7 @@ export const HealthSummary = () => {
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
-                className="bg-black text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer"
+                className="bg-primary text-white hover:bg-gray-900 w-full sm:w-auto cursor-pointer"
                 onClick={() => navigate('/medical/questionnaire')}>
                 Complete Questionnaire
               </Button>
@@ -700,7 +700,7 @@ export const HealthSummary = () => {
                   Cancel
                 </Button>
                 <Button
-                  className="bg-black text-white hover:bg-gray-900 cursor-pointer"
+                  className="bg-primary text-white hover:bg-gray-900 cursor-pointer"
                   onClick={() => handleDialogAction(dialog.action)}>
                   Continue
                 </Button>
@@ -708,7 +708,7 @@ export const HealthSummary = () => {
             )}
             {dialog.type !== 'confirm' && (
               <Button
-                className="bg-black text-white hover:bg-gray-900 cursor-pointer"
+                className="bg-primary text-white hover:bg-gray-900 cursor-pointer"
                 onClick={() => setDialog({ open: false, type: '', title: '', message: '', action: '' })}>
                 OK
               </Button>

@@ -44,7 +44,7 @@ export const NutritionAnalyticsPage = () => {
                 </Button>
               </Link>
               <Link to="/nutrition/upload">
-                <Button className="bg-black hover:bg-gray-800 text-white">
+                <Button className="bg-primary hover:bg-gray-800 text-white">
                   Upload Meal
                 </Button>
               </Link>

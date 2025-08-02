@@ -97,8 +97,8 @@ export const NutritionAnalytics = () => {
             onClick={() => setSelectedPeriod(period.days)}
             className={`${
               selectedPeriod === period.days 
-                ? "bg-black hover:bg-gray-800 text-white" 
-                : "bg-white hover:bg-gray-50 text-black border-gray-300"
+                ? "bg-primary hover:bg-primary/80 text-white" 
+                : "bg-white hover:bg-primary/50 text-black border-gray-300"
             } px-4 py-1 text-sm`}
           >
             {period.label}
@@ -111,7 +111,7 @@ export const NutritionAnalytics = () => {
         <Card className="bg-white border border-gray-300">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="bg-black p-2 rounded-full">
+              <div className="bg-primary p-2 rounded-full">
                 <Activity className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -128,7 +128,7 @@ export const NutritionAnalytics = () => {
         <Card className="bg-white border border-gray-300">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="bg-black p-2 rounded-full">
+              <div className="bg-primary p-2 rounded-full">
                 <TrendingUp className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -145,7 +145,7 @@ export const NutritionAnalytics = () => {
         <Card className="bg-white border border-gray-300">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="bg-black p-2 rounded-full">
+              <div className="bg-primary p-2 rounded-full">
                 <Activity className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -162,7 +162,7 @@ export const NutritionAnalytics = () => {
         <Card className="bg-white border border-gray-300">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="bg-black p-2 rounded-full">
+              <div className="bg-primary p-2 rounded-full">
                 <Utensils className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -181,7 +181,7 @@ export const NutritionAnalytics = () => {
       <Card className="mb-6 border border-gray-300">
         <CardHeader className="bg-white border-b border-gray-300">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="bg-black p-2 rounded-full">
+            <div className="bg-primary p-2 rounded-full">
               <Activity className="w-4 h-4 text-white" />
             </div>
             Daily Calories Progress
@@ -197,7 +197,7 @@ export const NutritionAnalytics = () => {
                   </div>
                   <div className="flex-1 bg-gray-200 rounded-full h-6 relative">
                     <div 
-                      className="bg-black h-6 rounded-full flex items-center justify-end pr-3"
+                      className="bg-primary h-6 rounded-full flex items-center justify-end pr-3"
                       style={{ width: `${Math.min((day.calories / getMaxCalories()) * 100, 100)}%` }}
                     >
                       <span className="text-white font-medium text-xs">
@@ -218,7 +218,7 @@ export const NutritionAnalytics = () => {
       <Card className="border border-gray-300">
         <CardHeader className="bg-white border-b border-gray-300">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="bg-black p-2 rounded-full">
+            <div className="bg-primary p-2 rounded-full">
               <Activity className="w-4 h-4 text-white" />
             </div>
             Daily Nutrition Summary
