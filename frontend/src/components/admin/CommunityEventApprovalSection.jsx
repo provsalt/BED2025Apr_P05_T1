@@ -108,7 +108,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
       culinary: 'bg-primary/10 text-primary hover:bg-primary/20',
       learn: 'bg-primary/10 text-primary hover:bg-primary/20'
     };
-    return colors[category] || 'bg-muted text-muted-foreground hover:bg-muted/80';
+    return colors[category] || ' text-muted-foreground hover:/80';
   };
 
   if (loading) {

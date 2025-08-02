@@ -140,7 +140,7 @@ export function MedicationQuestionnaire() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <form onSubmit={handleSubmit} className="w-full p-6 bg-muted">
+      <form onSubmit={handleSubmit} className="w-full p-6 ">
       <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
         <h1 className="text-xl font-semibold text-foreground mb-6">Wellness Questionnaire</h1>
         <div className="space-y-6">

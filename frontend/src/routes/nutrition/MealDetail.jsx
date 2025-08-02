@@ -170,7 +170,7 @@ export const MealDetail = () => {
       <h1 className="text-3xl font-bold mb-4 capitalize">{meal.name}</h1>
 
       {/* Image */}
-      <div className="relative flex items-center justify-center mb-6 mx-auto rounded-xl shadow-md aspect-[4/3] max-w-3xl w-full bg-muted overflow-hidden">
+      <div className="relative flex items-center justify-center mb-6 mx-auto rounded-xl shadow-md aspect-[4/3] max-w-3xl w-full  overflow-hidden">
         <img
           src={meal.image_url}
           alt={meal.name}

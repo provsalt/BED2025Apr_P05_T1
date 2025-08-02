@@ -168,7 +168,7 @@ export const MealImageUpload = () => {
         <Card className="p-6 max-w-2xl mx-auto bg-background space-y-6">
           <h2 className="text-xl font-bold text-center">Upload Food Image</h2>
           {/* Information section */}
-          <div className="text-center space-y-3 p-6 bg-muted rounded-lg border border-muted">
+          <div className="text-center space-y-3 p-6  rounded-lg border border-muted">
             <h3 className="text-lg font-semibold text-foreground">Why Scan Your Food?</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Scanning your meal helps you instantly understand what you're eating. Get accurate details about calories, protein, carbohydrates, and fats all so you can make smarter choices for your health, track your diet easily, and stay informed without the guesswork.
@@ -195,7 +195,7 @@ export const MealImageUpload = () => {
                 ) : (
                   <label className="block cursor-pointer">
                     <div 
-                      className="w-64 h-48 border-2 border-dashed border-muted rounded-lg flex items-center justify-center bg-muted hover:bg-muted/80 transition-colors"
+                      className="w-64 h-48 border-2 border-dashed border-muted rounded-lg flex items-center justify-center  hover:/80 transition-colors"
                       onDragOver={(e) => {
                         e.preventDefault();
                         e.currentTarget.classList.add('border-muted-foreground', 'bg-muted/80');
