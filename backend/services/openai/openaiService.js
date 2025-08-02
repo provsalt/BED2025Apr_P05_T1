@@ -2,6 +2,8 @@ import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import {z} from "zod/v4";
 import {nutritionSchema} from "../../utils/validation/nutrition.js";
+import { trackOpenAIUsage } from "../prometheusService.js";
+import {logInfo} from "../../utils/logger.js";
 
 dotenv.config();
 
@@ -14,7 +16,7 @@ const openai = new OpenAI({
  * @param {Buffer} imageBuffer - The processed image buffer
  * @returns {Promise<Object>} Analysis results
  */
-export const analyzeFoodImage = async (imageBuffer) => {
+export const analyzeFoodImage = async (imageBuffer, userId = null) => {
   try {
     const res = nutritionSchema.extend({
       error: z.string().describe("Error message if no food is detected")
@@ -47,6 +49,10 @@ export const analyzeFoodImage = async (imageBuffer) => {
       },
     });
 
+    if (response.usage) {
+      trackOpenAIUsage(userId, "nutrition_analysis", "gpt-4.1-mini", response.usage, "vision");
+    }
+
    return response.output_parsed
 
   } catch (error) {
@@ -60,11 +66,15 @@ export const analyzeFoodImage = async (imageBuffer) => {
  * @param {string} content - Content to moderate
  * @returns {Promise<Object>} Moderation result with flagged status and categories
  */
-export const moderateContent = async (content) => {
+export const moderateContent = async (content, userId = null) => {
   try {
     const response = await openai.moderations.create({
       input: content,
     });
+
+    if (response.usage) {
+      trackOpenAIUsage(userId, "moderation", "text-moderation-latest", response.usage, "moderation");
+    }
 
     const result = response.results[0];
     

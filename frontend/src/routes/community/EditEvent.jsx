@@ -65,7 +65,7 @@ export const EditEventPage = () => {
   // Show loading state while user context is initializing
   if (userContext?.isLoading) {
     return (
-      <div className="w-full p-6 bg-muted min-h-screen">
+      <div className="w-full p-6">
         <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
           <div className="text-center py-8 text-muted-foreground">
             Loading user authentication...
@@ -78,7 +78,7 @@ export const EditEventPage = () => {
   // Check if user context exists and properly loaded
   if (!userContext) {
     return (
-      <div className="w-full p-6 bg-muted min-h-screen">
+      <div className="w-full p-6">
         <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
           <div className="text-center py-8 text-muted-foreground">
             Loading user authentication...
@@ -90,7 +90,7 @@ export const EditEventPage = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="w-full p-6 bg-muted min-h-screen">
+      <div className="w-full p-6">
         <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
           <div className="text-center py-8">
             <h2 className="text-xl font-semibold text-foreground mb-4">Authentication Required</h2>
@@ -191,7 +191,7 @@ export const EditEventPage = () => {
       if (result.success) {
         setDialog({ open: true, type: "success", message: "Event updated successfully!" });
         setTimeout(() => {
-          navigate(`/community/event/${id}`);
+          navigate(`/community/${id}`);
         }, 1500);
       } else {
         let errorMessage;
@@ -266,8 +266,8 @@ export const EditEventPage = () => {
   })();
 
   return (
-    <div className="w-full p-6 bg-muted min-h-screen">
-      <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+    <div className="p-6">
+      <div className="bg-background rounded-lg shadow-sm border p-6 mx-auto">
         <div className="flex items-center gap-2 mb-6">
           <Button
             variant="ghost"

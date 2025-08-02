@@ -118,11 +118,14 @@ export function CommunityEvents() {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto pt-8 pb-7">
+    <div className="mx-auto px-6 py-8">
       <div className="w-full flex flex-col">
         <div className="flex items-center justify-between mb-4 w-full">
-          <h2 className="text-xl font-semibold">Community Events</h2>
+          <h1 className="text-2xl font-bold text-foreground">Community Events</h1>
           <div className="flex gap-2">
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer" onClick={() => navigate('/community/signups')}>
+              My Signed Up Events
+            </Button>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer" onClick={() => navigate('/community/myevents')}>
               My Events
             </Button>

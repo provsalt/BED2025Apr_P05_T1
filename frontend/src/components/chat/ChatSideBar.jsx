@@ -55,9 +55,9 @@ export const ChatSideBar = () => {
   };
 
   return (
-    <div className="chat-sidebar w-full max-w-sm bg-muted border-r p-4 space-y-2">
+    <div className="chat-sidebar w-full max-w-sm  border-r p-6 space-y-2">
       {error ? (
-        <div className="w-full max-w-sm bg-muted p-4 space-y-2">
+        <div className="w-full max-w-sm  p-6 space-y-2">
           No chats yet
         </div>
       ) : (

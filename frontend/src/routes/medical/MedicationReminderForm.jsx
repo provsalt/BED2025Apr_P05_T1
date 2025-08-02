@@ -41,11 +41,15 @@ export function MedicationReminderForm({
     const file = event.target.files[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
-        setDialog && setDialog({ open: true, type: 'error', message: 'Please select a valid image file' });
+        if (setDialog) {
+          setDialog({ open: true, type: 'error', message: 'Please select a valid image file' });
+        }
         return;
       }
       if (file.size > 30 * 1024 * 1024) {
-        setDialog && setDialog({ open: true, type: 'error', message: 'Image size should be less than 30MB' });
+        if (setDialog) {
+          setDialog({ open: true, type: 'error', message: 'Image size should be less than 30MB' });
+        }
         return;
       }
       const reader = new FileReader();
@@ -71,8 +75,91 @@ export function MedicationReminderForm({
     onSubmit(formData, setFormData, setDialog);
   };
 
+  const renderImagePreview = () => {
+    if (!formData.imagePreview && !formData.oldImageUrl) {
+      return null;
+    }
+
+    let imageSrc = '';
+    if (formData.imagePreview) {
+      imageSrc = formData.imagePreview;
+    } else if (formData.oldImageUrl) {
+      if (formData.oldImageUrl.startsWith('http')) {
+        imageSrc = formData.oldImageUrl;
+      } else {
+        imageSrc = (import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, '') + formData.oldImageUrl);
+      }
+    }
+
+    return (
+      <div className="relative">
+        <img
+          src={imageSrc}
+          alt="Medication preview"
+          className="w-full h-32 object-cover rounded-lg border"/>
+        {formData.imagePreview && (
+          <button
+            type="button"
+            onClick={removeImage}
+            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600">
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const getSubmitButtonText = () => {
+    if (isSubmitting) {
+      if (mode === 'edit') {
+        return 'Saving...';
+      } else {
+        return 'Creating...';
+      }
+    } else {
+      if (mode === 'edit') {
+        return 'Save Changes';
+      } else {
+        return 'Set Reminder';
+      }
+    }
+  };
+
+  const getDialogTitleClass = () => {
+    if (dialog.type === 'error') {
+      return 'text-destructive';
+    } else {
+      return 'text-primary';
+    }
+  };
+
+  const getDialogTitleText = () => {
+    if (dialog.type === 'error') {
+      return 'Error';
+    } else {
+      return 'Success';
+    }
+  };
+
+  const handleDialogOpenChange = (open) => {
+    setDialog(d => ({ ...d, open }));
+    if (!open && mode === 'edit' && dialog.type === 'success') {
+      navigate('/medical/reminders');
+    }
+  };
+
+  const handleDialogOkayClick = () => {
+    setDialog(d => ({ ...d, open: false }));
+    if (mode === 'edit' && dialog.type === 'success') {
+      navigate('/medical/reminders');
+    }
+    if (mode === 'create' && dialog.type === 'success' && typeof navigateOnSuccess === 'function') {
+      navigateOnSuccess();
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="w-full p-6 bg-muted">
+    <form onSubmit={handleSubmit} className="w-full p-6 ">
       <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
         <div className="space-y-6">
           {/* Medication Name */}
@@ -193,37 +280,30 @@ export function MedicationReminderForm({
           {/* Submit/Cancel */}
           <div className="flex gap-3 pt-4">
             <Button type="submit" disabled={isSubmitting} className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 cursor-pointer">
-              {isSubmitting ? (mode === 'edit' ? 'Saving...' : 'Creating...') : (mode === 'edit' ? 'Save Changes' : 'Set Reminder')}
+              {getSubmitButtonText()}
             </Button>
-            <Button type="button" variant="outline" onClick={onCancel} className="px-6 cursor-pointer">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel} 
+              className="px-6 cursor-pointer">
               Cancel
             </Button>
           </div>
           {/* Dialog */}
           {dialog && (
-            <Dialog open={dialog.open} onOpenChange={open => {
-              setDialog(d => ({ ...d, open }));
-              if (!open && mode === 'edit' && dialog.type === 'success') {
-                navigate('/medical/reminders');
-              }
-            }}>
+            <Dialog open={dialog.open} onOpenChange={handleDialogOpenChange}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle className={dialog.type === 'error' ? 'text-destructive' : 'text-primary'}>
-                    {dialog.type === 'error' ? 'Error' : 'Success'}
+                  <DialogTitle className={getDialogTitleClass()}>
+                    {getDialogTitleText()}
                   </DialogTitle>
                 </DialogHeader>
                 <div className="py-2">{dialog.message}</div>
                 <DialogFooter>
-                  <Button onClick={() => {
-                    setDialog(d => ({ ...d, open: false }));
-                    if (mode === 'edit' && dialog.type === 'success') {
-                      navigate('/medical/reminders');
-                    }
-                    if (mode === 'create' && dialog.type === 'success' && typeof navigateOnSuccess === 'function') {
-                      navigateOnSuccess();
-                    }
-                  }}>Okay</Button>
+                  <Button onClick={handleDialogOkayClick}>
+                    Okay
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

@@ -119,7 +119,7 @@ export const createEvent = async (req, res, next) => {
       const imageKey = `community-events/${userId}/${uuidv4()}_${sanitizedFilename}`;
 
       try {
-        await uploadFile(file, imageKey);
+        await uploadFile(file, imageKey, userId);
         const imageUrl = `/api/s3?key=${imageKey}`;
         const imageResult = await addCommunityEventImage(eventResult.eventId, imageUrl);
         if (imageResult.success) {
@@ -143,17 +143,17 @@ export const createEvent = async (req, res, next) => {
 
 /**
  * @openapi
- * /api/community/myevents:
+ * /api/community:
  *   get:
  *     tags:
  *       - Community
- *     summary: Get all community events created by the authenticated user
- *     description: Returns all community events created by the current user.
+ *     summary: Get all approved community events
+ *     description: Returns all approved community events that are visible to all users.
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: List of user's community events
+ *         description: List of approved community events
  *         content:
  *           application/json:
  *             schema:
@@ -206,12 +206,12 @@ export const getApprovedEvents = async (req, res, next) => {
 
 /**
  * @openapi
- * /api/community/mine:
+ * /api/community/myevents:
  *   get:
  *     tags:
  *       - Community
  *     summary: Get all community events created by the authenticated user
- *     description: Returns all community events created by the current user.
+ *     description: Returns all community events created by the current user, including pending and approved events.
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -248,14 +248,13 @@ export const getApprovedEvents = async (req, res, next) => {
  *                         type: string
  *                       image_url:
  *                         type: string
- *                       status:
- *                         type: string
- *                         enum: [pending, approved]
- *                         description: Event approval status
- *       400:
- *         description: User ID is required
+ *                         description: URL to access the cover image
+ *                       approved_by_admin_id:
+ *                         type: integer
+ *                         nullable: true
+ *                         description: Admin ID who approved the event, null if pending
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - User not authenticated
  *       500:
  *         description: Internal server error
  */
@@ -528,7 +527,7 @@ export const updateEvent = async (req, res, next) => {
             const keyMatch = imageUrl.match(/\/api\/s3\?key=(.+)/);
             if (keyMatch) {
               const key = decodeURIComponent(keyMatch[1]);
-              await deleteFile(key);
+              await deleteFile(key, userId);
             }
           } catch (s3Error) {
             console.error('Error deleting file from S3:', imageUrl, s3Error);
@@ -555,7 +554,7 @@ export const updateEvent = async (req, res, next) => {
         const imageKey = `community-events/${userId}/${uuidv4()}_${sanitizedFilename}`;
 
         try {
-          await uploadFile(file, imageKey);
+          await uploadFile(file, imageKey, userId);
           const imageUrl = `/api/s3?key=${imageKey}`;
           const imageResult = await addCommunityEventImage(eventId, imageUrl);
           if (imageResult.success) {
@@ -585,7 +584,7 @@ export const updateEvent = async (req, res, next) => {
  *     tags:
  *       - Community
  *     summary: Sign up for a community event
- *     description: Allows an authenticated user to sign up for a community event.
+ *     description: Allows a user to sign up for a community event. Users cannot sign up for their own events or events that have already passed.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -607,15 +606,16 @@ export const updateEvent = async (req, res, next) => {
  *                   type: boolean
  *                 message:
  *                   type: string
- *                 eventName:
- *                   type: string
  *       400:
  *         description: Bad request
  *           - User is already signed up for this event
- *           - Event not found
  *           - Event is not approved
+ *           - Event is in the past or happening now
+ *           - You cannot sign up for your own event
  *       401:
  *         description: Unauthorized - User not authenticated
+ *       404:
+ *         description: Event not found
  *       500:
  *         description: Internal server error
  */
@@ -735,7 +735,7 @@ export const userSignedUpEvents = async (req, res, next) => {
  *     tags:
  *       - Community
  *     summary: Cancel signup for a community event
- *     description: Allows an authenticated user to cancel their signup for a community event.
+ *     description: Allows a user to cancel their signup for a community event.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -896,7 +896,7 @@ export const deleteEvent = async (req, res, next) => {
           const keyMatch = imageUrl.match(/key=([^&]+)/);
           if (keyMatch) {
             const s3Key = decodeURIComponent(keyMatch[1]);
-            await deleteFile(s3Key);
+            await deleteFile(s3Key, req.user.id);
           }
         } catch (error) {
           console.error('Error deleting image from S3:', error);
@@ -923,10 +923,44 @@ export const deleteEvent = async (req, res, next) => {
  *     responses:
  *       200:
  *         description: List of pending community events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                       time:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       created_by_name:
+ *                         type: string
+ *                       image_url:
+ *                         type: string
+ *                         description: URL to access the cover image
+ *       401:
+ *         description: Unauthorized - User not authenticated
  *       403:
- *         description: Forbidden
+ *         description: Forbidden - User is not an admin
  *       500:
- *         description: Server error
+ *         description: Internal server error
  */
 export const getPendingCommunityEventsController = async (req, res, next) => {
   try {
@@ -948,7 +982,7 @@ export const getPendingCommunityEventsController = async (req, res, next) => {
  *     tags:
  *       - Admin
  *     summary: Approve a community event
- *     description: Admin only. Approve a pending community event.
+ *     description: Admin only. Approve a pending community event. Once approved, the event becomes visible to all users.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -957,18 +991,34 @@ export const getPendingCommunityEventsController = async (req, res, next) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [eventId]
  *             properties:
  *               eventId:
  *                 type: integer
+ *                 description: The ID of the event to approve
  *     responses:
  *       200:
  *         description: Event approved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
  *       400:
- *         description: Failed to approve event
+ *         description: Bad request - Invalid event ID
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *       403:
+ *         description: Forbidden - User is not an admin
  *       404:
  *         description: Event not found
  *       500:
- *         description: Server error
+ *         description: Internal server error
  */
 export const approveCommunityEventController = async (req, res, next) => {
   try {
@@ -995,7 +1045,7 @@ export const approveCommunityEventController = async (req, res, next) => {
  *     tags:
  *       - Admin
  *     summary: Reject a community event
- *     description: Admin only. Reject and delete a pending community event.
+ *     description: Admin only. Reject and delete a pending community event. This action permanently removes the event and all associated images.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -1004,18 +1054,34 @@ export const approveCommunityEventController = async (req, res, next) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [eventId]
  *             properties:
  *               eventId:
  *                 type: integer
+ *                 description: The ID of the event to reject
  *     responses:
  *       200:
  *         description: Event rejected successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
  *       400:
- *         description: Failed to reject event
+ *         description: Bad request - Invalid event ID
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *       403:
+ *         description: Forbidden - User is not an admin
  *       404:
  *         description: Event not found
  *       500:
- *         description: Server error
+ *         description: Internal server error
  */
 export const rejectCommunityEventController = async (req, res, next) => {
   try {

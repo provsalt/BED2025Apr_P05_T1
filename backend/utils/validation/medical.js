@@ -22,4 +22,13 @@ export const medicationQuestionnaireSchema = z.object({
   allergies: z.string().min(1, 'Allergies is required'),
   medical_conditions: z.string().min(1, 'Medical conditions is required'),
   exercise_frequency: z.string().min(1, 'Exercise frequency is required'),
+});
+
+export const healthSummarySchema = z.object({
+  overview: z.string().describe("Brief overview of the individual's current health status"),
+  keyConsiderations: z.string().describe("Key health considerations based on their responses"),
+  wellnessRecommendations: z.string().describe("General wellness recommendations (non-medical advice only)"),
+  areasForAttention: z.string().describe("Areas that may benefit from professional medical attention"),
+  positivePractices: z.string().describe("Positive health practices they're already engaging in"),
+  disclaimer: z.string().describe("Important disclaimer about consulting healthcare professionals")
 }); 

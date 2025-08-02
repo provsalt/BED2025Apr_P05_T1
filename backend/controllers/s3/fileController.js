@@ -34,7 +34,7 @@ export const getFileByKey = async (req, res, next) => {
       throw ErrorFactory.validation("File key is required");
     }
 
-    const fileStream = await getFile(key);
+    const fileStream = await getFile(key, req.user?.id || null);
     fileStream.pipe(res);
   } catch (error) {
     if (error.name === "NoSuchKey" || error.Code === "NoSuchKey") {

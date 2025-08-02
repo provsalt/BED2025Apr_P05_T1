@@ -3,6 +3,33 @@ import * as controller from '../../../controllers/medical/medicalController.js';
 import * as model from '../../../models/medical/medicalModel.js';
 import { MAX_REMINDERS_PER_USER } from '../../../utils/validation/medical.js';
 
+// Mock OpenAI services
+vi.mock('../../../services/openai/healthSummaryService.js', () => ({
+  generateHealthSummary: vi.fn().mockResolvedValue({
+    success: true,
+    summary: 'Mock health summary for testing',
+    generated_at: new Date().toISOString()
+  }),
+  validateHealthSummary: vi.fn().mockResolvedValue(true)
+}));
+
+vi.mock('../../../services/openai/openaiService.js', () => ({
+  analyzeFoodImage: vi.fn().mockResolvedValue({
+    food_name: 'Mock food',
+    calories: 100,
+    protein: 5,
+    carbs: 10,
+    fat: 2
+  }),
+  moderateContent: vi.fn().mockResolvedValue({
+    flagged: false,
+    categories: {},
+    categoryScores: {},
+    safe: true
+  }),
+  isResponseSafe: vi.fn().mockResolvedValue(true)
+}));
+
 // Mock S3 service before importing controller
 vi.mock('../../../services/s3Service.js', () => ({
   uploadFile: vi.fn().mockResolvedValue(),

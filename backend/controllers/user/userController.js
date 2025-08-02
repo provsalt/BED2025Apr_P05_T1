@@ -445,10 +445,10 @@ export const uploadUserProfilePictureController = async (req, res, next) => {
     const user = await getUser(userId);
     if (user?.profile_picture_url) {
       const oldKey = `/uploads/${decodeURIComponent(user.profile_picture_url.split("/").pop())}`;
-      await deleteFile(oldKey);
+      await deleteFile(oldKey, userId);
     }
 
-    await uploadFile(file, key);
+    await uploadFile(file, key, userId);
 
     const publicUrl = process.env.BACKEND_URL + "/api/s3?key=" + key
 
@@ -489,7 +489,7 @@ export const deleteUserProfilePictureController = async (req, res, next) => {
 
     const key = `uploads/${user.profile_picture_url.split("/").pop()}`;
 
-    await deleteFile(key);
+    await deleteFile(key, userId);
 
     await updateUserProfilePicture(userId, null)
     res.status(200).json({message: "Profile picture deleted successfully"});

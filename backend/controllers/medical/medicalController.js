@@ -1,5 +1,6 @@
 import { uploadFile, deleteFile } from "../../services/s3Service.js";
-import { createMedicationReminder, getMedicationRemindersByUser, updateMedicationReminder, deleteMedicationReminder, createMedicationQuestion } from "../../models/medical/medicalModel.js";
+import { createMedicationReminder, getMedicationRemindersByUser, updateMedicationReminder, deleteMedicationReminder, createMedicationQuestion, getLatestMedicationQuestion, createHealthSummary, getLatestHealthSummary } from "../../models/medical/medicalModel.js";
+import { generateHealthSummary } from "../../services/openai/healthSummaryService.js";
 import { MAX_REMINDERS_PER_USER } from "../../utils/validation/medical.js";
 import { v4 as uuidv4 } from 'uuid';
 import { ErrorFactory } from "../../utils/AppError.js";
@@ -86,7 +87,7 @@ export const createMedication = async (req, res, next) => {
         const imageKey = `medications/${userId}/${uuidv4()}`;
 
         // Upload image to S3
-        await uploadFile(imageFile, imageKey);
+        await uploadFile(imageFile, imageKey, userId);
 
         // Create image URL 
         const imageUrl = `/api/s3?key=${imageKey}`;
@@ -109,7 +110,7 @@ export const createMedication = async (req, res, next) => {
             res.status(201).json(result);
         } else {
             // If database fails, cleanup uploaded image
-            await deleteFile(imageKey);
+            await deleteFile(imageKey, userId);
             throw ErrorFactory.database("Failed to create medication reminder", result.message);
         }
     } catch (error) {
@@ -238,7 +239,21 @@ export const updateMedication = async (req, res, next) => {
         if (req.file) {
             // New image uploaded
             const imageKey = `medications/${userId}/${uuidv4()}`;
-            await uploadFile(req.file, imageKey);
+            await uploadFile(req.file, imageKey, userId);
+            
+            // Delete old image if it exists
+            if (reminder.image_url) {
+                try {
+                    const oldKeyMatch = reminder.image_url.match(/key=([^&]+)/);
+                    if (oldKeyMatch) {
+                        const oldKey = decodeURIComponent(oldKeyMatch[1]);
+                        await deleteFile(oldKey, userId);
+                    }
+                } catch (error) {
+                    console.error('Error deleting old image:', error);
+                }
+            }
+            
             imageUrl = `/api/s3?key=${imageKey}`;
         }
         
@@ -444,6 +459,232 @@ export const submitMedicationQuestionnaire = async (req, res, next) => {
     } else {
       throw ErrorFactory.database("Failed to submit questionnaire", result.message);
     }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @openapi
+ * /api/medications/health-summary:
+ *   post:
+ *     tags:
+ *       - Medical
+ *     summary: Generate health summary from questionnaire
+ *     description: Generates a personalized health summary based on the user's latest questionnaire responses using AI
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Health summary generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 summary:
+ *                   type: string
+ *                 generated_at:
+ *                   type: string
+ *       400:
+ *         description: No questionnaire found for user
+ *       500:
+ *         description: Internal server error
+ */
+export const generateUserHealthSummary = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    
+    if (!userId) {
+      throw ErrorFactory.unauthorized("User not authenticated");
+    }
+    
+    // Get the latest questionnaire data for the user
+    const questionnaireResult = await getLatestMedicationQuestion(userId);
+    
+    if (!questionnaireResult.success) {
+      throw ErrorFactory.notFound("No questionnaire found. Please complete the wellness questionnaire first.");
+    }
+    
+    // Generate health summary using OpenAI
+    const summaryData = await generateHealthSummary(questionnaireResult.data);
+    
+    // Convert the structured summary to a formatted string
+    const formattedSummary = formatHealthSummary(summaryData);
+    
+    // Save the generated summary to database
+    const saveResult = await createHealthSummary(userId, formattedSummary);
+    
+    if (!saveResult.success) {
+      throw ErrorFactory.database("Failed to save health summary", saveResult.message);
+    }
+    
+    res.status(200).json({
+      success: true,
+      summary: formattedSummary,
+      generated_at: new Date().toISOString(),
+      message: "Health summary generated successfully"
+    });
+    
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Helper function to format the structured summary data into a readable string
+const formatHealthSummary = (summaryData) => {
+  const sections = [];
+  
+  if (summaryData.overview) {
+    sections.push(`**Health Overview**\n${summaryData.overview}`);
+  }
+  
+  if (summaryData.keyConsiderations) {
+    sections.push(`**Key Health Considerations**\n${summaryData.keyConsiderations}`);
+  }
+  
+  if (summaryData.wellnessRecommendations) {
+    sections.push(`**Wellness Recommendations**\n${summaryData.wellnessRecommendations}`);
+  }
+  
+  if (summaryData.areasForAttention) {
+    sections.push(`**Areas for Professional Attention**\n${summaryData.areasForAttention}`);
+  }
+  
+  if (summaryData.positivePractices) {
+    sections.push(`**Positive Health Practices**\n${summaryData.positivePractices}`);
+  }
+  
+  if (summaryData.disclaimer) {
+    sections.push(`**Important Disclaimer**\n${summaryData.disclaimer}`);
+  }
+  
+  return sections.join('\n\n');
+};
+
+/**
+ * @openapi
+ * /api/medications/health-summary:
+ *   get:
+ *     tags:
+ *       - Medical
+ *     summary: Get latest health summary
+ *     description: Retrieves the user's latest generated health summary
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Health summary retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     summary:
+ *                       type: string
+ *                     created_at:
+ *                       type: string
+ *       404:
+ *         description: No health summary found
+ *       500:
+ *         description: Internal server error
+ */
+export const getUserHealthSummary = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    
+    if (!userId) {
+      throw ErrorFactory.unauthorized("User not authenticated");
+    }
+    
+    const summaryResult = await getLatestHealthSummary(userId);
+    
+    if (!summaryResult.success) {
+      throw ErrorFactory.notFound("No health summary found. Please generate a health summary first.");
+    }
+    
+    res.status(200).json({
+      success: true,
+      data: summaryResult.data,
+      message: "Health summary retrieved successfully"
+    });
+    
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @openapi
+ * /api/medications/questionnaire/latest:
+ *   get:
+ *     tags:
+ *       - Medical
+ *     summary: Get latest questionnaire data
+ *     description: Retrieves the user's latest questionnaire responses
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Questionnaire data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     difficulty_walking:
+ *                       type: string
+ *                     assistive_device:
+ *                       type: string
+ *                     symptoms_or_pain:
+ *                       type: string
+ *                     allergies:
+ *                       type: string
+ *                     medical_conditions:
+ *                       type: string
+ *                     exercise_frequency:
+ *                       type: string
+ *                     created_at:
+ *                       type: string
+ *       404:
+ *         description: No questionnaire found
+ *       500:
+ *         description: Internal server error
+ */
+export const getLatestQuestionnaire = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    
+    if (!userId) {
+      throw ErrorFactory.unauthorized("User not authenticated");
+    }
+    
+    const questionnaireResult = await getLatestMedicationQuestion(userId);
+    
+    if (!questionnaireResult.success) {
+      throw ErrorFactory.notFound("No questionnaire found for this user");
+    }
+    
+    res.status(200).json({
+      success: true,
+      data: questionnaireResult.data,
+      message: "Questionnaire data retrieved successfully"
+    });
+    
   } catch (error) {
     next(error);
   }

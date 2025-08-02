@@ -1,23 +1,31 @@
 import pino from "pino";
 import {context, trace} from "@opentelemetry/api";
 import dotenv from "dotenv";
-import packageJson from "../package.json" with { type: "json" };
+import packageJson from "../package.json" with {type: "json"};
 
 dotenv.config();
 
-const LokiTransport = pino.transport({
-  target: "pino-loki",
-  options: {
-    batching: true,
-    interval: 5,
-    host: process.env.LOKI_ENDPOINT,
-    labels: {
-      service: process.env.SERVICE_NAME || packageJson.name || "eldercare_backend",
-      environment: process.env.NODE_ENV || "development",
-      version: packageJson.version || "1.0.0"
+const transports = [
+  {
+    target: "pino-loki",
+    options: {
+      batching: true,
+      interval: 5,
+      host: process.env.LOKI_ENDPOINT,
+      labels: {
+        service: process.env.SERVICE_NAME || packageJson.name || "eldercare_backend",
+        environment: process.env.NODE_ENV || "development",
+        version: packageJson.version || "1.0.0"
+      }
     }
   },
-});
+  {
+    target: "pino-pretty",
+    options: {
+      colorize: true
+    }
+  }
+];
 
 const logger = pino(
   {
@@ -33,7 +41,7 @@ const logger = pino(
       return {};
     },
   },
-  LokiTransport,
+  pino.transport({targets: transports}),
 );
 
 export const loggerMiddleware = (req, res, next) => {
@@ -49,11 +57,11 @@ export const loggerMiddleware = (req, res, next) => {
       body: req.body,
       query: req.query,
       params: req.params,
-      ip:
-        req.ip ||
-        req.ips ||
+      ip: req.headers["x-real-ip"] ||
+        req.headers["x-forwarded-for"]?.split(",")[0] ||
+        req.connection.remoteAddress ||
         req.socket.remoteAddress ||
-        req.connection.remoteAddress,
+        req.ip,
       hostname: req.hostname,
       protocol: req.protocol,
       originalUrl: req.originalUrl,
@@ -74,7 +82,7 @@ export const logError = (error, req = null, additionalInfo = {}) => {
     stack: error.stack,
     isOperational: error.isOperational,
     timestamp: error.timestamp,
-    ...(error.details && { details: error.details })
+    ...(error.details && {details: error.details})
   };
 
   const requestData = req ? {

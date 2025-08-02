@@ -82,7 +82,7 @@ export const NutritionAnalyticsCard = () => {
         <CardContent>
           <div className="text-center py-4">
             <p className="text-red-500 mb-2">{error}</p>
-            <Button onClick={fetchAnalytics} size="sm" className="bg-black hover:bg-gray-800 text-white">
+            <Button onClick={fetchAnalytics} size="sm" className="bg-primary hover:bg-gray-800 text-white">
               Try Again
             </Button>
           </div>
@@ -104,7 +104,7 @@ export const NutritionAnalyticsCard = () => {
           <div className="text-center py-4">
             <p className="text-gray-500 mb-2">No nutrition data available for the selected period.</p>
             <Link to="/nutrition/upload">
-              <Button size="sm" className="bg-black hover:bg-gray-800 text-white">
+              <Button size="sm" className="bg-primary hover:bg-gray-800 text-white">
                 Add Your First Meal
               </Button>
             </Link>
@@ -144,7 +144,7 @@ export const NutritionAnalyticsCard = () => {
               onClick={() => setSelectedPeriod(period.days)}
               className={`${
                 selectedPeriod === period.days 
-                  ? "bg-black hover:bg-gray-800 text-white" 
+                  ? "bg-primary hover:bg-gray-800 text-white" 
                   : "bg-white hover:bg-gray-50 text-black border-gray-300"
               } px-6 py-2 text-sm font-medium`}
             >

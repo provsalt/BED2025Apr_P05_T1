@@ -8,7 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { UserContext } from "@/provider/UserContext.js";
 import { fetcher } from "@/lib/fetcher.js";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 const initialState = {
   difficulty_walking: "",
@@ -31,8 +39,7 @@ export function MedicationQuestionnaire() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Check for missing fields 
-    if (!form.difficulty_walking || !form.assistive_device || !form.symptoms_or_pain || !form.allergies || !form.medical_conditions || !form.exercise_frequency)   
-    {
+    if (!form.difficulty_walking || !form.assistive_device || !form.symptoms_or_pain || !form.allergies || !form.medical_conditions || !form.exercise_frequency) {
       setDialog({ open: true, type: 'error', message: 'Please fill in all fields before submitting.' });
       return;
     }
@@ -46,8 +53,37 @@ export function MedicationQuestionnaire() {
         body: JSON.stringify(form),
       });
       if (res.success) {
-        setDialog({ open: true, type: 'success', message: 'Thank you for submitting your wellness questionnaire!' });
-
+        // Generate health summary after successful questionnaire submission
+        try {
+          const summaryRes = await fetcher(`${backendUrl}/api/medications/health-summary`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+          
+          if (summaryRes.success) {
+            setDialog({ 
+              open: true, 
+              type: 'success', 
+              message: 'Questionnaire submitted successfully! Your health summary has been generated. You will be redirected to view it.' 
+            });
+            //after delay, navigate to summary
+            setTimeout(() => {
+              navigate('/medical/health-summary');
+            }, 2000);
+          } else {
+            setDialog({ 
+              open: true, 
+              type: 'success', 
+              message: 'Questionnaire submitted successfully! However, there was an issue generating your health summary. You can try generating it later again from the Health Review page.' 
+            });
+          }
+        } catch (summaryErr) {
+          setDialog({ 
+            open: true, 
+            type: 'success', 
+            message: 'Questionnaire submitted successfully! However, there was an issue generating your health summary. You can try generating it later again from the Health Review page.' 
+          });
+        }
       } else {
         setDialog({ open: true, type: 'error', message: res.message || 'Submission failed. Please try again.' });
       }
@@ -58,8 +94,53 @@ export function MedicationQuestionnaire() {
     }
   };
 
+  const renderSubmitButtonText = () => {
+    if (submitting) {
+      return "Submitting...";
+    } else {
+      return "Submit Questionnaire";
+    }
+  };
+
+  const renderDialogTitle = () => {
+    if (dialog.type === 'error') {
+      return 'Error';
+    } else {
+      return 'Success';
+    }
+  };
+
+  const renderDialogTitleClass = () => {
+    if (dialog.type === 'error') {
+      return 'text-red-700';
+    } else {
+      return 'text-green-700';
+    }
+  };
+
+  const handleDialogOkayClick = () => {
+    setDialog(d => ({ ...d, open: false }));
+    if (dialog.type === 'success') {
+      navigate('/medical');
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="w-full p-6 bg-muted">
+    <div>
+      <Breadcrumb className="p-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/medical">Medical</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator/>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Questionnaire</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <form onSubmit={handleSubmit} className="w-full p-6 ">
       <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
         <h1 className="text-xl font-semibold text-foreground mb-6">Wellness Questionnaire</h1>
         <div className="space-y-6">
@@ -175,9 +256,11 @@ export function MedicationQuestionnaire() {
             </RadioGroup>
           </div>
 
-          <Button type="submit" disabled={submitting} className="w-full cursor-pointer">
-            {submitting && "Submitting..."}
-            {!submitting && "Submit Questionnaire"}
+          <Button 
+            type="submit" 
+            disabled={submitting} 
+            className="bg-primary text-white hover:bg-gray-900 w-full cursor-pointer">
+            {renderSubmitButtonText()}
           </Button>
         </div>
       </div>
@@ -190,15 +273,15 @@ export function MedicationQuestionnaire() {
           </DialogHeader>
           <div className="py-2">{dialog.message}</div>
           <DialogFooter>
-            <Button className="cursor-pointer" onClick={() => {
-              setDialog(d => ({ ...d, open: false }));
-              if (dialog.type === 'success') {
-                navigate('/medical');//should navigate somewhere else after summary implemented
-              }
-            }}>Okay</Button>
+            <Button 
+              className="bg-primary text-white hover:bg-gray-900 cursor-pointer"
+              onClick={handleDialogOkayClick}>
+              Okay
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </form>
+      </form>
+    </div>
   );
 } 

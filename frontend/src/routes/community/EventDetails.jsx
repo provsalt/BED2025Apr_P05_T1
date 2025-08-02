@@ -1,21 +1,55 @@
 import React, { useEffect, useState, useContext } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { MapPin, Clock, User, Calendar, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea";
+import { MapPin, Clock, User, Calendar, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { UserContext } from "@/provider/UserContext.js";
 
 export function EventDetails() {
   const { id } = useParams();
+  const location = useLocation();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(0);
   const [dialog, setDialog] = useState({ open: false, type: '', message: '' });
   const [signUpLoading, setSignUpLoading] = useState(false);
+  const [messageDialog, setMessageDialog] = useState({ open: false, message: "" });
+  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const { id: currentUserId } = useContext(UserContext);
+  const [userData, setUserData] = useState(null);
+
+  //checking to see if user came from signed up events page
+  const fromSignedUp = location.state?.fromSignedUp || false;
+  //chhecking to see if user came from my events page
+  const fromMyEvents = location.state?.fromMyEvents || false;
+
+  // Get user data from localStorage as fallback
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUserData(payload);
+        console.log('JWT Payload:', payload); // Debug log to see the structure
+      } catch (error) {
+        console.error('Error parsing token:', error);
+      }
+    }
+  }, []);
+
+  // Use currentUserId from context, fallback to userData from localStorage
+  const effectiveUserId = currentUserId || userData?.sub || userData?.id;
+
 
   useEffect(() => {
     async function fetchEvent() {
@@ -123,7 +157,7 @@ export function EventDetails() {
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (res.success) {
         setDialog({ open: true, type: 'success', message: res.message || "Successfully signed up for the event!" });
       } else {
@@ -132,7 +166,7 @@ export function EventDetails() {
     } catch (err) {
       // Parse error message from the thrown error
       let errorMessage = "Failed to sign up for the event. Please try again.";
-      
+
       try {
         const errorData = JSON.parse(err.message);
         if (errorData.error) {
@@ -155,14 +189,97 @@ export function EventDetails() {
         // If parsing fails, use the original error message
         errorMessage = err.message || "Failed to sign up for the event. Please try again.";
       }
-      
+
       setDialog({ open: true, type: 'error', message: errorMessage });
     } finally {
       setSignUpLoading(false);
     }
   };
 
-  
+  const handleDeleteEvent = async () => {
+    setDeleting(true);
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      const result = await fetcher(`${backendUrl}/api/community/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (result.success) {
+        setDialog({ open: true, type: 'success', message: 'Event deleted successfully!' });
+        //navigate back to My Events after successful deletion
+        setTimeout(() => {
+          navigate('/community/myevents');
+        }, 1500);
+      } else {
+        setDialog({ open: true, type: 'error', message: result.message || 'Failed to delete event' });
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      setDialog({ open: true, type: 'error', message: 'Failed to delete event. Please try again.' });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+
+
+  const handleSendMessage = async () => {
+    const organiserId = event.user_id;
+    if (!organiserId) {
+      setDialog({ open: true, type: "error", message: "Organizer ID is missing." });
+      return;
+    }
+
+    // Open message input dialog
+    setMessageDialog({
+      open: true,
+      message: `Hi`
+    });
+  };
+
+  const sendChatMessage = async () => {
+    const organiserId = event.user_id;
+    const userMessage = messageDialog.message;
+
+    if (!userMessage || userMessage.trim() === "") {
+      setDialog({ open: true, type: "error", message: "Message cannot be empty." });
+      return;
+    }
+
+    try {
+      const res = await fetcher(`/chats`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipientId: organiserId,
+          message: userMessage.trim()
+        }),
+      });
+
+      if (res.chatId) {
+        setMessageDialog({ open: false, message: "" });
+        navigate(`/chats/${res.chatId}`);
+      }
+    } catch (err) {
+      setMessageDialog({ open: false, message: "" });
+      if (err.status === 409 && err.message) {
+        setDialog({ open: true, type: "error", message: "Chat already exists between these users." });
+      } else {
+        let errorMessage;
+        if (err.message) {
+          try {
+            const parsedError = JSON.parse(err.message);
+            errorMessage = parsedError.error || "Failed to create chat";
+          } catch {
+            errorMessage = err.message || "Failed to create chat";
+          }
+        } else {
+          errorMessage = "Network error. Please try again.";
+        }
+        setDialog({ open: true, type: "error", message: errorMessage });
+      }
+    }
+  };
 
   return (
     <div className="w-full max-w-3xl mx-auto mt-8 px-2 md:px-0 pb-7">
@@ -235,6 +352,73 @@ export function EventDetails() {
       <div className="text-foreground text-base mb-8 whitespace-pre-line">
         {event.description}
       </div>
+
+      {/* Event Status Section - Show for user's own events */}
+      {(effectiveUserId && effectiveUserId === event.user_id) && (
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-2">Event Status</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Approval Status */}
+            <div className="flex items-center gap-2 p-3 rounded-lg border">
+              <div className="text-sm font-medium">Approval Status:</div>
+              {(() => {
+                if (event.approved_by_admin_id) {
+                  return (
+                    <div className="flex items-center text-green-600 gap-1 px-2 py-1 bg-green-50 rounded-lg">
+                      <CheckCircle className="size-4" />
+                      <span className="text-sm font-medium">Approved</span>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="flex items-center text-orange-600 gap-1 px-2 py-1 bg-orange-50 rounded-lg">
+                      <AlertCircle className="size-4" />
+                      <span className="text-sm font-medium">Pending Approval</span>
+                    </div>
+                  );
+                }
+              })()}
+            </div>
+
+            {/* Event Ended Status */}
+            <div className="flex items-center gap-2 p-3 rounded-lg border">
+              <div className="text-sm font-medium">Event Status:</div>
+              {(() => {
+                const now = new Date();
+                let eventDateTime = null;
+                if (event.date) {
+                  const datePart = event.date.split('T')[0];
+                  let timePart = '23:59:59';
+                  if (event.time) {
+                    const match = event.time.match(/T(\d{2}:\d{2}:\d{2})/);
+                    if (match) {
+                      timePart = match[1];
+                    }
+                  }
+                  const eventDateTimeStr = `${datePart}T${timePart}`;
+                  eventDateTime = new Date(eventDateTimeStr);
+                }
+
+                if (eventDateTime && eventDateTime < now) {
+                  return (
+                    <div className="flex items-center text-red-600 gap-1 px-2 py-1 bg-red-50 rounded-lg">
+                      <Clock className="size-4" />
+                      <span className="text-sm font-medium">Event Ended</span>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="flex items-center text-green-600 gap-1 px-2 py-1 bg-green-50 rounded-lg">
+                      <Calendar className="size-4" />
+                      <span className="text-sm font-medium">Upcoming</span>
+                    </div>
+                  );
+                }
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
       {/* Organizer Section */}
       <div className="flex items-center gap-4 border-t pt-6 mb-8">
         {(() => {
@@ -248,20 +432,48 @@ export function EventDetails() {
           <div className="text-xs text-muted-foreground">Event Organizer</div>
         </div>
         <div className="flex gap-2">
-          {currentUserId && currentUserId === event.user_id && (
-            <Button 
-              className="h-10 px-6 cursor-pointer" 
+          {/* Edit Button - Show if user owns event */}
+          {(effectiveUserId && effectiveUserId === event.user_id) && (
+            <Button
+              className="h-10 px-6 cursor-pointer"
               onClick={() => navigate(`/community/event/${id}/edit`)}
             >
               Edit Event
             </Button>
           )}
-          <Button className="h-10 px-6 cursor-pointer">Send Message</Button>
+          {/* Delete Button - Show only if came from My Events AND user owns event */}
+          {fromMyEvents && effectiveUserId && effectiveUserId === event.user_id && (
+            <Button
+              className="h-10 px-6 cursor-pointer bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDeleteEvent}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Delete Event"}
+            </Button>
+          )}
+          {/* Send Message Button - Show if NOT from My Events (user viewing own event) */}
+          {!fromMyEvents && (
+            <Button
+              className="h-10 px-6 cursor-pointer"
+              onClick={handleSendMessage}
+            >
+              Send Message
+            </Button>
+          )}
         </div>
       </div>
       <div className="w-full max-w-3xl mx-auto">
         {(() => {
-          if (currentUserId && event.user_id && currentUserId === event.user_id) {
+          // Hide sign-up button if user came from signed up events page
+          if (fromSignedUp) {
+            return (
+              <div className="text-center py-4 text-green-600 bg-green-50 rounded-lg">
+                <p className="text-sm">You are already signed up for this event</p>
+              </div>
+            );
+          }
+
+          if (effectiveUserId && event.user_id && effectiveUserId === event.user_id) {
             return (
               <div className="text-center py-4 text-gray-600 bg-gray-50 rounded-lg">
                 <p className="text-sm">You cannot sign up for your own event</p>
@@ -269,23 +481,71 @@ export function EventDetails() {
             );
           } else {
             return (
-              <Button 
-                className="h-10 w-full cursor-pointer font-semibold" 
+              <Button
+                className="h-10 w-full cursor-pointer font-semibold"
                 onClick={handleSignUp}
                 disabled={signUpLoading}
               >
-                  {(() => {
-                   let buttonText = "Sign Up for Event";
-                   if (signUpLoading) {
-                     buttonText = "Signing up...";
-                   }
-                   return buttonText;
-                 })()}
+                {(() => {
+                  let buttonText = "Sign Up for Event";
+                  if (signUpLoading) {
+                    buttonText = "Signing up...";
+                  }
+                  return buttonText;
+                })()}
               </Button>
             );
           }
         })()}
       </div>
+
+      <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
+        <DialogContent className="rounded-xl">
+          <DialogHeader>
+            <DialogTitle className={dialog.type === 'error' ? 'text-destructive' : 'text-primary'}>
+              {dialog.type === 'error' ? 'Error' : 'Success'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-2">{dialog.message}</div>
+          <DialogFooter>
+            <Button className="cursor-pointer" onClick={() => setDialog(d => ({ ...d, open: false }))}>
+              Okay
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Message Input Dialog */}
+      <Dialog open={messageDialog.open} onOpenChange={open => setMessageDialog(d => ({ ...d, open }))}>
+        <DialogContent className="rounded-xl">
+          <DialogHeader>
+            <DialogTitle>Send Message to {organizerName}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="Type your message here..."
+              value={messageDialog.message}
+              onChange={(e) => setMessageDialog(d => ({ ...d, message: e.target.value }))}
+              className="min-h-[100px]"
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setMessageDialog({ open: false, message: "" })}
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={sendChatMessage}
+              className="cursor-pointer"
+            >
+              Send Message
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Success/Error Dialog */}
       <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
@@ -294,12 +554,12 @@ export function EventDetails() {
             {(() => {
               let titleClass = 'text-green-700';
               let titleText = 'Success';
-              
+
               if (dialog.type === 'error') {
                 titleClass = 'text-red-700';
                 titleText = 'Error';
               }
-              
+
               return (
                 <DialogTitle className={titleClass}>
                   {titleText}
@@ -316,6 +576,6 @@ export function EventDetails() {
         </DialogContent>
       </Dialog>
     </div>
-    
+
   );
 } 

@@ -5,6 +5,14 @@ import {fetcher} from "@/lib/fetcher.js";
 import {useAlert} from "@/provider/AlertProvider.jsx";
 import {X} from "lucide-react";
 import {Link} from "react-router";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 export const MealImageUpload = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -70,7 +78,7 @@ export const MealImageUpload = () => {
   if (analysisResult) {
     return (
       <div className="p-3 flex flex-col items-center justify-center">
-        <Card className="p-8 max-w-2xl w-full mx-auto bg-background space-y-6">
+        <Card className="p-6 max-w-2xl w-full mx-auto bg-background space-y-6">
           <h2 className="text-2xl font-bold text-center mb-6">Food Analysis Result</h2>
           {previewURL && (
             <div className="flex justify-center mb-6">
@@ -134,20 +142,32 @@ export const MealImageUpload = () => {
 
   // Default upload page
   return (
-    <div className="p-3">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8 pl-30 pr-30">
-          <h1 className="text-2xl font-bold text-left">Nutrition</h1>
+    <div className="max-w-4xl mx-auto px-6 py-8">
+        <Breadcrumb className="mb-8">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/nutrition">Nutrition</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator/>
+            <BreadcrumbItem>
+              <BreadcrumbPage>Upload Image</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="flex items-center justify-between mb-8 px-6">
+          <h1 className="text-2xl font-bold text-foreground">Upload Food Image</h1>
             <Button asChild
               className="ml-4 px-4 py-2 text-sm cursor-pointer"
             >
               <Link to="/nutrition">View All Meals</Link>
             </Button>
         </div>
-        <Card className="p-8 max-w-2xl mx-auto bg-background space-y-6">
+        <Card className="p-6 max-w-2xl mx-auto bg-background space-y-6">
           <h2 className="text-xl font-bold text-center">Upload Food Image</h2>
           {/* Information section */}
-          <div className="text-center space-y-3 p-4 bg-muted rounded-lg border border-muted">
+          <div className="text-center space-y-3 p-6  rounded-lg border border-muted">
             <h3 className="text-lg font-semibold text-foreground">Why Scan Your Food?</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Scanning your meal helps you instantly understand what you're eating. Get accurate details about calories, protein, carbohydrates, and fats all so you can make smarter choices for your health, track your diet easily, and stay informed without the guesswork.
@@ -174,7 +194,7 @@ export const MealImageUpload = () => {
                 ) : (
                   <label className="block cursor-pointer">
                     <div 
-                      className="w-64 h-48 border-2 border-dashed border-muted rounded-lg flex items-center justify-center bg-muted hover:bg-muted/80 transition-colors"
+                      className="w-64 h-48 border-2 border-dashed border-muted rounded-lg flex items-center justify-center  hover:/80 transition-colors"
                       onDragOver={(e) => {
                         e.preventDefault();
                         e.currentTarget.classList.add('border-muted-foreground', 'bg-muted/80');
@@ -225,7 +245,6 @@ export const MealImageUpload = () => {
             </div>
           </div>
         </Card>
-      </div>
     </div>
   );
 }

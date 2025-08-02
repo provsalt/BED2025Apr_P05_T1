@@ -22,9 +22,10 @@ import AdminProtectedRoute from '@/components/admin/AdminProtectedRoute.jsx';
 import AdminDashboard from '@/routes/admin/adminDashboard.jsx';
 import {CreateEventPage} from "@/routes/community/CreateEvent.jsx";
 import {EditEventPage} from "@/routes/community/EditEvent.jsx";
-import {MedicalDashboard } from '@/routes/medical/medicalHomePage.jsx';
-import {MedicationEditForm}  from '@/routes/medical/medicalEditForm.jsx';
+import {MedicalDashboard} from '@/routes/medical/medicalHomePage.jsx';
+import {MedicationEditForm} from '@/routes/medical/medicalEditForm.jsx';
 import {MedicationQuestionnaire} from '@/routes/medical/MedicationQuestionnaire.jsx';
+import {HealthSummary} from '@/routes/medical/HealthSummary.jsx';
 import {TransportHomePage} from "@/routes/transport/TransportHomePage.jsx";
 import {TransportMap} from "@/routes/transport/TransportMap.jsx";
 import {RouteList} from "@/routes/transport/RouteList.jsx";
@@ -32,7 +33,7 @@ import {CreateRoute} from "@/routes/transport/CreateRoute.jsx";
 import {EditRoute} from "@/routes/transport/EditRoute.jsx";
 import {CommunityEvents} from '@/routes/community/CommunityEvents.jsx';
 import {UserEvents} from '@/routes/community/userEvents.jsx';
-import {EventDetail} from '@/routes/community/userEventDetail.jsx';
+import {UserSignedUpEvents} from '@/routes/community/UserSignedUpEvents.jsx';
 import {EventDetails} from '@/routes/community/EventDetails.jsx';
 import { SupportChat } from '@/components/support/SupportChat.jsx';
 import {MealImageUpload} from "@/routes/nutrition/MealImageUpload.jsx";
@@ -64,6 +65,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/medical/reminders" element={<MedicationRemindersList />} />
                   <Route path="/medical/edit/:id" element={<MedicationEditForm />} />
                   <Route path="/medical/questionnaire" element={<MedicationQuestionnaire />} />
+                  <Route path="/medical/health-summary" element={<HealthSummary />} />
                   <Route path="/admin" element={
                     <AdminProtectedRoute>
                       <AdminDashboard />
@@ -72,7 +74,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/community/create" element={<CreateEventPage />} />
                   <Route path="/community" element={<CommunityEvents />} />
                   <Route path="/community/myevents" element={<UserEvents />} />
-                  <Route path="/community/event/:id" element={<EventDetail />} />
+                  <Route path="/community/signups" element={<UserSignedUpEvents />} />
                   <Route path="/community/event/:id/edit" element={<EditEventPage />} />
                   <Route path="/community/:id" element={<EventDetails />} />
                   <Route path="/transport">

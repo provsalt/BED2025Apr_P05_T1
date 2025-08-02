@@ -35,10 +35,9 @@ export function UserEvents() {
   }, []);
 
   return (
-    <div className="w-full max-w-6xl mx-auto pt-8 pb-7">
+    <div className="mx-auto px-6 py-8 w-full">
       <div className="w-full flex flex-col">
-
-        <div className="mb-4 flex items-center gap-1 text-sm text-muted-foreground cursor-pointer -ml-2">
+        <div className="mb-4 flex items-center gap-1 text-sm text-muted-foreground cursor-pointer ml-2">
           <Button variant="ghost" className="p-0 h-auto cursor-pointer" onClick={() => navigate('/community')}>
             <ArrowLeft className="mr-2 size-4" />
             Community Events
@@ -47,7 +46,7 @@ export function UserEvents() {
           <span>My Events</span>
         </div>
         <div className="flex items-center justify-between mb-4 w-full">
-          <h2 className="text-xl font-semibold">My Events</h2>
+          <h1 className="text-2xl font-bold text-foreground">My Events</h1>
           <div className="pr-14">
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer" onClick={() => navigate('/community/create')}>
               Add New Event
@@ -86,7 +85,7 @@ export function UserEvents() {
                     <Card
                       key={event.id}
                       className="w-64 p-0 overflow-hidden flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow border border-border bg-background relative"
-                      onClick={() => navigate(`/community/event/${event.id}`)}
+                      onClick={() => navigate(`/community/${event.id}`, { state: { fromMyEvents: true } })}
                       tabIndex={0}
                       role="button"
                       aria-label={`View details for ${event.name}`}
