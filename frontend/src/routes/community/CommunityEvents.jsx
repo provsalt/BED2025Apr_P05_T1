@@ -4,6 +4,14 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router';
 import { fetcher } from '@/lib/fetcher';
 import { MapPin, Tag, Clock } from 'lucide-react';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 export function CommunityEvents() {
   const [events, setEvents] = useState([]);

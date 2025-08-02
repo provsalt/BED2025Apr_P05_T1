@@ -2,10 +2,31 @@ import React from 'react';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { NutritionAnalytics } from '@/components/nutrition/NutritionAnalytics';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 export const NutritionAnalyticsPage = () => {
   return (
     <div className="min-h-screen bg-white">
+      <Breadcrumb className="p-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/nutrition">Nutrition</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator/>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Analytics</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-6">

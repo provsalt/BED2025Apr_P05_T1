@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, Link } from "react-router";
 import { fetcher } from "../../lib/fetcher";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { ArrowLeft, Edit, Trash2, Save, X } from "lucide-react";
 import { useAlert } from "../../provider/AlertProvider";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 export const MealDetail = () => {
   const { id } = useParams();
@@ -144,15 +152,19 @@ export const MealDetail = () => {
 
   return (
     <div className="w-full max-w-3xl mx-auto mt-8 px-2 md:px-0 pb-7">
-      {/* Breadcrumb / Back */}
-      <div className="mb-4 flex items-center gap-1 text-sm text-muted-foreground cursor-pointer -ml-2">
-        <Button variant="ghost" className="p-0 h-auto cursor-pointer" onClick={() => navigate('/nutrition')}>
-          <ArrowLeft className="mr-2 size-4" />
-          Meals
-        </Button>
-        <span>/</span>
-        <span>Meal Details</span>
-      </div>
+      <Breadcrumb className="mb-4">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/nutrition">Nutrition</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator/>
+          <BreadcrumbItem>
+            <BreadcrumbPage>{meal?.name || 'Meal Details'}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       {/* Title */}
       <h1 className="text-3xl font-bold mb-4 capitalize">{meal.name}</h1>

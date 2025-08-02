@@ -2,9 +2,17 @@ import React, { useEffect, useState, useContext } from "react";
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UserContext } from '@/provider/UserContext.js';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { fetcher } from '@/lib/fetcher.js';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 function formatSqlTime(sqlTime) {
   if (!sqlTime) {
@@ -136,7 +144,21 @@ export const MedicationRemindersList = () => {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto mt-8">
+    <div>
+      <Breadcrumb className="p-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/medical">Medical</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator/>
+          <BreadcrumbItem>
+            <BreadcrumbPage>My Reminders</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <div className="w-full max-w-3xl mx-auto mt-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">My Medication Reminders</h2>
         <Button variant="default" className="bg-primary hover:bg-primary/90 cursor-pointer" onClick={() => navigate('/medical/create')}>+ Add New Reminder</Button>
@@ -162,6 +184,7 @@ export const MedicationRemindersList = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };

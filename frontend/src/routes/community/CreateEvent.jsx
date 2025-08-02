@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,14 @@ import { Upload, X } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { UserContext } from "@/provider/UserContext.js";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 export const CreateEventPage = () => {
   const navigate = useNavigate();
@@ -175,6 +183,19 @@ export const CreateEventPage = () => {
 
   return (
     <div className="w-full p-6 bg-muted min-h-screen">
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/community">Community</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator/>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Create Event</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
         <h2 className="text-xl font-semibold text-foreground mb-6">Create Event</h2>
         <form className="space-y-6" onSubmit={handleSubmit}>

@@ -5,6 +5,14 @@ import {fetcher} from "@/lib/fetcher.js";
 import {useAlert} from "@/provider/AlertProvider.jsx";
 import {X} from "lucide-react";
 import {Link} from "react-router";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 export const MealImageUpload = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -136,8 +144,21 @@ export const MealImageUpload = () => {
   return (
     <div className="p-3">
       <div className="max-w-4xl mx-auto">
+        <Breadcrumb className="mb-8">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/nutrition">Nutrition</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator/>
+            <BreadcrumbItem>
+              <BreadcrumbPage>Upload Image</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="flex items-center justify-between mb-8 px-6">
-          <h1 className="text-2xl font-bold text-left">Nutrition</h1>
+          <h1 className="text-2xl font-bold text-left">Upload Food Image</h1>
             <Button asChild
               className="ml-4 px-4 py-2 text-sm cursor-pointer"
             >
