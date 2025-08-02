@@ -27,12 +27,12 @@ export const NutritionAnalyticsPage = () => {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-black mb-2">Nutrition Analytics</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-6">Nutrition Analytics</h1>
               <p className="text-sm text-gray-600">
                 Track your nutrition progress and get insights into your eating patterns
               </p>

@@ -151,7 +151,7 @@ export const MealDetail = () => {
   if (!meal) return <div className="text-center py-8 text-destructive">Meal not found.</div>;
 
   return (
-    <div className="w-full max-w-3xl mx-auto mt-8 px-2 md:px-0 pb-7">
+    <div className="mx-auto px-6 py-8">
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -167,7 +167,7 @@ export const MealDetail = () => {
       </Breadcrumb>
 
       {/* Title */}
-      <h1 className="text-3xl font-bold mb-4 capitalize">{meal.name}</h1>
+      <h1 className="text-3xl font-bold text-foreground mb-6 capitalize">{meal.name}</h1>
 
       {/* Image */}
       <div className="relative flex items-center justify-center mb-6 mx-auto rounded-xl shadow-md aspect-[4/3] max-w-3xl w-full  overflow-hidden">

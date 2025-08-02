@@ -24,7 +24,7 @@ export const Dashboard = ({ summary }) => {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <section className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className=" mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Your Health Dashboard</h1>
             <p className="text-lg text-gray-600">Track your nutrition, medications, and community activities</p>
@@ -33,7 +33,7 @@ export const Dashboard = ({ summary }) => {
       </section>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className=" mx-auto px-4 py-8">
         {/* Quick Stats Section */}
         <section className="mb-12">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6">Today's Overview</h2>

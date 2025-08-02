@@ -182,7 +182,7 @@ export const CreateEventPage = () => {
   }
 
   return (
-    <div className="w-full p-6  min-h-screen">
+    <div className="px-6 py-8 container mx-auto">
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -196,8 +196,8 @@ export const CreateEventPage = () => {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
-        <h2 className="text-xl font-semibold text-foreground mb-6">Create Event</h2>
+      <div className="bg-background rounded-lg shadow-sm border p-6">
+        <h1 className="text-2xl font-bold text-foreground mb-6">Create Event</h1>
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="eventName" className="mb-2 inline-block">Event Name *</Label>

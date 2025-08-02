@@ -113,10 +113,11 @@ export const MealsList = () => {
   );
 
   return (
-    <div className="p-3">
-      <div className="max-w-6xl mx-auto">
+    <div className="mx-auto px-6 py-8 w-full">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-left">Your Meals</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            Nutrition
+          </h1>
           <div className="flex gap-2">
             <Link to="/nutrition/analytics">
               <Button variant="outline" className="cursor-pointer">
@@ -133,6 +134,7 @@ export const MealsList = () => {
 
         {/* Search Section */}
         <div className="mb-6">
+          <h2 className="text-2xl font-semibold mb-2">Your meals</h2>
           <div className="flex gap-2 max-w-md items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
@@ -199,7 +201,6 @@ export const MealsList = () => {
             </Link>
           ))}
         </div>
-      </div>
     </div>
   );
 };

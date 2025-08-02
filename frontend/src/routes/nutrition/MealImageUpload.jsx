@@ -142,8 +142,7 @@ export const MealImageUpload = () => {
 
   // Default upload page
   return (
-    <div className="p-3">
-      <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-6 py-8">
         <Breadcrumb className="mb-8">
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -158,7 +157,7 @@ export const MealImageUpload = () => {
           </BreadcrumbList>
         </Breadcrumb>
         <div className="flex items-center justify-between mb-8 px-6">
-          <h1 className="text-2xl font-bold text-left">Upload Food Image</h1>
+          <h1 className="text-2xl font-bold text-foreground">Upload Food Image</h1>
             <Button asChild
               className="ml-4 px-4 py-2 text-sm cursor-pointer"
             >
@@ -246,7 +245,6 @@ export const MealImageUpload = () => {
             </div>
           </div>
         </Card>
-      </div>
     </div>
   );
 }

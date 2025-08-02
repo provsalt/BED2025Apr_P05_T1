@@ -4,14 +4,6 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router';
 import { fetcher } from '@/lib/fetcher';
 import { MapPin, Tag, Clock } from 'lucide-react';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 
 export function CommunityEvents() {
   const [events, setEvents] = useState([]);
@@ -126,10 +118,10 @@ export function CommunityEvents() {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto pt-8 pb-7">
+    <div className="mx-auto px-6 py-8">
       <div className="w-full flex flex-col">
         <div className="flex items-center justify-between mb-4 w-full">
-          <h2 className="text-xl font-semibold">Community Events</h2>
+          <h1 className="text-2xl font-bold text-foreground">Community Events</h1>
           <div className="flex gap-2">
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer" onClick={() => navigate('/community/signups')}>
               My Signed Up Events
