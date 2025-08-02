@@ -17,7 +17,7 @@ export const ChatInput = (props) => {
   };
 
   return (
-    <div className="p-4 border-t bg-background">
+    <div className="p-6 border-t bg-background">
       <form onSubmit={sendMessage} className="flex">
         <Input
           type="text"

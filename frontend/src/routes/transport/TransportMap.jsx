@@ -40,7 +40,7 @@ export const TransportMap = () => {
   return (
     <div className="flex h-[calc(100vh-theme(spacing.16))]">
       <div className="flex-1">
-        <Breadcrumb className="p-4">
+        <Breadcrumb className="p-6">
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink href="/transport">Transport</BreadcrumbLink>

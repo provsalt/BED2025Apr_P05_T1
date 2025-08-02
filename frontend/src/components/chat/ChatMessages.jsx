@@ -70,7 +70,7 @@ export const ChatMessages = ({ messages: initialMessages, currentUserId, chatId 
   return (
     <div
       ref={containerRef}
-      className="flex-1 max-h-[70svh] overflow-y-auto p-4"
+      className="flex-1 max-h-[70svh] overflow-y-auto p-6"
     >
       <div className="flex flex-col space-y-2">
         {messages.length === 0 ? (

@@ -116,7 +116,7 @@ export const Dashboard = ({ summary }) => {
                       <Link 
                         to={`/nutrition/${meal.id}`} 
                         key={meal.id || i} 
-                        className="flex items-center gap-4 p-4 hover:bg-gray-50 transition cursor-pointer"
+                        className="flex items-center gap-4 p-6 hover:bg-gray-50 transition cursor-pointer"
                       >
                         {meal.image_url && (
                           <img 
@@ -185,7 +185,7 @@ export const Dashboard = ({ summary }) => {
                 {summary?.events && summary.events.length > 0 ? (
                   <div className="divide-y divide-gray-100">
                     {summary.events.slice(0, 3).map((event, i) => (
-                      <Link to="/community" key={event.id || i} className="block p-4 hover:bg-gray-50 transition">
+                      <Link to="/community" key={event.id || i} className="block p-6 hover:bg-gray-50 transition">
                         <div className="flex items-start gap-4">
                           {event.image_url && (
                             <img 
@@ -259,7 +259,7 @@ export const Dashboard = ({ summary }) => {
                       <Link 
                         to="/medical/reminders" 
                         key={med.id || i} 
-                        className="flex items-center gap-3 p-4 hover:bg-gray-50 transition cursor-pointer"
+                        className="flex items-center gap-3 p-6 hover:bg-gray-50 transition cursor-pointer"
                       >
                         {med.image_url && (
                           <img
@@ -329,11 +329,11 @@ export const Dashboard = ({ summary }) => {
             {/* Quick Actions */}
             <section>
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
                 <div className="grid grid-cols-2 gap-3">
                   <Link 
                     to="/nutrition" 
-                    className="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+                    className="flex flex-col items-center p-6 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
                   >
                     <div className="bg-black p-2 rounded-full mb-3">
                       <Camera className="h-4 w-4 text-white" />
@@ -342,7 +342,7 @@ export const Dashboard = ({ summary }) => {
                   </Link>
                   <Link 
                     to="/medical/reminders" 
-                    className="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+                    className="flex flex-col items-center p-6 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
                   >
                     <div className="bg-black p-2 rounded-full mb-3">
                       <Clock className="h-4 w-4 text-white" />
@@ -351,7 +351,7 @@ export const Dashboard = ({ summary }) => {
                   </Link>
                   <Link 
                     to="/community" 
-                    className="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+                    className="flex flex-col items-center p-6 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
                   >
                     <div className="bg-black p-2 rounded-full mb-3">
                       <PartyPopper className="h-4 w-4 text-white" />
@@ -360,7 +360,7 @@ export const Dashboard = ({ summary }) => {
                   </Link>
                   <Link 
                     to="/transport" 
-                    className="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+                    className="flex flex-col items-center p-6 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
                   >
                     <div className="bg-black p-2 rounded-full mb-3">
                       <Bus className="h-4 w-4 text-white" />

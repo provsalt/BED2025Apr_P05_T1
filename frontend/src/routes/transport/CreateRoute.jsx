@@ -45,7 +45,7 @@ export const CreateRoute = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>

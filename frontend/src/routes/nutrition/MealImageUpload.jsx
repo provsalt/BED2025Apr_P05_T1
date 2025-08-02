@@ -70,7 +70,7 @@ export const MealImageUpload = () => {
   if (analysisResult) {
     return (
       <div className="p-3 flex flex-col items-center justify-center">
-        <Card className="p-8 max-w-2xl w-full mx-auto bg-background space-y-6">
+        <Card className="p-6 max-w-2xl w-full mx-auto bg-background space-y-6">
           <h2 className="text-2xl font-bold text-center mb-6">Food Analysis Result</h2>
           {previewURL && (
             <div className="flex justify-center mb-6">
@@ -136,7 +136,7 @@ export const MealImageUpload = () => {
   return (
     <div className="p-3">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8 pl-30 pr-30">
+        <div className="flex items-center justify-between mb-8 px-6">
           <h1 className="text-2xl font-bold text-left">Nutrition</h1>
             <Button asChild
               className="ml-4 px-4 py-2 text-sm cursor-pointer"
@@ -144,10 +144,10 @@ export const MealImageUpload = () => {
               <Link to="/nutrition">View All Meals</Link>
             </Button>
         </div>
-        <Card className="p-8 max-w-2xl mx-auto bg-background space-y-6">
+        <Card className="p-6 max-w-2xl mx-auto bg-background space-y-6">
           <h2 className="text-xl font-bold text-center">Upload Food Image</h2>
           {/* Information section */}
-          <div className="text-center space-y-3 p-4 bg-muted rounded-lg border border-muted">
+          <div className="text-center space-y-3 p-6 bg-muted rounded-lg border border-muted">
             <h3 className="text-lg font-semibold text-foreground">Why Scan Your Food?</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Scanning your meal helps you instantly understand what you're eating. Get accurate details about calories, protein, carbohydrates, and fats all so you can make smarter choices for your health, track your diet easily, and stay informed without the guesswork.

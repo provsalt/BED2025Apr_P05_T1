@@ -134,7 +134,7 @@ export const MealsList = () => {
                 value={searchTerm}
                 onChange={handleSearchInputChange}
                 onKeyPress={handleSearchKeyPress}
-                className="pl-10 pr-10"
+                className="px-6"
               />
               {searchTerm && (
                 <button
@@ -177,7 +177,7 @@ export const MealsList = () => {
                     className="object-contain max-h-44 max-w-full rounded-md"
                   />
                 </div>
-                <div className="flex-1 p-4 flex flex-col justify-between">
+                <div className="flex-1 p-6 flex flex-col justify-between">
                   <div>
                     <h3 className="text-lg font-semibold mb-2">{meal.name}</h3>
                     <div className="space-y-1 text-sm text-muted-foreground">

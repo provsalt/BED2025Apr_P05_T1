@@ -109,7 +109,7 @@ export const NutritionAnalytics = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <Card className="bg-white border border-gray-300">
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <div className="bg-black p-2 rounded-full">
                 <Activity className="w-4 h-4 text-white" />
@@ -126,7 +126,7 @@ export const NutritionAnalytics = () => {
         </Card>
 
         <Card className="bg-white border border-gray-300">
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <div className="bg-black p-2 rounded-full">
                 <TrendingUp className="w-4 h-4 text-white" />
@@ -143,7 +143,7 @@ export const NutritionAnalytics = () => {
         </Card>
 
         <Card className="bg-white border border-gray-300">
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <div className="bg-black p-2 rounded-full">
                 <Activity className="w-4 h-4 text-white" />
@@ -160,7 +160,7 @@ export const NutritionAnalytics = () => {
         </Card>
 
         <Card className="bg-white border border-gray-300">
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <div className="bg-black p-2 rounded-full">
                 <Utensils className="w-4 h-4 text-white" />
@@ -187,7 +187,7 @@ export const NutritionAnalytics = () => {
             Daily Calories Progress
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent className="p-6">
           {caloriesTrend.length > 0 ? (
             <div className="space-y-3">
               {caloriesTrend.map((day, index) => (
@@ -224,7 +224,7 @@ export const NutritionAnalytics = () => {
             Daily Nutrition Summary
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent className="p-6">
           {dailyBreakdown.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">

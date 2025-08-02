@@ -247,7 +247,7 @@ export const HealthSummary = () => {
   const renderNoSummaryFound = () => {
     return (
       <Card className="max-w-2xl mx-auto">
-        <CardContent className="p-8 text-center">
+        <CardContent className="p-6 text-center">
           <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-800 mb-2">No Health Summary Found</h2>
 
@@ -306,7 +306,7 @@ export const HealthSummary = () => {
   const renderErrorState = () => {
     return (
       <Card className="max-w-2xl mx-auto">
-        <CardContent className="p-8 text-center">
+        <CardContent className="p-6 text-center">
           <div className="mb-6">
             <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-800 mb-2">Unable to Load Health Summary</h2>
