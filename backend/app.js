@@ -44,7 +44,6 @@ app.use(express.json());
 // Apply rate limiting globally
 app.use(defaultRateLimit)
 
-app.use(defaultRateLimit);
 
 const metricsMiddleware = promBundle({
   promClient: {
