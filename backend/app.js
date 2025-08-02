@@ -17,7 +17,7 @@ import {loggerMiddleware, logInfo} from "./utils/logger.js";
 import passport from "passport";
 import dotenv from "dotenv";
 import "./config/passport.js";
-import { AuthController } from "./controllers/authController.js";
+import { AuthController } from "./controllers/user/authController.js";
 dotenv.config();
 
 const app = express();
