@@ -86,7 +86,7 @@ export const createOAuthUser = async (userData) => {
     try {
         const db = await sql.connect(dbConfig);
         
-        // Generate a random password for OAuth users (users will not used it)
+        // Generate a random password for OAuth users (users will not use it)
         const randomPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         const hashedPassword = await bcrypt.hash(randomPassword, 12);
         
