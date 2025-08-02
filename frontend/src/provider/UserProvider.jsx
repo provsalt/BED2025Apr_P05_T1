@@ -24,8 +24,22 @@ export const UserProvider = ({ children }) => {
     const urlToken = urlParams.get('token');
     
     if (urlToken) {
+      // Validate token before storing
+      let isValidToken = false;
+      try {
+        const decoded = decodeJwt(urlToken);
+        // Check for required fields (exp, sub, role)
+        if (decoded && typeof decoded.exp === "number" && typeof decoded.sub === "string" && decoded.role) {
+          isValidToken = true;
+        }
+      } catch (e) {
+        // Invalid token format
+        isValidToken = false;
+      }
       window.history.replaceState({}, document.title, window.location.pathname);
-      localStorage.setItem("token", urlToken);
+      if (isValidToken) {
+        localStorage.setItem("token", urlToken);
+      }
     }
 
     const token = urlToken || localStorage.getItem("token");
