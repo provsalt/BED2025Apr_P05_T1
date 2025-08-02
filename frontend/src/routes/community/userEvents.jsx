@@ -86,7 +86,7 @@ export function UserEvents() {
                     <Card
                       key={event.id}
                       className="w-64 p-0 overflow-hidden flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow border border-border bg-background relative"
-                      onClick={() => navigate(`/community/event/${event.id}`)}
+                      onClick={() => navigate(`/community/${event.id}`, { state: { fromMyEvents: true } })}
                       tabIndex={0}
                       role="button"
                       aria-label={`View details for ${event.name}`}

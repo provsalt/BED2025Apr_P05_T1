@@ -49,7 +49,7 @@ export const CreateEventPage = () => {
   const localStorageToken = localStorage.getItem('token');
   const hasToken = localStorageToken || userContext.token;
   const isAuthenticated = (userContext.isAuthenticated && userContext.id) || hasToken;
-  
+
   if (!isAuthenticated) {
     return (
       <div className="w-full p-6 bg-muted min-h-screen">

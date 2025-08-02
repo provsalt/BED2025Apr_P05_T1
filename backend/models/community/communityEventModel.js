@@ -217,7 +217,15 @@ export async function deleteCommunityEvent(eventId, userId) {
     try {
         connection = await sql.connect(dbConfig);
 
-        // Delete images from CommunityEventImage table first
+        // delete signups from CommunityEventSignup table 
+        await connection.request()
+            .input('eventId', sql.Int, eventId)
+            .query(`
+                DELETE FROM CommunityEventSignup 
+                WHERE community_event_id = @eventId
+            `);
+
+        // Delete images from CommunityEventImage table
         await connection.request()
             .input('eventId', sql.Int, eventId)
             .query(`
@@ -459,7 +467,8 @@ export async function getUserSignedUpEvents(userId) {
                     CommunityEvent.time,
                     CommunityEvent.description,
                     CommunityEventSignup.signed_up_at,
-                    Users.name as created_by_name
+                    Users.name as created_by_name,
+                    (SELECT TOP 1 image_url FROM CommunityEventImage WHERE community_event_id = CommunityEvent.id ORDER BY uploaded_at ASC) as image_url
                 FROM CommunityEventSignup 
                 INNER JOIN CommunityEvent ON CommunityEventSignup.community_event_id = CommunityEvent.id
                 INNER JOIN Users ON CommunityEvent.user_id = Users.id
@@ -694,7 +703,7 @@ export async function approveCommunityEvent(eventId, adminId) {
     }
 }
 
-// DELETE: Reject/delete a community event
+// DELETE: Reject/delete a community event (admin)
 export async function rejectCommunityEvent(eventId) {
     let connection;
     try {

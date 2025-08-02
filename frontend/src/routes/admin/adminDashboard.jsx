@@ -5,7 +5,6 @@ import { useAlert } from '@/provider/AlertProvider.jsx';
 import { fetcher } from '@/lib/fetcher';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-
 import OverviewSection from '@/components/admin/OverviewSection.jsx';
 import UserManagementSection from '@/components/admin/UserManagementSection.jsx';
 import AnnouncementManagementSection from '@/components/admin/AnnouncementManagementSection.jsx';
@@ -21,6 +20,7 @@ const AdminDashboard = () => {
   // State for data
   const [users, setUsers] = useState([]);
   const [admins, setAdmins] = useState([]);
+  const [connectedUsers, setConnectedUsers] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [deletionRequests, setDeletionRequests] = useState([]);
@@ -35,6 +35,11 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchAllData();
     fetchDeletionRequests();
+    fetchConnectedUsers();
+    
+    // Set up auto-refresh for connected users every 30 seconds
+    const interval = setInterval(fetchConnectedUsers, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchAllData = async () => {
@@ -91,6 +96,16 @@ const AdminDashboard = () => {
       setDeletionRequests(data);
     } catch (error) {
       alert.error({ title: "Error", description: `Failed to fetch deletion requests: ${error.message}` });
+    }
+  };
+
+  const fetchConnectedUsers = async () => {
+    try {
+      const data = await fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/connected-users/instant`);
+      setConnectedUsers(data.value ? parseInt(data.value) : 0);
+    } catch (error) {
+      console.error('Error fetching connected users:', error);
+      setConnectedUsers('Error');
     }
   };
 
@@ -230,7 +245,7 @@ const AdminDashboard = () => {
           <TabsTrigger value="debug">Debug</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
-          <OverviewSection users={users} admins={admins} fetchAllData={fetchAllData} />
+          <OverviewSection users={users} admins={admins} connectedUsers={connectedUsers} fetchAllData={fetchAllData} />
         </TabsContent>
         <TabsContent value="users">
           <UserManagementSection users={users} updateUserRole={updateUserRole} deleteUser={deleteUser} />

@@ -16,7 +16,8 @@ import {
 vi.mock("mssql", () => ({
   default: {
     connect: vi.fn(),
-    Int: "Int"
+    Int: "Int",
+    Transaction: vi.fn()
   }
 }));
 
@@ -34,17 +35,27 @@ import sql from "mssql";
 import bcrypt from "bcryptjs";
 
 describe("User Model", () => {
-  let mockDb, mockRequest;
+  let mockDb, mockRequest, mockTransaction;
 
   beforeEach(() => {
     mockRequest = {
       input: vi.fn().mockReturnThis(),
       query: vi.fn()
     };
+    
+    mockTransaction = {
+      begin: vi.fn().mockResolvedValue(),
+      commit: vi.fn().mockResolvedValue(),
+      rollback: vi.fn().mockResolvedValue(),
+      request: vi.fn(() => mockRequest)
+    };
+    
     mockDb = {
       request: vi.fn(() => mockRequest)
     };
+    
     sql.connect.mockResolvedValue(mockDb);
+    sql.Transaction = vi.fn(() => mockTransaction);
     vi.clearAllMocks();
   });
 
@@ -268,20 +279,25 @@ describe("User Model", () => {
 
   describe("deleteUser", () => {
     it("should delete user successfully", async () => {
+      // Mock user existence check - user exists
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{ id: 1 }] // User found
+      });
+      
+      // Mock transaction operations (cleanup queries + final delete)
       mockRequest.query.mockResolvedValue({
         rowsAffected: [1]
       });
 
       const result = await deleteUser(1);
 
-      expect(mockRequest.input).toHaveBeenCalledWith("id", 1);
-      expect(mockRequest.query).toHaveBeenCalledWith("DELETE FROM Users WHERE id = @id");
       expect(result).toBe(true);
     });
 
     it("should return false when no rows affected", async () => {
-      mockRequest.query.mockResolvedValue({
-        rowsAffected: [0]
+      // Mock user existence check - user doesn't exist
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [] // No user found
       });
 
       const result = await deleteUser(999);
@@ -290,7 +306,13 @@ describe("User Model", () => {
     });
 
     it("should handle database errors", async () => {
-      mockRequest.query.mockRejectedValue(new Error("Delete failed"));
+      // Mock user existence check first
+      mockRequest.query.mockResolvedValueOnce({
+        recordset: [{ id: 1 }] // User found
+      });
+      
+      // Then mock the transaction to fail
+      mockRequest.query.mockRejectedValueOnce(new Error("Delete failed"));
 
       await expect(deleteUser(1)).rejects.toThrow("Delete failed");
     });

@@ -41,6 +41,9 @@ router.post("/approve", getUserMiddleware, authorizeRole(["Admin"]), approveComm
 // POST /api/community/reject - Reject a community event
 router.post("/reject", getUserMiddleware, authorizeRole(["Admin"]), rejectCommunityEventController);
 
+// GET /api/community/signups - Get user's signed up events
+router.get("/signups", getUserMiddleware, userSignedUpEvents);
+
 // GET /api/community/:id - Get details for a single community event
 router.get("/:id", getUserMiddleware, getEventById);
 
@@ -49,9 +52,6 @@ router.post("/:eventId/signup", getUserMiddleware, signUpForEvent);
 
 // DELETE /api/community/:eventId/signup - Cancel signup for a community event
 router.delete("/:eventId/signup", getUserMiddleware, cancelEventSignup);
-
-// GET /api/community/signups - Get user's signed up events
-router.get("/signups", getUserMiddleware, userSignedUpEvents);
 
 // DELETE /api/community/:id - Delete a community event
 router.delete("/:id", getUserMiddleware, deleteEvent);

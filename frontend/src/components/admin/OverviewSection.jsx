@@ -3,7 +3,7 @@ import { fetcher } from '@/lib/fetcher';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
 
-const OverviewSection = ({ users, admins, fetchAllData }) => {
+const OverviewSection = ({ users, admins, connectedUsers, fetchAllData }) => {
   const [cpuUsage, setCpuUsage] = useState(null);
   const [memoryUsage, setMemoryUsage] = useState(null);
   const [cpuHistory, setCpuHistory] = useState([]);
@@ -17,7 +17,7 @@ const OverviewSection = ({ users, admins, fetchAllData }) => {
         fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/cpu-usage/instant`),
         fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/memory-usage/instant`)
       ]);
-      
+
       setCpuUsage(cpuData.value ? parseFloat(cpuData.value).toFixed(2) : 'N/A');
       setMemoryUsage(memoryData.value ? (parseFloat(memoryData.value) / 1024 / 1024).toFixed(0) : 'N/A');
     } catch (error) {
@@ -27,12 +27,12 @@ const OverviewSection = ({ users, admins, fetchAllData }) => {
     }
   };
 
-  // Fetch historical metrics  
+  // Fetch historical metrics
   const fetchHistoricalMetrics = async () => {
     try {
       const endTime = new Date().toISOString();
       const startTime = new Date(Date.now() - 60 * 60 * 1000).toISOString(); // 1 hour ago
-      
+
       const [cpuData, memoryData] = await Promise.all([
         fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/cpu-usage?start=${startTime}&end=${endTime}&step=300`),
         fetcher(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/memory-usage?start=${startTime}&end=${endTime}&step=300`)
@@ -51,7 +51,7 @@ const OverviewSection = ({ users, admins, fetchAllData }) => {
             timestamp = new Date(point.time).getTime();
             value = point.value;
           }
-          
+
           return {
             time: new Date(timestamp).toLocaleTimeString(),
             [label]: label === 'memory' ? parseFloat(value) / 1024 / 1024 : parseFloat(value)
@@ -74,12 +74,12 @@ const OverviewSection = ({ users, admins, fetchAllData }) => {
     const fetchAllMetrics = async () => {
       await Promise.all([fetchInstantMetrics(), fetchHistoricalMetrics()]);
     };
-    
+
     fetchAllMetrics();
-    
+
     // Set up auto-refresh every 30 seconds
     const interval = setInterval(fetchInstantMetrics, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -100,28 +100,35 @@ const OverviewSection = ({ users, admins, fetchAllData }) => {
   return (
     <div className="space-y-6">
       {/* User Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-2">Total Users</h3>
           <p className="text-3xl font-bold text-primary">{users.length}</p>
           <p className="text-muted-foreground text-sm">All registered users</p>
         </div>
-        
+
         <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-2">Admins</h3>
           <p className="text-3xl font-bold text-destructive">{admins.length}</p>
           <p className="text-muted-foreground text-sm">Users with admin privileges</p>
         </div>
-        
+
         <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-2">Regular Users</h3>
           <p className="text-3xl font-bold text-primary">{users.filter(u => u.role !== 'Admin').length}</p>
           <p className="text-muted-foreground text-sm">Non-admin users</p>
         </div>
 
+
+        <div className="bg-white p-6 rounded-lg shadow-md border">
+          <h3 className="text-lg font-semibold mb-2">Connected Users</h3>
+          <p className="text-3xl font-bold text-orange-600">{connectedUsers !== null ? connectedUsers : '...'}</p>
+          <p className="text-gray-600 text-sm">Currently online</p>
+        </div>
+
         <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-2">Actions</h3>
-          <button 
+          <button
             className="w-full mb-2 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
             onClick={fetchAllData}
           >
@@ -161,10 +168,10 @@ const OverviewSection = ({ users, admins, fetchAllData }) => {
                 <YAxis />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="cpu" 
-                  stroke="var(--color-cpu)" 
+                <Line
+                  type="monotone"
+                  dataKey="cpu"
+                  stroke="var(--color-cpu)"
                   strokeWidth={2}
                   dot={false}
                   name="CPU Usage"
@@ -188,10 +195,10 @@ const OverviewSection = ({ users, admins, fetchAllData }) => {
                 <YAxis />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="memory" 
-                  stroke="var(--color-memory)" 
+                <Line
+                  type="monotone"
+                  dataKey="memory"
+                  stroke="var(--color-memory)"
                   strokeWidth={2}
                   dot={false}
                   name="Memory Usage (MB)"
