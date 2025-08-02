@@ -37,6 +37,7 @@ import {UserSignedUpEvents} from '@/routes/community/UserSignedUpEvents.jsx';
 import {EventDetails} from '@/routes/community/EventDetails.jsx';
 import { SupportChat } from '@/components/support/SupportChat.jsx';
 import {MealImageUpload} from "@/routes/nutrition/MealImageUpload.jsx";
+import { Credits } from "@/routes/Credits.jsx";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -84,6 +85,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path="routes/create" element={<CreateRoute />} />
                     <Route path="routes/edit/:id" element={<EditRoute />} />
                   </Route>
+                  <Route path="/credits" element={<Credits />} />
                 </Routes>
               </div>
               <SupportChat />
