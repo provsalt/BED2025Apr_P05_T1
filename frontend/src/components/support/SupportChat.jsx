@@ -7,6 +7,7 @@ import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 import { fetcher } from '@/lib/fetcher';
 import { cn } from '@/lib/utils';
 import {UserContext} from "@/provider/UserContext.js";
+import { useLocation } from 'react-router';
 
 export const SupportChat = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,6 +17,8 @@ export const SupportChat = () => {
   const [showCloseDialog, setShowCloseDialog] = useState(false);
   const messagesEndRef = useRef(null);
   const user = useContext(UserContext);
+  const location = useLocation();
+
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -26,6 +29,12 @@ export const SupportChat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const isOnChatPage = location.pathname.startsWith('/chats');
+
+  if (isOnChatPage) {
+    return null;
+  }
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
