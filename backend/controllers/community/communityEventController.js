@@ -119,7 +119,7 @@ export const createEvent = async (req, res, next) => {
       const imageKey = `community-events/${userId}/${uuidv4()}_${sanitizedFilename}`;
 
       try {
-        await uploadFile(file, imageKey);
+        await uploadFile(file, imageKey, userId);
         const imageUrl = `/api/s3?key=${imageKey}`;
         const imageResult = await addCommunityEventImage(eventResult.eventId, imageUrl);
         if (imageResult.success) {
@@ -527,7 +527,7 @@ export const updateEvent = async (req, res, next) => {
             const keyMatch = imageUrl.match(/\/api\/s3\?key=(.+)/);
             if (keyMatch) {
               const key = decodeURIComponent(keyMatch[1]);
-              await deleteFile(key);
+              await deleteFile(key, userId);
             }
           } catch (s3Error) {
             console.error('Error deleting file from S3:', imageUrl, s3Error);
@@ -554,7 +554,7 @@ export const updateEvent = async (req, res, next) => {
         const imageKey = `community-events/${userId}/${uuidv4()}_${sanitizedFilename}`;
 
         try {
-          await uploadFile(file, imageKey);
+          await uploadFile(file, imageKey, userId);
           const imageUrl = `/api/s3?key=${imageKey}`;
           const imageResult = await addCommunityEventImage(eventId, imageUrl);
           if (imageResult.success) {
@@ -896,7 +896,7 @@ export const deleteEvent = async (req, res, next) => {
           const keyMatch = imageUrl.match(/key=([^&]+)/);
           if (keyMatch) {
             const s3Key = decodeURIComponent(keyMatch[1]);
-            await deleteFile(s3Key);
+            await deleteFile(s3Key, req.user.id);
           }
         } catch (error) {
           console.error('Error deleting image from S3:', error);

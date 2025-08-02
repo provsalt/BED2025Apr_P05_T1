@@ -87,7 +87,7 @@ export const createMedication = async (req, res, next) => {
         const imageKey = `medications/${userId}/${uuidv4()}`;
 
         // Upload image to S3
-        await uploadFile(imageFile, imageKey);
+        await uploadFile(imageFile, imageKey, userId);
 
         // Create image URL 
         const imageUrl = `/api/s3?key=${imageKey}`;
@@ -110,7 +110,7 @@ export const createMedication = async (req, res, next) => {
             res.status(201).json(result);
         } else {
             // If database fails, cleanup uploaded image
-            await deleteFile(imageKey);
+            await deleteFile(imageKey, userId);
             throw ErrorFactory.database("Failed to create medication reminder", result.message);
         }
     } catch (error) {
@@ -239,7 +239,21 @@ export const updateMedication = async (req, res, next) => {
         if (req.file) {
             // New image uploaded
             const imageKey = `medications/${userId}/${uuidv4()}`;
-            await uploadFile(req.file, imageKey);
+            await uploadFile(req.file, imageKey, userId);
+            
+            // Delete old image if it exists
+            if (reminder.image_url) {
+                try {
+                    const oldKeyMatch = reminder.image_url.match(/key=([^&]+)/);
+                    if (oldKeyMatch) {
+                        const oldKey = decodeURIComponent(oldKeyMatch[1]);
+                        await deleteFile(oldKey, userId);
+                    }
+                } catch (error) {
+                    console.error('Error deleting old image:', error);
+                }
+            }
+            
             imageUrl = `/api/s3?key=${imageKey}`;
         }
         

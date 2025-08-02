@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import { isResponseSafe } from './openaiService.js';
 import availableTools from './aiTools.json' with { type: 'json' };
+import { trackOpenAIUsage } from "../prometheusService.js";
 
 dotenv.config();
 
@@ -17,7 +18,7 @@ const openai = new OpenAI({
  * @param {Function} toolExecutor - Function to execute tools
  * @returns {Promise<Object>} AI response with tool results
  */
-export const generateAIResponse = async (conversation = [], context = 'general', toolExecutor) => {
+export const generateAIResponse = async (conversation = [], context = 'general', toolExecutor, userId = null) => {
   // prompt engineering
   let systemPrompt = `# HEALTH WELLNESS AI ASSISTANT
 
@@ -97,6 +98,10 @@ Begin assisting the user with their health and wellness needs.`;
     temperature: 0.7
   });
 
+  if (response.usage) {
+    trackOpenAIUsage(userId, "ai_support", "gpt-4.1-mini", response.usage, "chat");
+  }
+
   const assistantMessage = response.choices[0].message;
   const toolsUsed = [];
 
@@ -151,6 +156,10 @@ Begin assisting the user with their health and wellness needs.`;
         max_tokens: 800,
         temperature: 0.7
       });
+
+      if (followUpResponse.usage) {
+        trackOpenAIUsage(userId, "ai_support_followup", "gpt-4.1-mini", followUpResponse.usage, "chat");
+      }
 
       const aiResponse = followUpResponse.choices[0].message.content;
 

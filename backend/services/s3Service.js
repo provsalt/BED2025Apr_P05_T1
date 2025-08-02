@@ -1,5 +1,6 @@
 import {PutObjectCommand, DeleteObjectCommand, GetObjectCommand} from "@aws-sdk/client-s3";
 import { s3 } from "../config/s3Client.js";
+import { trackS3Usage } from "./prometheusService.js";
 
 /**
  * Uploads a file to S3.
@@ -7,7 +8,7 @@ import { s3 } from "../config/s3Client.js";
  * @param {string} key - The full key for the object in S3 (e.g., 'profile-pictures/user-123.jpg').
  * @returns {Promise<void>}
  */
-export const uploadFile = async (file, key) => {
+export const uploadFile = async (file, key, userId = null) => {
   const uploadParams = {
     Bucket: process.env.S3_BUCKET_NAME,
     Key: key,
@@ -16,6 +17,14 @@ export const uploadFile = async (file, key) => {
   };
 
   await s3.send(new PutObjectCommand(uploadParams));
+
+  trackS3Usage(
+    userId,
+    "upload",
+    process.env.S3_BUCKET_NAME,
+    key,
+    file.buffer?.length || file.size
+  );
 };
 
 /**
@@ -23,13 +32,21 @@ export const uploadFile = async (file, key) => {
  * @param {string} key - The full key of the object to delete from S3.
  * @returns {Promise<void>}
  */
-export const deleteFile = async (key) => {
+export const deleteFile = async (key, userId = null, fileSize = null) => {
   const deleteParams = {
     Bucket: process.env.S3_BUCKET_NAME,
     Key: key,
   };
 
   await s3.send(new DeleteObjectCommand(deleteParams));
+
+  trackS3Usage(
+    userId,
+    "delete",
+    process.env.S3_BUCKET_NAME,
+    key,
+    fileSize
+  );
 };
 
 /**
@@ -37,13 +54,22 @@ export const deleteFile = async (key) => {
  * @param {string} key - The full key of the object to retrieve from S3.
  * @returns {Promise<ReadableStream>}
  */
-export const getFile = async (key) => {
+export const getFile = async (key, userId = null) => {
   const getParams = {
     Bucket: process.env.S3_BUCKET_NAME,
     Key: key,
   };
 
-  const { Body } = await s3.send(new GetObjectCommand(getParams));
-  return Body;
+  const response = await s3.send(new GetObjectCommand(getParams));
+
+  trackS3Usage(
+    userId,
+    "download",
+    process.env.S3_BUCKET_NAME,
+    key,
+    response.ContentLength
+  );
+
+  return response.Body;
 };
 
