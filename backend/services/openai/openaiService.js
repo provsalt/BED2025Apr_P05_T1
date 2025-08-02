@@ -49,8 +49,6 @@ export const analyzeFoodImage = async (imageBuffer, userId = null) => {
       },
     });
 
-    logInfo(response)
-
     if (response.usage) {
       trackOpenAIUsage(userId, "nutrition_analysis", "gpt-4.1-mini", response.usage, "vision");
     }
