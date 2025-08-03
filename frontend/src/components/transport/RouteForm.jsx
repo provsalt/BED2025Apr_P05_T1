@@ -88,8 +88,8 @@ const RouteForm = ({ initialData = null, onSubmit, isLoading = false, submitButt
         label: stations[key],
       }));
       
-      const startStation = stationList.find(s => s.value === initialData.startLocation);
-      const endStation = stationList.find(s => s.value === initialData.endLocation);
+      const startStation = stationList.find(s => s.value === initialData.start_station);
+      const endStation = stationList.find(s => s.value === initialData.end_station);
       
       reset({
         name: initialData.name,

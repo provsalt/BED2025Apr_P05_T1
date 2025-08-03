@@ -41,7 +41,7 @@ describe("Route Controller", () => {
             await createRouteController(req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(201);
-            expect(res.json).toHaveBeenCalledWith(newRoute);
+            expect(res.json).toHaveBeenCalledWith({ success: true, data: newRoute });
         });
 
         it("should return 400 if station code is invalid", async () => {
@@ -72,7 +72,7 @@ describe("Route Controller", () => {
             await getRouteController(req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.json).toHaveBeenCalledWith(route);
+            expect(res.json).toHaveBeenCalledWith({ success: true, data: route });
         });
 
         it("should return 404 if route not found", async () => {
@@ -93,7 +93,7 @@ describe("Route Controller", () => {
             await getUserRoutesController(req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.json).toHaveBeenCalledWith(routes);
+            expect(res.json).toHaveBeenCalledWith({ success: true, data: routes });
         });
     });
 
@@ -107,7 +107,7 @@ describe("Route Controller", () => {
             await updateRouteController(req, res);
 
             expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.json).toHaveBeenCalledWith({ message: "Route updated successfully." });
+            expect(res.json).toHaveBeenCalledWith({ success: true, message: "Route updated successfully." });
         });
 
         it("should return 400 if station code is invalid", async () => {
@@ -142,7 +142,7 @@ describe("Route Controller", () => {
             await deleteRouteController(req, res, next);
 
             expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.json).toHaveBeenCalledWith({ message: "Route deleted successfully." });
+            expect(res.json).toHaveBeenCalledWith({ success: true, message: "Route deleted successfully." });
         });
 
         it("should return 404 if route to delete not found", async () => {

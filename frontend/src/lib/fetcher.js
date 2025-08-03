@@ -27,10 +27,17 @@ export async function fetcher(url, opts = {}) {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(
-      errorText,
-    );
+    try {
+      const errorJson = JSON.parse(errorText);
+      throw new Error(errorJson.error || errorText);
+    } catch (parseError) {
+      throw new Error(errorText);
+    }
   }
 
-  return response.json();
+  try {
+    return await response.json();
+  } catch (parseError) {
+    throw new Error('Invalid JSON response from server');
+  }
 }

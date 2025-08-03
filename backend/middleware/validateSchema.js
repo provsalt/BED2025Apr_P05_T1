@@ -28,7 +28,7 @@ export function validateQuery(schema) {
 export function validateParams(schema) {
   return async (req, res, next) => {
     try {
-      await schema.parse(req.query);
+      await schema.parse(req.params);
 
       next();
     } catch (error) {

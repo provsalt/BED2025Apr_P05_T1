@@ -23,13 +23,14 @@ export const EditRoute = () => {
     const fetchRoute = async () => {
       setIsLoading(true);
       try {
-        const data = await fetcher(`/transport/routes/${id}`);
-        setInitialData(data);
+        const response = await fetcher(`/transport/routes/${id}`);
+        console.log(response)
+        setInitialData(response.data || response);
       } catch (error) {
         console.error('Error fetching route:', error);
         alert.error({
           title: 'Error',
-          content: 'Failed to fetch route data.',
+          description: 'Failed to fetch route data.',
         });
       } finally {
         setIsLoading(false);
@@ -52,13 +53,16 @@ export const EditRoute = () => {
           'Content-Type': 'application/json',
         },
       });
-      alert.success('Route updated successfully.');
+      alert.success({
+        title: "Success",
+        description: "Successfully updated route",
+      });
       navigate('/transport/routes');
     } catch (error) {
       console.error('Error updating route:', error);
       alert.error({
         title: 'Error',
-        content: error.message,
+        description: error.message,
       });
     } finally {
       setIsLoading(false);

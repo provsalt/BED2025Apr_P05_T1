@@ -31,13 +31,16 @@ export const CreateRoute = () => {
           "Content-Type": "application/json",
         }
       });
-      alert.success("Route created successfully.");
+      alert.success({
+        title: "Success",
+        description: "Successfully updated route",
+      });
       navigate("/transport/routes");
     } catch (error) {
       console.error("Error creating route:", error);
       alert.error({
         title: "Error",
-        content: error.message,
+        description: error.message,
       });
     } finally {
       setIsLoading(false);
