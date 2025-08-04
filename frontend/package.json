@@ -1,7 +1,7 @@
 {
   "name": "eldercare-frontend",
   "private": true,
-  "version": "1.4.1",
+  "version": "1.4.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -29,7 +29,6 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
-    "es-toolkit": "^1.39.8",
     "immer": "^10.1.1",
     "jose": "^6.0.11",
     "lucide-react": "^0.511.0",

@@ -28,6 +28,7 @@ export const getStationCodeNameMap = (req, res, next) => {
   try {
     const codeNameMap = transportModel.getStationCodeNameMap();
     return res.status(200).json({
+      success: true,
       codeNameMap: codeNameMap,
     });
   } catch (error) {

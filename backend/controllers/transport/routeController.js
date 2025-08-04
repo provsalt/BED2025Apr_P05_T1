@@ -49,7 +49,7 @@ export const createRouteController = async (req, res, next) => {
         }
 
         const newRoute = await createRoute(userId, name, start_station, end_station);
-        res.status(201).json(newRoute);
+        res.status(201).json({ success: true, data: newRoute });
     } catch (error) {
         next(error);
     }
@@ -85,7 +85,7 @@ export const getRouteController = async (req, res, next) => {
         if (!route) {
             throw ErrorFactory.notFound("Route");
         }
-        res.status(200).json(route);
+        res.status(200).json({ success: true, data: route });
     } catch (error) {
         next(error);
     }
@@ -110,7 +110,7 @@ export const getUserRoutesController = async (req, res, next) => {
     try {
         const userId = req.user.id;
         const routes = await getRoutesByUserId(userId);
-        res.status(200).json(routes);
+        res.status(200).json({ success: true, data: routes });
     } catch (error) {
         next(error);
     }
@@ -168,7 +168,7 @@ export const updateRouteController = async (req, res, next) => {
         if (!success) {
             throw ErrorFactory.notFound("Route");
         }
-        res.status(200).json({ message: "Route updated successfully." });
+        res.status(200).json({ success: true, message: "Route updated successfully." });
     } catch (error) {
         next(error);
     }
@@ -204,7 +204,7 @@ export const deleteRouteController = async (req, res, next) => {
         if (!success) {
             throw ErrorFactory.notFound("Route");
         }
-        res.status(200).json({ message: "Route deleted successfully." });
+        res.status(200).json({ success: true, message: "Route deleted successfully." });
     } catch (error) {
         next(error);
     }

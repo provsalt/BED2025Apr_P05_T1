@@ -34,7 +34,7 @@ export const RouteList = () => {
   const fetchRoutes = async () => {
     try {
       const response = await fetcher("/transport/routes");
-      setRoutes(response);
+      setRoutes(response.data || response);
     } catch (error) {
       console.error("Error fetching routes:", error);
       alert.error({
@@ -76,7 +76,7 @@ export const RouteList = () => {
       console.error("Error deleting route:", error);
       alert.error({
         title: "Error",
-        content: error.message,
+        description: error.message,
       });
     }
   };

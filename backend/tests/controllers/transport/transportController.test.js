@@ -21,7 +21,7 @@ describe("Transport Controller", () => {
     getStationCodeNameMap(mockReq, mockRes, next);
 
     expect(mockRes.status).toHaveBeenCalledWith(200);
-    expect(mockRes.json).toHaveBeenCalledWith({ codeNameMap: mockCodeNameMap });
+    expect(mockRes.json).toHaveBeenCalledWith({ success: true, codeNameMap: mockCodeNameMap });
   });
 
   it("should return 404 if no path is found", () => {
