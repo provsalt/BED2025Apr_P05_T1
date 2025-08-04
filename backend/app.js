@@ -14,6 +14,7 @@ import { connectedUsersGauge } from "./services/prometheusService.js";
 import client from "prom-client";
 import { errorHandler } from "./middleware/errorHandler.js";
 import {loggerMiddleware, logInfo} from "./utils/logger.js";
+import client from "prom-client";
 
 const app = express();
 const server = createServer(app);
@@ -114,6 +115,15 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         logInfo(`User ${socket.userId} disconnected from WebSocket`);
     });
+});
+
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', client.register.contentType);
+    res.end(await client.register.metrics());
+  } catch (error) {
+    res.status(500).end(error);
+  }
 });
 
 // Start the medication reminder loop

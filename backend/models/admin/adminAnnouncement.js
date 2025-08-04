@@ -6,10 +6,6 @@ import sql from "mssql";
  * Create server-wide announcements.
  */
 
-// In-memory storage for dismissed announcements
-// Structure: { userId: Set of announcementIds }
-const dismissedAnnouncements = new Map();
-
 export const createAnnouncement = async (announcementData) => {
     const db = await sql.connect(dbConfig);
     const query = `
@@ -123,16 +119,4 @@ export const deleteAnnouncement = async (id) => {
     }
     
     return result.recordset[0].affectedRows;
-}
-
-export const dismissAnnouncement = async (userId, announcementId) => {
-    // Add to in-memory storage
-    if (!dismissedAnnouncements.has(userId)) {
-        dismissedAnnouncements.set(userId, new Set());
-    }
-    
-    const userDismissed = dismissedAnnouncements.get(userId);
-    userDismissed.add(announcementId);
-    
-    return { success: true };
 }

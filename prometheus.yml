@@ -5,3 +5,5 @@ scrape_configs:
   - job_name: "eldercare-backend-docker"
     static_configs:
       - targets: ['backend:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
