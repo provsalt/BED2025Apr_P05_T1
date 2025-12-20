@@ -36,4 +36,4 @@ jobs:
 
       - name: Run deployment script
         run: |
-          ssh deploy-target "set -e && cd ~/bed/${{github.ref_name}} && git fetch origin && git checkout ${{github.ref_name}} && git reset --hard origin/${{github.ref_name}} && docker compose down && docker compose up -d --build"
+          ssh deploy-target "set -e && cd ~/bed/${{github.ref_name}} && git fetch origin && git checkout ${{github.ref_name}} && git reset --hard origin/${{github.ref_name}} && docker compose build && docker compose down && docker compose up -d"
