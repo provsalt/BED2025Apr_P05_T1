@@ -28,5 +28,6 @@ export const socketAuthMiddleware = async (socket, next) => {
       socketId: socket.id,
       clientAddress: socket.handshake.address
     });
+    next(error);
   }
 };
