@@ -1,24 +1,17 @@
 import {useAlert} from "@/provider/AlertProvider.jsx";
-import {Link, useNavigate} from "react-router";
+import {useNavigate, Link} from "react-router";
 import {useContext} from "react";
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card.jsx";
-import {Label} from "@radix-ui/react-label";
-import {Input} from "@/components/ui/input.jsx";
-import {Button} from "@/components/ui/button.jsx";
 import {useForm} from "react-hook-form";
 import {UserContext} from "@/provider/UserContext.js";
+import {Mail, Lock, ArrowLeft} from "lucide-react";
 
 export const Login = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register: registerLogin, handleSubmit: handleSubmitLogin, formState: { errors: loginErrors } } = useForm();
   const alert = useAlert();
   const navigate = useNavigate();
   const auth = useContext(UserContext);
 
-  /**
-   * onSubmit runs when the form is submitted
-   * @param data
-   */
-  const onSubmit = async data => {
+  const onLogin = async data => {
     const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/users/login", {
       method: "POST",
       headers: {
@@ -36,7 +29,6 @@ export const Login = () => {
       });
       const resp = await res.json();
       
-      // Decode token to get user info
       const payload = JSON.parse(atob(resp.token.split('.')[1]));
       
       auth.setUser({
@@ -52,7 +44,6 @@ export const Login = () => {
         }
       });
       
-      // Redirect based on role
       if (payload.role === 'Admin') {
         setTimeout(() => navigate("/admin"), 1500);
       } else {
@@ -68,42 +59,62 @@ export const Login = () => {
   }
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center">
+    <div className="flex flex-col flex-1">
+      <div className="auth-center-bg relative flex-1 flex items-center justify-center" style={{minHeight: 'calc(100vh - 80px)'}}>
+        <button 
+          onClick={() => navigate("/")} 
+          className="auth-back-button-inline"
+          aria-label="Go back to home"
+        >
+          <ArrowLeft size={20} />
+        </button>
 
-      <Card className="w-full max-w-sm px-2">
-        <CardHeader>
-          <CardTitle>Log in to Eldercare</CardTitle>
-          <CardDescription>
-            Please enter your email and password to log in.
-          </CardDescription>
-        </CardHeader>
+        <div className="auth-centered-container">
+            
+            {/* Login Panel */}
+            <div className="auth-panel-centered">
+              <div className="auth-panel-content-inline">
+                <form onSubmit={handleSubmitLogin(onLogin)} className="auth-form-inline">
+                  <h1 className="auth-title-inline">Login</h1>
+                  <p className="auth-subtitle-inline">Welcome back to ElderCare</p>
+                  
+                  <div className="auth-input-group-inline">
+                    <label htmlFor="login-email">
+                      <Mail size={20} />
+                    </label>
+                    <input 
+                      id="login-email"
+                      type="email" 
+                      placeholder="Email" 
+                      {...registerLogin("email", {required: true, maxLength: 255})} 
+                    />
+                  </div>
+                  {loginErrors.email && <span className="auth-error-text-inline">Please enter a valid email.</span>}
 
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Email</Label>
-              <Input type="text" placeholder="Enter Your Email" {...register("email", {required: true, maxLength: 255})} />
-              {errors.email && <span className="text-destructive">Please enter a valid email.</span>}
-            </div>
-            <div className="space-y-2">
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input type="password" placeholder="Enter Your Password" {...register("password", {required: true, min: 8, maxLength: 255})} />
-                {errors.password && <span className="text-destructive">Please enter a valid password.</span>}
+                  <div className="auth-input-group-inline">
+                    <label htmlFor="login-password">
+                      <Lock size={20} />
+                    </label>
+                    <input 
+                      id="login-password"
+                      type="password" 
+                      placeholder="Password" 
+                      {...registerLogin("password", {required: true, min: 8, maxLength: 255})} 
+                    />
+                  </div>
+                  {loginErrors.password && <span className="auth-error-text-inline">Please enter a valid password.</span>}
+
+                  <button type="submit" className="auth-submit-btn-inline">Login</button>
+                  
+                  <p className="auth-toggle-text-inline">
+                    New here? <Link to="/signup" className="auth-link-inline">Create an Account</Link>
+                  </p>
+                </form>
               </div>
             </div>
 
-            <Button type="submit" className="w-full cursor-pointer">Log in</Button>
-          </form>
-
-        </CardContent>
-
-        <CardFooter>
-          <Link className="text-sm hover:underline ease-in-out transition" to="/signup">
-            Don't have an account? Sign Up
-          </Link>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

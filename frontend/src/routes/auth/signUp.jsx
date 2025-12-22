@@ -1,57 +1,18 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card.jsx";
 import {Link, useNavigate} from "react-router";
-import {Controller, useForm} from "react-hook-form";
-import {Input} from "@/components/ui/input.jsx";
-import {Label} from "@radix-ui/react-label";
-import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group.jsx";
-import {Button} from "@/components/ui/button.jsx";
+import {useForm} from "react-hook-form";
 import {useAlert} from "@/provider/AlertProvider.jsx";
 import {useContext} from "react";
 import {UserContext} from "@/provider/UserContext.js";
+import {Mail, Lock, User, Calendar, ArrowLeft} from "lucide-react";
 
 
 export const Signup = () => {
-  const { register, handleSubmit, control, formState: { errors } } = useForm({
-    defaultValues: {
-      gender: "female"
-    }
-  });
+  const { register, handleSubmit, formState: { errors } } = useForm();
   const alert = useAlert();
   const navigate = useNavigate();
   const auth = useContext(UserContext);
 
-  /**
-   * onSubmit runs when the form is submitted
-   * @param data
-   */
   const onSubmit = async data => {
-    console.log(data)
-    if (data["confirm-password"] !== data["password"]) {
-      alert.error({
-        title: "Error",
-        description: "Passwords do not match.",
-        variant: "destructive"
-      })
-      return;
-    }
-    const dob = new Date(data.dob);
-    const today = new Date();
-    if (dob >= today) {
-      alert.error({
-        title: "Error",
-        description: "Date of birth must be in the past.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/api/users", {
       method: "POST",
       headers: {
@@ -61,133 +22,119 @@ export const Signup = () => {
         name: data.name,
         email: data.email,
         password: data.password,
-        date_of_birth: new Date(data.dob).getTime() / 1000,
-        gender: data.gender === "female" ? "0" : "1",
+        date_of_birth: data.date_of_birth,
+        gender: data.gender
       })
     });
     if (res.ok) {
       alert.success({
         title: "Success",
-        description: "Account created successfully. Redirecting...",
+        description: "Account created successfully! Please login.",
       });
-      const resp = await res.json();
-      auth.setUser({
-        id: resp.id,
-        token: resp.token,
-        isAuthenticated: true,
-        role: resp.role,
-        data: {
-          name: resp.name || "",
-          email: resp.email || "",
-          language: resp.language || "",
-          profile_picture_url: resp.profile_picture_url || "",
-        }
-      });
-      setTimeout(() => navigate("/"), 3000);
+      setTimeout(() => navigate("/login"), 1500);
     } else {
       const errorData = await res.json();
-      if (errorData.details && Array.isArray(errorData.details)) {
-        errorData.details.forEach(detail => {
-          alert.error({
-            title: `Validation Error on ${detail.path[0]}`,
-            description: detail.message,
-            variant: "destructive"
-          });
-        });
-      } else {
-        alert.error({
-          title: "Error",
-          description: errorData.error || "An error occurred while creating the account.",
-          variant: "destructive"
-        });
-      }
+      alert.error({
+        title: "Error",
+        description: errorData.message || "An error occurred while creating the account.",
+        variant: "destructive"
+      });
     }
   }
 
-    return (
-        <div className="flex flex-col flex-1 items-center justify-center">
+  return (
+    <div className="flex flex-col flex-1">
+      <div className="auth-center-bg relative flex-1 flex items-center justify-center" style={{minHeight: 'calc(100vh - 80px)'}}>
+        <button 
+          onClick={() => navigate("/")} 
+          className="auth-back-button-inline"
+          aria-label="Go back to home"
+        >
+          <ArrowLeft size={20} />
+        </button>
 
-          <Card className="w-full max-w-sm px-2">
-            <CardHeader>
-              <CardTitle>Sign up for Eldercare</CardTitle>
-              <CardDescription>
-                Quickly create an account to start using our services.
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Name</Label>
-                  <Input type="text" placeholder="Enter Your Name" {...register("name", {required: true, min: 3, maxLength: 255})} />
-                  {errors.name && <span className="text-destructive">{errors.name.message || "Please enter a valid name."}</span>}
-                </div>
-                <div>
-                  <Label htmlFor="name">Email</Label>
-                  <Input type="text" placeholder="Enter Your Email" {...register("email", {required: true, maxLength: 255})} />
-                  {errors.email && <span className="text-destructive">{errors.email.message || "Please enter a valid email."}</span>}
-                </div>
-                <div className="space-y-2">
-                  <div>
-                    <Label htmlFor="password">Password</Label>
-                    <Input type="password" placeholder="Enter Your Password" {...register("password", {
-                      required: true,
-                      minLength: 12,
-                      maxLength: 255,
-                      pattern: {
-                        value: /^(?=.*[A-Z])(?=.*[!@#$%^&*()]).*$/,
-                        message: "Password must be 12 letters, contain at least one uppercase letter and one special character."
-                      }
-                    })} />
-                    {errors.password && <span className="text-destructive">{errors.password.message || "Password must be 12 letters, contain at least one uppercase letter and one special character."}</span>}
-                  </div>
-                  <div>
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input type="password" placeholder="Confirm Your Password" {...register("confirm-password", {required: true, minLength: 12, maxLength: 255})} />
-                    {errors["confirm-password"] && <span className="text-destructive">{errors["confirm-password"].message || "Please confirm your password."}</span>}
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="dob">Date of Birth</Label>
-                  <Input type="date" placeholder="Enter Your Date of Birth" {...register("dob", {required: true})} />
-                  {errors.dob && <span className="text-destructive">{errors.dob.message || "Please enter a valid date of birth."}</span>}
-                </div>
-                <div>
-                  <Label htmlFor="gender" >Gender</Label>
-                  <Controller
-                    name="gender"
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field }) => (
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        className="flex items-center"
-                        id="gender"
-                      >
-                        <RadioGroupItem value="female" id="gender-female"/>
-                        <Label htmlFor="gender-female">Female</Label>
-                        <RadioGroupItem value="male" id="gender-male" />
-                        <Label htmlFor="gender-male">Male</Label>
-                      </RadioGroup>
-                    )}
+        <div className="auth-centered-container">
+          <div className="auth-panel-centered">
+            <div className="auth-panel-content-inline">
+              <form onSubmit={handleSubmit(onSubmit)} className="auth-form-inline">
+                <h1 className="auth-title-inline">Sign Up</h1>
+                <p className="auth-subtitle-inline">Start your journey today</p>
+                
+                <div className="auth-input-group-inline">
+                  <label htmlFor="signup-name">
+                    <User size={20} />
+                  </label>
+                  <input 
+                    id="signup-name"
+                    type="text" 
+                    placeholder="Full Name" 
+                    {...register("name", {required: true, maxLength: 255})} 
                   />
-                  {errors.gender && <span className="text-destructive">{errors.gender.message || "Please enter a valid gender."}</span>}
                 </div>
+                {errors.name && <span className="auth-error-text-inline">Please enter your name.</span>}
 
-                <Button type="submit" className="w-full cursor-pointer">Sign up</Button>
+                <div className="auth-input-group-inline">
+                  <label htmlFor="signup-email">
+                    <Mail size={20} />
+                  </label>
+                  <input 
+                    id="signup-email"
+                    type="email" 
+                    placeholder="Email" 
+                    {...register("email", {required: true, maxLength: 255})} 
+                  />
+                </div>
+                {errors.email && <span className="auth-error-text-inline">Please enter a valid email.</span>}
 
+                <div className="auth-input-group-inline">
+                  <label htmlFor="signup-password">
+                    <Lock size={20} />
+                  </label>
+                  <input 
+                    id="signup-password"
+                    type="password" 
+                    placeholder="Password" 
+                    {...register("password", {required: true, minLength: 8, maxLength: 255})} 
+                  />
+                </div>
+                {errors.password && <span className="auth-error-text-inline">Password must be at least 8 characters.</span>}
+
+                <div className="auth-input-group-inline">
+                  <label htmlFor="signup-dob">
+                    <Calendar size={20} />
+                  </label>
+                  <input 
+                    id="signup-dob"
+                    type="date" 
+                    placeholder="Date of Birth" 
+                    {...register("date_of_birth", {required: true})} 
+                  />
+                </div>
+                {errors.date_of_birth && <span className="auth-error-text-inline">Please enter your date of birth.</span>}
+
+                <div className="auth-input-group-inline">
+                  <label htmlFor="signup-gender">
+                    <User size={20} />
+                  </label>
+                  <select id="signup-gender" {...register("gender", {required: true})}>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                {errors.gender && <span className="auth-error-text-inline">Please select your gender.</span>}
+
+                <button type="submit" className="auth-submit-btn-inline">Sign Up</button>
+                
+                <p className="auth-toggle-text-inline">
+                  Already have an account? <Link to="/login" className="auth-link-inline">Sign In</Link>
+                </p>
               </form>
-
-            </CardContent>
-
-            <CardFooter>
-              <Link className="text-sm hover:underline ease-in-out transition" to="/login">
-                Already have an account? Sign in
-              </Link>
-            </CardFooter>
-          </Card>
+            </div>
+          </div>
         </div>
-    )
+      </div>
+    </div>
+  )
 }
