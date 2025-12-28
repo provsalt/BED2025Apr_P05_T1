@@ -1,4 +1,4 @@
-import {getChats, createChat, getChatBetweenUsers} from "../../models/chat/chatModel.js";
+import {getChats, createChat, getChatBetweenUsers, getOrCreateChat} from "../../models/chat/chatModel.js";
 import {createMessage} from "../../models/chat/messageModel.js";
 import {broadcastMessageCreated} from "../../utils/websocket.js";
 import { ErrorFactory } from "../../utils/AppError.js";
@@ -95,20 +95,21 @@ export const createChatController = async (req, res, next) => {
       throw ErrorFactory.validation("You cannot chat with yourself");
     }
 
-    // Check if chat already exists between the two users
-    const existingChat = await getChatBetweenUsers(req.user.id, recipientId);
+    const { chatId, created } = await getOrCreateChat(req.user.id, recipientId);
     
-    if (existingChat) {
+    if (!created) {
       throw ErrorFactory.conflict(
         "Chat already exists between these users",
-        `Chat already exists. Chat ID: ${existingChat.id}`
+        `Chat already exists. Chat ID: ${chatId}`
       );
     }
 
-    const chatId = await createChat(req.user.id, recipientId);
     const messageId = await createMessage(req.user.id, message, chatId);
     
-    await broadcastMessageCreated(chatId, messageId, message, req.user.id);
+    await broadcastMessageCreated(chatId, messageId, message, req.user.id, {
+      initiatorId: req.user.id,
+      recipientId: parseInt(recipientId)
+    });
     
     res.status(201).json({
       "message": "Chat created successfully",

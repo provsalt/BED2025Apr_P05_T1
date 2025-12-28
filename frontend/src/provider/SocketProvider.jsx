@@ -14,8 +14,8 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (user && user.token && user.isAuthenticated) {
-      const newSocket = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001', {
-        query: { token: user.token },
+      const newSocket = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000', {
+        auth: { token: user.token },
       });
 
       setSocket(newSocket);

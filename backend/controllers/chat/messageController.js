@@ -121,7 +121,10 @@ export const createMessageController = async (req, res, next) => {
     const messageId = await createMessage(req.user.id, message, chatId);
     await updateChatTimestamp(chatId);
 
-    await broadcastMessageCreated(chatId, messageId, message, req.user.id);
+    await broadcastMessageCreated(chatId, messageId, message, req.user.id, {
+      initiatorId: chat.chat_initiator,
+      recipientId: chat.chat_recipient
+    });
 
     res.status(201).json({
       "message": "Message sent successfully",
@@ -209,7 +212,10 @@ export const updateMessageController = async (req, res, next) => {
 
     await updateChatTimestamp(chatId);
 
-    await broadcastMessageUpdated(chatId, messageId, message, req.user.id);
+    await broadcastMessageUpdated(chatId, messageId, message, req.user.id, {
+      initiatorId: chat.chat_initiator,
+      recipientId: chat.chat_recipient
+    });
 
     res.status(200).json({"message": "Message updated successfully"});
   } catch (error) {
@@ -284,7 +290,10 @@ export const deleteMessageController = async (req, res, next) => {
 
     await updateChatTimestamp(chatId);
 
-    await broadcastMessageDeleted(chatId, messageId, req.user.id);
+    await broadcastMessageDeleted(chatId, messageId, req.user.id, {
+      initiatorId: chat.chat_initiator,
+      recipientId: chat.chat_recipient
+    });
 
     res.status(200).json({"message": "Message deleted successfully"});
   } catch (error) {

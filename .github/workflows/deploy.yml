@@ -10,18 +10,30 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Install cloudflared
+        run: |
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+          sudo dpkg -i cloudflared.deb
+
       - name: Set SSH info
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SSH_HOSTNAME: ${{ secrets.SSH_HOSTNAME }}
+          SSH_USER: ${{ secrets.SSH_USER }}
         run: |
-            mkdir -p ~/.ssh
-            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-            echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-            chmod 600 ~/.ssh/id_rsa
-            chmod 644 ~/.ssh/known_hosts
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          cat >> ~/.ssh/config << EOF
+          Host deploy-target
+            HostName $SSH_HOSTNAME
+            User $SSH_USER
+            IdentityFile ~/.ssh/id_rsa
+            ProxyCommand cloudflared access ssh --hostname %h
+            StrictHostKeyChecking no
+          EOF
+
       - name: Run deployment script
-        env:
-          HOST: ${{ secrets.SSH_HOST }}
         run: |
-            ssh -i ~/.ssh/id_rsa $HOST "cd ~/bed/${{github.ref_name}} && git pull && git checkout ${{github.ref_name}} && docker compose -f compose.yml down && docker compose -f compose.yml up -d --build"
+          ssh deploy-target "set -e && cd ~/bed/${{github.ref_name}} && git fetch origin && git checkout ${{github.ref_name}} && git reset --hard origin/${{github.ref_name}} && docker compose build && docker compose down && docker compose up -d"
