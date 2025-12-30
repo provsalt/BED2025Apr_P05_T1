@@ -1,18 +1,11 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { UserContext } from '@/provider/UserContext.js';
-import { useNavigate, Link } from 'react-router';
-import { fetcher } from '@/lib/fetcher.js';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { UserContext } from "@/provider/UserContext.js";
+import { useNavigate } from "react-router";
+import { fetcher } from "@/lib/fetcher.js";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { PageHeader } from "@/components/ui/page-header";
 
 function formatSqlTime(sqlTime) {
   if (!sqlTime) {
@@ -144,25 +137,19 @@ export const MedicationRemindersList = () => {
   };
 
   return (
-    <div>
-      <Breadcrumb className="p-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/medical">Medical</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator/>
-          <BreadcrumbItem>
-            <BreadcrumbPage>My Reminders</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-      <div className="w-full max-w-3xl mx-auto mt-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">My Medication Reminders</h2>
-        <Button variant="default" className="bg-primary hover:bg-primary/90 cursor-pointer" onClick={() => navigate('/medical/create')}>+ Add New Reminder</Button>
-      </div>
+    <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Medical", href: "/medical" },
+          { label: "My Reminders" },
+        ]}
+        title="My Medication Reminders"
+      >
+        <Button className="cursor-pointer" onClick={() => navigate("/medical/create")}>
+          + Add New Reminder
+        </Button>
+      </PageHeader>
+      <div className="w-full max-w-3xl mx-auto">
       {renderContent()}
       <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
         <DialogContent>

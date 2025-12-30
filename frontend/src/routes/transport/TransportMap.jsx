@@ -1,17 +1,10 @@
-import {Map} from "@/components/transport/Map.jsx";
-import {useEffect, useState} from "react";
-import {fetcher} from "@/lib/fetcher.js";
+import { Map } from "@/components/transport/Map.jsx";
+import { useEffect, useState } from "react";
+import { fetcher } from "@/lib/fetcher.js";
 import TransportDirectionForm from "@/components/transport/TransportDirectionForm.jsx";
 import TransitPlan from "@/components/transport/TransitPlan.jsx";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb.jsx";
-import {useSearchParams} from "react-router";
+import { useSearchParams } from "react-router";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const TransportMap = () => {
   const [searchParams] = useSearchParams();
@@ -41,25 +34,23 @@ export const TransportMap = () => {
   }
 
   return (
-    <div className="flex h-[calc(100vh-theme(spacing.16))] container mx-auto p-6 flex-1">
-      <div className="flex-1">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/transport">Transport</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator/>
-            <BreadcrumbItem>
-              <BreadcrumbPage>Map</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <Map path={path} setPath={setPath} delay={300}/>
-      </div>
-      <div className="m-4 md:max-w-1/4">
-        <TransportDirectionForm stations={stations} onSearch={handleSearch}/>
-        <TransitPlan path={path} stations={stations}/>
+    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] container mx-auto p-6 flex-1">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Transport", href: "/transport" },
+          { label: "Map" },
+        ]}
+        title="Transport Map"
+      />
+      <div className="flex flex-1">
+        <div className="flex-1">
+          <Map path={path} setPath={setPath} delay={300} />
+        </div>
+        <div className="m-4 md:max-w-1/4">
+          <TransportDirectionForm stations={stations} onSearch={handleSearch} />
+          <TransitPlan path={path} stations={stations} />
+        </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,16 +1,9 @@
-import React, {useState} from "react";
-import {Link, useNavigate} from "react-router";
-import {useAlert} from "@/provider/AlertProvider";
-import {fetcher} from "@/lib/fetcher.js";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
+import { useAlert } from "@/provider/AlertProvider";
+import { fetcher } from "@/lib/fetcher.js";
 import RouteForm from "@/components/transport/RouteForm";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const CreateRoute = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -49,26 +42,14 @@ export const CreateRoute = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/transport">Transport</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator/>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/transport/routes">Routes</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator/>
-          <BreadcrumbItem>
-            <BreadcrumbPage>Create</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-      <h2 className="text-2xl font-bold mb-4">Create New Route</h2>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Transport", href: "/transport" },
+          { label: "Routes", href: "/transport/routes" },
+          { label: "Create" },
+        ]}
+        title="Create New Route"
+      />
       <RouteForm
         onSubmit={handleSubmit}
         isLoading={isLoading}

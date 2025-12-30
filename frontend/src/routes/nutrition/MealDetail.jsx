@@ -1,19 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { fetcher } from "../../lib/fetcher";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { ArrowLeft, Edit, Trash2, Save, X } from "lucide-react";
+import { Edit, Trash2, Save, X } from "lucide-react";
 import { useAlert } from "../../provider/AlertProvider";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+import { PageHeader } from "@/components/ui/page-header";
 
 export const MealDetail = () => {
   const { id } = useParams();
@@ -151,23 +144,14 @@ export const MealDetail = () => {
   if (!meal) return <div className="text-center py-8 text-destructive">Meal not found.</div>;
 
   return (
-    <div className="mx-auto px-6 py-8">
-      <Breadcrumb className="mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/nutrition">Nutrition</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator/>
-          <BreadcrumbItem>
-            <BreadcrumbPage>{meal?.name || 'Meal Details'}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      {/* Title */}
-      <h1 className="text-3xl font-bold text-foreground mb-6 capitalize">{meal.name}</h1>
+    <div className="mx-auto px-6 py-8 w-full">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Nutrition", href: "/nutrition" },
+          { label: meal?.name || "Meal Details" },
+        ]}
+        title={meal.name}
+      />
 
       {/* Image */}
       <div className="relative flex items-center justify-center mb-6 mx-auto rounded-xl shadow-md aspect-[4/3] max-w-3xl w-full  overflow-hidden">

@@ -4,10 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Upload, X, ArrowLeft } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { UserContext } from "@/provider/UserContext.js";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const EditEventPage = () => {
   const { id } = useParams();
@@ -267,18 +268,15 @@ export const EditEventPage = () => {
 
   return (
     <div className="p-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Community", href: "/community" },
+          { label: event?.name || "Event", href: `/community/${id}` },
+          { label: "Edit" },
+        ]}
+        title="Edit Event"
+      />
       <div className="bg-background rounded-lg shadow-sm border p-6 mx-auto">
-        <div className="flex items-center gap-2 mb-6">
-          <Button
-            variant="ghost"
-            className="p-0 h-auto cursor-pointer"
-            onClick={() => navigate(`/community/event/${id}`)}
-          >
-            <ArrowLeft className="mr-2 size-4" />
-            Back to Event
-          </Button>
-        </div>
-        <h2 className="text-xl font-semibold text-foreground mb-6">Edit Event</h2>
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="eventName" className="mb-2 inline-block">Event Name *</Label>

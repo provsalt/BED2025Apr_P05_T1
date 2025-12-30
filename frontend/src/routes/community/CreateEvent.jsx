@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { useNavigate, Link } from "react-router";
+import { useNavigate } from "react-router";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,14 +8,7 @@ import { Upload, X } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { UserContext } from "@/provider/UserContext.js";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+import { PageHeader } from "@/components/ui/page-header";
 
 export const CreateEventPage = () => {
   const navigate = useNavigate();
@@ -183,21 +176,14 @@ export const CreateEventPage = () => {
 
   return (
     <div className="px-6 py-8 container mx-auto">
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/community">Community</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator/>
-          <BreadcrumbItem>
-            <BreadcrumbPage>Create Event</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Community", href: "/community" },
+          { label: "Create Event" },
+        ]}
+        title="Create Event"
+      />
       <div className="bg-background rounded-lg shadow-sm border p-6">
-        <h1 className="text-2xl font-bold text-foreground mb-6">Create Event</h1>
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="eventName" className="mb-2 inline-block">Event Name *</Label>

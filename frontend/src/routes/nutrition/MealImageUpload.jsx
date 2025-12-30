@@ -1,18 +1,11 @@
 import React, { useState } from "react";
-import {Button} from "@/components/ui/button.jsx";
-import {Card} from "@/components/ui/card.jsx";
-import {fetcher} from "@/lib/fetcher.js";
-import {useAlert} from "@/provider/AlertProvider.jsx";
-import {X} from "lucide-react";
-import {Link} from "react-router";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+import { Button } from "@/components/ui/button.jsx";
+import { Card } from "@/components/ui/card.jsx";
+import { fetcher } from "@/lib/fetcher.js";
+import { useAlert } from "@/provider/AlertProvider.jsx";
+import { X } from "lucide-react";
+import { Link } from "react-router";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const MealImageUpload = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -142,28 +135,18 @@ export const MealImageUpload = () => {
 
   // Default upload page
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
-        <Breadcrumb className="mb-8">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/nutrition">Nutrition</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator/>
-            <BreadcrumbItem>
-              <BreadcrumbPage>Upload Image</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <div className="flex items-center justify-between mb-8 px-6">
-          <h1 className="text-2xl font-bold text-foreground">Upload Food Image</h1>
-            <Button asChild
-              className="ml-4 px-4 py-2 text-sm cursor-pointer"
-            >
-              <Link to="/nutrition">View All Meals</Link>
-            </Button>
-        </div>
+    <div className="max-w-4xl mx-auto px-6 py-8 w-full">
+        <PageHeader
+          breadcrumbs={[
+            { label: "Nutrition", href: "/nutrition" },
+            { label: "Upload Image" },
+          ]}
+          title="Upload Food Image"
+        >
+          <Button asChild className="cursor-pointer">
+            <Link to="/nutrition">View All Meals</Link>
+          </Button>
+        </PageHeader>
         <Card className="p-6 max-w-2xl mx-auto bg-background space-y-6">
           <h2 className="text-xl font-bold text-center">Upload Food Image</h2>
           {/* Information section */}

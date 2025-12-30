@@ -1,17 +1,9 @@
-import React, {useEffect, useState} from "react";
-import {useAlert} from "@/provider/AlertProvider";
-import {fetcher} from "@/lib/fetcher.js";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {Link, useNavigate} from "react-router";
-import {Button} from "@/components/ui/button.jsx";
+import React, { useEffect, useState } from "react";
+import { useAlert } from "@/provider/AlertProvider";
+import { fetcher } from "@/lib/fetcher.js";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Link, useNavigate } from "react-router";
+import { Button } from "@/components/ui/button.jsx";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,8 +13,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog.jsx";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const RouteList = () => {
   const [routes, setRoutes] = useState([]);
@@ -87,20 +80,13 @@ export const RouteList = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/transport">Transport</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator/>
-          <BreadcrumbItem>
-            <BreadcrumbPage>Routes</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-      <h2 className="text-2xl font-bold mb-4">Your Routes</h2>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Transport", href: "/transport" },
+          { label: "Routes" },
+        ]}
+        title="Your Routes"
+      />
       {!routes || routes.length === 0 ? (
         <p>No routes found. Create a new route to get started!</p>
       ) : (

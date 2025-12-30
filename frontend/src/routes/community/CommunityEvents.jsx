@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router';
-import { fetcher } from '@/lib/fetcher';
-import { MapPin, Tag, Clock } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router";
+import { fetcher } from "@/lib/fetcher";
+import { MapPin, Tag, Clock } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 export function CommunityEvents() {
   const [events, setEvents] = useState([]);
@@ -118,22 +119,22 @@ export function CommunityEvents() {
   }
 
   return (
-    <div className="mx-auto px-6 py-8">
+    <div className="mx-auto px-6 py-8 w-full">
       <div className="w-full flex flex-col">
-        <div className="flex items-center justify-between mb-4 w-full">
-          <h1 className="text-2xl font-bold text-foreground">Community Events</h1>
-          <div className="flex gap-2">
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer" onClick={() => navigate('/community/signups')}>
-              My Signed Up Events
-            </Button>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer" onClick={() => navigate('/community/myevents')}>
-              My Events
-            </Button>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer" onClick={() => navigate('/community/create')}>
-              Add New Event
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          breadcrumbs={[{ label: "Community" }]}
+          title="Community Events"
+        >
+          <Button className="cursor-pointer" onClick={() => navigate("/community/signups")}>
+            My Signed Up Events
+          </Button>
+          <Button className="cursor-pointer" onClick={() => navigate("/community/myevents")}>
+            My Events
+          </Button>
+          <Button className="cursor-pointer" onClick={() => navigate("/community/create")}>
+            Add New Event
+          </Button>
+        </PageHeader>
         {content}
       </div>
     </div>

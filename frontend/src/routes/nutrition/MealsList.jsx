@@ -5,14 +5,7 @@ import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Search, X } from "lucide-react";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+import { PageHeader } from "@/components/ui/page-header";
 
 export const MealsList = () => {
   const [meals, setMeals] = useState([]);
@@ -114,23 +107,21 @@ export const MealsList = () => {
 
   return (
     <div className="mx-auto px-6 py-8 w-full">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-foreground">
-            Nutrition
-          </h1>
-          <div className="flex gap-2">
-            <Link to="/nutrition/analytics">
-              <Button variant="outline" className="cursor-pointer">
-                View Analytics
-              </Button>
-            </Link>
-            <Link to="/nutrition/upload">
-              <Button className="cursor-pointer">
-                Upload Image
-              </Button>
-            </Link>
-          </div>
-        </div>
+        <PageHeader
+          breadcrumbs={[{ label: "Nutrition" }]}
+          title="Nutrition"
+        >
+          <Link to="/nutrition/analytics">
+            <Button variant="outline" className="cursor-pointer">
+              View Analytics
+            </Button>
+          </Link>
+          <Link to="/nutrition/upload">
+            <Button className="cursor-pointer">
+              Upload Image
+            </Button>
+          </Link>
+        </PageHeader>
 
         {/* Search Section */}
         <div className="mb-6">

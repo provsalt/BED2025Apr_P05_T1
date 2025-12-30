@@ -1,16 +1,9 @@
-import React, {useEffect, useState} from 'react';
-import {Link, useNavigate, useParams} from 'react-router';
-import {useAlert} from '@/provider/AlertProvider';
-import {fetcher} from '@/lib/fetcher';
-import RouteForm from '@/components/transport/RouteForm';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router";
+import { useAlert } from "@/provider/AlertProvider";
+import { fetcher } from "@/lib/fetcher";
+import RouteForm from "@/components/transport/RouteForm";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const EditRoute = () => {
   const {id} = useParams();
@@ -71,26 +64,14 @@ export const EditRoute = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/transport">Transport</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator/>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/transport/routes">Routes</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator/>
-          <BreadcrumbItem>
-            <BreadcrumbPage>Edit</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-      <h2 className="text-2xl font-bold mb-4">Edit Route</h2>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Transport", href: "/transport" },
+          { label: "Routes", href: "/transport/routes" },
+          { label: "Edit" },
+        ]}
+        title="Edit Route"
+      />
       {initialData ? (
         <RouteForm
           onSubmit={handleSubmit}

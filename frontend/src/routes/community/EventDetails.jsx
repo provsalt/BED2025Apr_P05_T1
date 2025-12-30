@@ -7,11 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Clock, User, Calendar, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
+import { MapPin, Clock, User, Calendar, ChevronLeft, ChevronRight, CheckCircle, AlertCircle } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { UserContext } from "@/provider/UserContext.js";
+import { PageHeader } from "@/components/ui/page-header";
 
 export function EventDetails() {
   const { id } = useParams();
@@ -283,15 +284,13 @@ export function EventDetails() {
 
   return (
     <div className="w-full max-w-3xl mx-auto mt-8 px-2 md:px-0 pb-7">
-      <div className="mb-4 flex items-center gap-1 text-sm text-muted-foreground cursor-pointer -ml-2">
-        <Button variant="ghost" className="p-0 h-auto cursor-pointer" onClick={() => navigate('/community')}>
-          <ArrowLeft className="mr-2 size-4" />
-          Events
-        </Button>
-        <span>/</span>
-        <span>Community Event</span>
-      </div>
-      <h1 className="text-3xl font-bold mb-4 capitalize">{event.name}</h1>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Community", href: "/community" },
+          { label: event.name },
+        ]}
+        title={event.name}
+      />
       {/* Image Carousel */}
       {hasImages && (
         <div className="relative flex items-center justify-center mb-6 mx-auto rounded-xl shadow-md aspect-[4/3] max-w-3xl w-full bg-muted overflow-hidden">

@@ -1,10 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
+import { PageHeader } from "@/components/ui/page-header";
 
 export function Credits() {
   return (
     <div className="flex flex-col flex-1">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <h1 className="text-3xl font-bold text-foreground mb-8 text-center">Credits</h1>
+        <PageHeader
+          breadcrumbs={[{ label: "Credits" }]}
+          title="Credits"
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>

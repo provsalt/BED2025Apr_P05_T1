@@ -1,16 +1,17 @@
-import React from 'react';
-import { useState, useEffect, useContext } from 'react';
-import { UserContext } from '@/provider/UserContext.js';
-import { useAlert } from '@/provider/AlertProvider.jsx';
-import { fetcher } from '@/lib/fetcher';
+import React from "react";
+import { useState, useEffect, useContext } from "react";
+import { UserContext } from "@/provider/UserContext.js";
+import { useAlert } from "@/provider/AlertProvider.jsx";
+import { fetcher } from "@/lib/fetcher";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import OverviewSection from '@/components/admin/OverviewSection.jsx';
-import UserManagementSection from '@/components/admin/UserManagementSection.jsx';
-import AnnouncementManagementSection from '@/components/admin/AnnouncementManagementSection.jsx';
-import DebugSection from '@/components/admin/DebugSection.jsx';
+import OverviewSection from "@/components/admin/OverviewSection.jsx";
+import UserManagementSection from "@/components/admin/UserManagementSection.jsx";
+import AnnouncementManagementSection from "@/components/admin/AnnouncementManagementSection.jsx";
+import DebugSection from "@/components/admin/DebugSection.jsx";
 import DeletionRequestSection from "@/components/admin/DeletionRequestSection.jsx";
 import CommunityEventApprovalSection from "@/components/admin/CommunityEventApprovalSection.jsx";
+import { PageHeader } from "@/components/ui/page-header";
 
 // Admin Dashboard Component
 const AdminDashboard = () => {
@@ -224,10 +225,11 @@ const AdminDashboard = () => {
 
   return (
     <div className="p-6 mx-auto w-3/4">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Welcome, {user?.data?.email || 'Admin'}</p>
-      </div>
+      <PageHeader
+        breadcrumbs={[{ label: "Admin" }]}
+        title="Admin Dashboard"
+      />
+      <p className="text-muted-foreground mb-6">Welcome, {user?.data?.email || "Admin"}</p>
 
       {loading && (
         <div className="flex justify-center items-center h-32">

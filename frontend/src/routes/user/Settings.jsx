@@ -1,20 +1,17 @@
 import { useEffect, useState, useContext } from "react";
-import { Input } from "@/components/ui/input.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { UserContext } from "@/provider/UserContext.js";
 import { useAlert } from "@/provider/AlertProvider.jsx";
 import { useLocation, useNavigate } from "react-router";
 import { fetcher } from "@/lib/fetcher.js";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
-import { Label } from "@radix-ui/react-label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.jsx";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { LoginHistory } from "@/components/settings/LoginHistory";
 import { useProfilePicture } from "@/hooks/useProfilePicture.js";
 import { ProfilePictureCard } from "@/components/avatar/ProfilePictureCard.jsx";
 import ProfileSection from "@/components/settings/ProfileSection.jsx";
 import PasswordSection from "@/components/settings/PasswordSection.jsx";
 import DeletionRequestSection from "@/components/settings/DeletionRequestSection.jsx";
+import { PageHeader } from "@/components/ui/page-header";
 
 export function Settings() {
   const auth = useContext(UserContext);
@@ -163,9 +160,12 @@ export function Settings() {
   if (!auth.token) return null;
 
   return (
-    <div className="flex flex-col flex-1  min-h-screen">
+    <div className="flex flex-col flex-1 min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <h2 className="text-3xl font-bold text-foreground mb-8">Profile Settings</h2>
+        <PageHeader
+          breadcrumbs={[{ label: "Settings" }]}
+          title="Profile Settings"
+        />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-1">
             <ProfilePictureCard

@@ -1,5 +1,4 @@
 import React, { useState, useContext } from "react";
-import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,15 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { UserContext } from "@/provider/UserContext.js";
 import { fetcher } from "@/lib/fetcher.js";
-import { useNavigate, Link } from "react-router";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+import { useNavigate } from "react-router";
+import { PageHeader } from "@/components/ui/page-header";
 
 const initialState = {
   difficulty_walking: "",
@@ -126,23 +118,16 @@ export function MedicationQuestionnaire() {
   };
 
   return (
-    <div>
-      <Breadcrumb className="p-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/medical">Medical</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator/>
-          <BreadcrumbItem>
-            <BreadcrumbPage>Questionnaire</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-      <form onSubmit={handleSubmit} className="w-full p-6 ">
+    <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Medical", href: "/medical" },
+          { label: "Questionnaire" },
+        ]}
+        title="Wellness Questionnaire"
+      />
+      <form onSubmit={handleSubmit} className="w-full">
       <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
-        <h1 className="text-xl font-semibold text-foreground mb-6">Wellness Questionnaire</h1>
         <div className="space-y-6">
           {/* Difficulty Walking */}
           <div className="space-y-2">

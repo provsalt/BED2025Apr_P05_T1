@@ -1,16 +1,9 @@
-import React, { useState, useContext } from 'react';
-import { MedicationReminderForm } from './MedicationReminderForm.jsx';
-import { UserContext } from '@/provider/UserContext.js';
-import { fetcher } from '@/lib/fetcher.js';
-import { useNavigate, Link } from 'react-router';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+import React, { useState, useContext } from "react";
+import { MedicationReminderForm } from "./MedicationReminderForm.jsx";
+import { UserContext } from "@/provider/UserContext.js";
+import { fetcher } from "@/lib/fetcher.js";
+import { useNavigate } from "react-router";
+import { PageHeader } from "@/components/ui/page-header";
 
 //limit max reminder and max frequency
 const MAX_REMINDERS_PER_USER = 3;
@@ -101,20 +94,14 @@ export const MedicalCreateForm = () =>  {
   };
 
   return (
-    <div>
-      <Breadcrumb className="p-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/medical">Medical</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator/>
-          <BreadcrumbItem>
-            <BreadcrumbPage>Create Medication</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+    <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Medical", href: "/medical" },
+          { label: "Create Medication" },
+        ]}
+        title="Create Medication Reminder"
+      />
       <MedicationReminderForm
         initialValues={defaultValues}
         mode="create"
