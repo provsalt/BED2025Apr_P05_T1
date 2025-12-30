@@ -9,6 +9,7 @@ import { UserContext } from "@/provider/UserContext.js";
 import { fetcher } from "@/lib/fetcher.js";
 import { useNavigate } from "react-router";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 const initialState = {
   difficulty_walking: "",
@@ -118,7 +119,7 @@ export function MedicationQuestionnaire() {
   };
 
   return (
-    <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: "Medical", href: "/medical" },
@@ -126,8 +127,9 @@ export function MedicationQuestionnaire() {
         ]}
         title="Wellness Questionnaire"
       />
-      <form onSubmit={handleSubmit} className="w-full">
-      <div className="bg-background rounded-lg shadow-sm border p-6 max-w-md mx-auto">
+      <div className="max-w-md mx-auto">
+        <form onSubmit={handleSubmit} className="w-full">
+        <div className="bg-background rounded-lg shadow-sm border p-6">
         <div className="space-y-6">
           {/* Difficulty Walking */}
           <div className="space-y-2">
@@ -267,6 +269,7 @@ export function MedicationQuestionnaire() {
         </DialogContent>
       </Dialog>
       </form>
-    </div>
+      </div>
+    </PageContainer>
   );
 } 

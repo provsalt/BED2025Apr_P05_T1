@@ -4,6 +4,7 @@ import { UserContext } from "@/provider/UserContext.js";
 import { fetcher } from "@/lib/fetcher.js";
 import { useNavigate } from "react-router";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 //limit max reminder and max frequency
 const MAX_REMINDERS_PER_USER = 3;
@@ -94,7 +95,7 @@ export const MedicalCreateForm = () =>  {
   };
 
   return (
-    <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: "Medical", href: "/medical" },
@@ -102,16 +103,18 @@ export const MedicalCreateForm = () =>  {
         ]}
         title="Create Medication Reminder"
       />
-      <MedicationReminderForm
-        initialValues={defaultValues}
-        mode="create"
-        onSubmit={handleCreate}
-        isSubmitting={isSubmitting}
-        dialog={dialog}
-        setDialog={setDialog}
-        onCancel={() => navigate('/medical')}
-        navigateOnSuccess={() => navigate('/medical/reminders')}
-      />
-    </div>
+      <div className="max-w-md mx-auto">
+        <MedicationReminderForm
+          initialValues={defaultValues}
+          mode="create"
+          onSubmit={handleCreate}
+          isSubmitting={isSubmitting}
+          dialog={dialog}
+          setDialog={setDialog}
+          onCancel={() => navigate("/medical")}
+          navigateOnSuccess={() => navigate("/medical/reminders")}
+        />
+      </div>
+    </PageContainer>
   );
 };

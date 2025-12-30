@@ -13,6 +13,7 @@ import { MapPin, Clock, User, Calendar, ChevronLeft, ChevronRight, CheckCircle, 
 import { fetcher } from "@/lib/fetcher";
 import { UserContext } from "@/provider/UserContext.js";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export function EventDetails() {
   const { id } = useParams();
@@ -283,7 +284,7 @@ export function EventDetails() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto mt-8 px-2 md:px-0 pb-7">
+    <PageContainer className="max-w-3xl">
       <PageHeader
         breadcrumbs={[
           { label: "Community", href: "/community" },
@@ -574,7 +575,6 @@ export function EventDetails() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-
+    </PageContainer>
   );
 } 

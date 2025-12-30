@@ -12,6 +12,7 @@ import ProfileSection from "@/components/settings/ProfileSection.jsx";
 import PasswordSection from "@/components/settings/PasswordSection.jsx";
 import DeletionRequestSection from "@/components/settings/DeletionRequestSection.jsx";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export function Settings() {
   const auth = useContext(UserContext);
@@ -161,7 +162,7 @@ export function Settings() {
 
   return (
     <div className="flex flex-col flex-1 min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <PageContainer className="max-w-4xl">
         <PageHeader
           breadcrumbs={[{ label: "Settings" }]}
           title="Profile Settings"
@@ -222,7 +223,7 @@ export function Settings() {
         <div className="mt-8">
           <LoginHistory />
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

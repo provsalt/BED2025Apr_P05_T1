@@ -4,6 +4,7 @@ import { useAlert } from "@/provider/AlertProvider";
 import { fetcher } from "@/lib/fetcher";
 import RouteForm from "@/components/transport/RouteForm";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export const EditRoute = () => {
   const {id} = useParams();
@@ -63,7 +64,7 @@ export const EditRoute = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: "Transport", href: "/transport" },
@@ -72,17 +73,19 @@ export const EditRoute = () => {
         ]}
         title="Edit Route"
       />
-      {initialData ? (
-        <RouteForm
-          onSubmit={handleSubmit}
-          initialData={initialData}
-          isLoading={isLoading}
-          submitButtonText="Update Route"
-        />
-      ) : (
-        <div>Loading...</div>
-      )}
-    </div>
+      <div>
+        {initialData ? (
+          <RouteForm
+            onSubmit={handleSubmit}
+            initialData={initialData}
+            isLoading={isLoading}
+            submitButtonText="Update Route"
+          />
+        ) : (
+          <div>Loading...</div>
+        )}
+      </div>
+    </PageContainer>
   );
 };
 

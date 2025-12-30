@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Search, X } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export const MealsList = () => {
   const [meals, setMeals] = useState([]);
@@ -106,22 +107,22 @@ export const MealsList = () => {
   );
 
   return (
-    <div className="mx-auto px-6 py-8 w-full">
-        <PageHeader
-          breadcrumbs={[{ label: "Nutrition" }]}
-          title="Nutrition"
-        >
-          <Link to="/nutrition/analytics">
-            <Button variant="outline" className="cursor-pointer">
-              View Analytics
-            </Button>
-          </Link>
-          <Link to="/nutrition/upload">
-            <Button className="cursor-pointer">
-              Upload Image
-            </Button>
-          </Link>
-        </PageHeader>
+    <PageContainer>
+      <PageHeader
+        breadcrumbs={[{ label: "Nutrition" }]}
+        title="Nutrition"
+      >
+        <Link to="/nutrition/analytics">
+          <Button variant="outline" className="cursor-pointer">
+            View Analytics
+          </Button>
+        </Link>
+        <Link to="/nutrition/upload">
+          <Button className="cursor-pointer">
+            Upload Image
+          </Button>
+        </Link>
+      </PageHeader>
 
         {/* Search Section */}
         <div className="mb-6">
@@ -192,6 +193,6 @@ export const MealsList = () => {
             </Link>
           ))}
         </div>
-    </div>
+    </PageContainer>
   );
 };

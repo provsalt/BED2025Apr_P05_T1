@@ -12,6 +12,7 @@ import DebugSection from "@/components/admin/DebugSection.jsx";
 import DeletionRequestSection from "@/components/admin/DeletionRequestSection.jsx";
 import CommunityEventApprovalSection from "@/components/admin/CommunityEventApprovalSection.jsx";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 // Admin Dashboard Component
 const AdminDashboard = () => {
@@ -224,7 +225,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="p-6 mx-auto w-3/4">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[{ label: "Admin" }]}
         title="Admin Dashboard"
@@ -291,7 +292,7 @@ const AdminDashboard = () => {
           />
         </TabsContent>
       </Tabs>
-      </div>
+    </PageContainer>
   );
 };
 

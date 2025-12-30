@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Loader2, FileText, RefreshCw, Clipboard, CheckCircle } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export const HealthSummary = () => {
   const navigate = useNavigate();
@@ -605,38 +606,34 @@ export const HealthSummary = () => {
   // Render loading state
   if (loading) {
     return (
-      <div className="flex flex-col flex-1 bg-gray-50 min-h-screen">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="flex flex-col items-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-black" />
-              <p className="text-gray-600">Loading your health summary...</p>
-            </div>
+      <PageContainer>
+        <div className="flex items-center justify-center h-64">
+          <div className="flex flex-col items-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-black" />
+            <p className="text-gray-600">Loading your health summary...</p>
           </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   //main layout structure
   return (
-    <div className="flex flex-col flex-1 bg-gray-50 min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <PageHeader
-          breadcrumbs={[
-            { label: "Medical", href: "/medical" },
-            { label: "Health Summary" },
-          ]}
-          title="Health Summary"
-        />
-        {summary?.created_at && (
-          <p className="text-gray-600 mb-6">
-            Generated on {formatDate(summary.created_at)}
-          </p>
-        )}
-        </div>
+    <PageContainer className="max-w-4xl">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Medical", href: "/medical" },
+          { label: "Health Summary" },
+        ]}
+        title="Health Summary"
+      />
+      {summary?.created_at && (
+        <p className="text-gray-600 mb-6">
+          Generated on {formatDate(summary.created_at)}
+        </p>
+      )}
 
-        {renderMainContent()}
+      {renderMainContent()}
 
       {/* Dialog */}
       <Dialog open={dialog.open} onOpenChange={(open) => setDialog({ ...dialog, open })}>
@@ -692,6 +689,6 @@ export const HealthSummary = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }; 

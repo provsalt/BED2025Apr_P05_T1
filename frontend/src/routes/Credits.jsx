@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export function Credits() {
   return (
     <div className="flex flex-col flex-1">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <PageContainer>
         <PageHeader
           breadcrumbs={[{ label: "Credits" }]}
           title="Credits"
@@ -71,7 +72,7 @@ export function Credits() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

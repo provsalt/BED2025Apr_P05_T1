@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import { fetcher } from "@/lib/fetcher";
 import { MapPin, Tag, Clock } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export function CommunityEvents() {
   const [events, setEvents] = useState([]);
@@ -119,24 +120,22 @@ export function CommunityEvents() {
   }
 
   return (
-    <div className="mx-auto px-6 py-8 w-full">
-      <div className="w-full flex flex-col">
-        <PageHeader
-          breadcrumbs={[{ label: "Community" }]}
-          title="Community Events"
-        >
-          <Button className="cursor-pointer" onClick={() => navigate("/community/signups")}>
-            My Signed Up Events
-          </Button>
-          <Button className="cursor-pointer" onClick={() => navigate("/community/myevents")}>
-            My Events
-          </Button>
-          <Button className="cursor-pointer" onClick={() => navigate("/community/create")}>
-            Add New Event
-          </Button>
-        </PageHeader>
-        {content}
-      </div>
-    </div>
+    <PageContainer>
+      <PageHeader
+        breadcrumbs={[{ label: "Community" }]}
+        title="Community Events"
+      >
+        <Button className="cursor-pointer" onClick={() => navigate("/community/signups")}>
+          My Signed Up Events
+        </Button>
+        <Button className="cursor-pointer" onClick={() => navigate("/community/myevents")}>
+          My Events
+        </Button>
+        <Button className="cursor-pointer" onClick={() => navigate("/community/create")}>
+          Add New Event
+        </Button>
+      </PageHeader>
+      {content}
+    </PageContainer>
   );
 }

@@ -5,6 +5,7 @@ import { fetcher } from "@/lib/fetcher";
 import { MapPin, Clock, Tag } from "lucide-react";
 import { useNavigate } from "react-router";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export function UserSignedUpEvents() {
   const [events, setEvents] = useState([]);
@@ -36,23 +37,22 @@ export function UserSignedUpEvents() {
   }, []);
 
   return (
-    <div className="px-6 py-8 w-full">
-      <div className="flex flex-col">
-        <PageHeader
-          breadcrumbs={[
-            { label: "Community", href: "/community" },
-            { label: "My Signed Up Events" },
-          ]}
-          title="My Signed Up Events"
-        >
-          <Button className="cursor-pointer" onClick={() => navigate("/community/myevents")}>
-            My Events
-          </Button>
-          <Button className="cursor-pointer" onClick={() => navigate("/community/create")}>
-            Add New Event
-          </Button>
-        </PageHeader>
-        {(() => {
+    <PageContainer>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Community", href: "/community" },
+          { label: "My Signed Up Events" },
+        ]}
+        title="My Signed Up Events"
+      >
+        <Button className="cursor-pointer" onClick={() => navigate("/community/myevents")}>
+          My Events
+        </Button>
+        <Button className="cursor-pointer" onClick={() => navigate("/community/create")}>
+          Add New Event
+        </Button>
+      </PageHeader>
+      {(() => {
           if (loading) {
             return <div className="text-center py-8 text-muted-foreground">Loading your signed up events...</div>;
           } else if (error) {
@@ -205,7 +205,6 @@ export function UserSignedUpEvents() {
             );
           }
         })()}
-      </div>
-    </div>
+    </PageContainer>
   );
 } 

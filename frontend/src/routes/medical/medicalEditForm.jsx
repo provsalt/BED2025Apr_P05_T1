@@ -4,6 +4,7 @@ import { UserContext } from "@/provider/UserContext.js";
 import { fetcher } from "@/lib/fetcher.js";
 import { useParams, useNavigate } from "react-router";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -108,7 +109,7 @@ export function MedicationEditForm() {
   }
 
   return (
-    <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: "Medical", href: "/medical" },
@@ -117,15 +118,17 @@ export function MedicationEditForm() {
         ]}
         title="Edit Medication Reminder"
       />
-      <MedicationReminderForm
-        initialValues={formData}
-        mode="edit"
-        onSubmit={handleEdit}
-        isSubmitting={isSubmitting}
-        dialog={dialog}
-        setDialog={setDialog}
-        onCancel={() => navigate('/medical/reminders')}
-      />
-    </div>
+      <div className="max-w-md mx-auto">
+        <MedicationReminderForm
+          initialValues={formData}
+          mode="edit"
+          onSubmit={handleEdit}
+          isSubmitting={isSubmitting}
+          dialog={dialog}
+          setDialog={setDialog}
+          onCancel={() => navigate("/medical/reminders")}
+        />
+      </div>
+    </PageContainer>
   );
 }; 

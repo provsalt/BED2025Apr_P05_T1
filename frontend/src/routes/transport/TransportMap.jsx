@@ -5,6 +5,7 @@ import TransportDirectionForm from "@/components/transport/TransportDirectionFor
 import TransitPlan from "@/components/transport/TransitPlan.jsx";
 import { useSearchParams } from "react-router";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export const TransportMap = () => {
   const [searchParams] = useSearchParams();
@@ -34,7 +35,7 @@ export const TransportMap = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] container mx-auto p-6 flex-1">
+    <PageContainer className="flex flex-col h-[calc(100vh-theme(spacing.16))] flex-1">
       <PageHeader
         breadcrumbs={[
           { label: "Transport", href: "/transport" },
@@ -51,6 +52,6 @@ export const TransportMap = () => {
           <TransitPlan path={path} stations={stations} />
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

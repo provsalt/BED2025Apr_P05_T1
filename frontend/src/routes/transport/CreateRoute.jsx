@@ -4,6 +4,7 @@ import { useAlert } from "@/provider/AlertProvider";
 import { fetcher } from "@/lib/fetcher.js";
 import RouteForm from "@/components/transport/RouteForm";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export const CreateRoute = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +42,7 @@ export const CreateRoute = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: "Transport", href: "/transport" },
@@ -50,11 +51,11 @@ export const CreateRoute = () => {
         ]}
         title="Create New Route"
       />
-      <RouteForm
-        onSubmit={handleSubmit}
-        isLoading={isLoading}
-        submitButtonText="Create Route"
-      />
-    </div>
+        <RouteForm
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          submitButtonText="Create Route"
+        />
+    </PageContainer>
   );
 };

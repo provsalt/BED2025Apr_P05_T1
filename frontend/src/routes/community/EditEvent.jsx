@@ -9,6 +9,7 @@ import { fetcher } from "@/lib/fetcher";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { UserContext } from "@/provider/UserContext.js";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export const EditEventPage = () => {
   const { id } = useParams();
@@ -267,7 +268,7 @@ export const EditEventPage = () => {
   })();
 
   return (
-    <div className="p-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: "Community", href: "/community" },
@@ -276,8 +277,9 @@ export const EditEventPage = () => {
         ]}
         title="Edit Event"
       />
-      <div className="bg-background rounded-lg shadow-sm border p-6 mx-auto">
-        <form className="space-y-6" onSubmit={handleSubmit}>
+      <div className="max-w-xl mx-auto">
+        <div className="bg-background rounded-lg shadow-sm border p-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="eventName" className="mb-2 inline-block">Event Name *</Label>
             <Input id="eventName" name="name" placeholder="Enter event name" defaultValue={event.name} />
@@ -449,8 +451,9 @@ export const EditEventPage = () => {
               }}>Go to Community</Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }; 

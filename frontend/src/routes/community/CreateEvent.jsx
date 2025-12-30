@@ -9,6 +9,7 @@ import { fetcher } from "@/lib/fetcher";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { UserContext } from "@/provider/UserContext.js";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export const CreateEventPage = () => {
   const navigate = useNavigate();
@@ -175,7 +176,7 @@ export const CreateEventPage = () => {
   }
 
   return (
-    <div className="px-6 py-8 container mx-auto">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: "Community", href: "/community" },
@@ -183,9 +184,10 @@ export const CreateEventPage = () => {
         ]}
         title="Create Event"
       />
-      <div className="bg-background rounded-lg shadow-sm border p-6">
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <div>
+      <div className="max-w-xl mx-auto">
+        <div className="bg-background rounded-lg shadow-sm border p-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div>
             <Label htmlFor="eventName" className="mb-2 inline-block">Event Name *</Label>
             <Input id="eventName" name="name" placeholder="Enter event name" />
           </div>
@@ -307,9 +309,10 @@ export const CreateEventPage = () => {
               }}>Okay</Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

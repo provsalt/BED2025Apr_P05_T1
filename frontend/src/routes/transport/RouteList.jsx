@@ -16,6 +16,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog.jsx";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export const RouteList = () => {
   const [routes, setRoutes] = useState([]);
@@ -79,7 +80,7 @@ export const RouteList = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: "Transport", href: "/transport" },
@@ -143,6 +144,6 @@ export const RouteList = () => {
           </Table>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 };

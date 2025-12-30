@@ -6,6 +6,7 @@ import { useAlert } from "@/provider/AlertProvider.jsx";
 import { X } from "lucide-react";
 import { Link } from "react-router";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export const MealImageUpload = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -135,7 +136,7 @@ export const MealImageUpload = () => {
 
   // Default upload page
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8 w-full">
+    <PageContainer className="max-w-4xl">
         <PageHeader
           breadcrumbs={[
             { label: "Nutrition", href: "/nutrition" },
@@ -228,6 +229,6 @@ export const MealImageUpload = () => {
             </div>
           </div>
         </Card>
-    </div>
+    </PageContainer>
   );
 }

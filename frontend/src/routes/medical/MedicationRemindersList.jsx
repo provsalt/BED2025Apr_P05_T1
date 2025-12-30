@@ -6,6 +6,7 @@ import { useNavigate } from "react-router";
 import { fetcher } from "@/lib/fetcher.js";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 function formatSqlTime(sqlTime) {
   if (!sqlTime) {
@@ -137,7 +138,7 @@ export const MedicationRemindersList = () => {
   };
 
   return (
-    <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: "Medical", href: "/medical" },
@@ -149,7 +150,7 @@ export const MedicationRemindersList = () => {
           + Add New Reminder
         </Button>
       </PageHeader>
-      <div className="w-full max-w-3xl mx-auto">
+      <div className="w-full max-w-3xl">
       {renderContent()}
       <Dialog open={dialog.open} onOpenChange={open => setDialog(d => ({ ...d, open }))}>
         <DialogContent>
@@ -172,6 +173,6 @@ export const MedicationRemindersList = () => {
         </DialogContent>
       </Dialog>
       </div>
-    </div>
+    </PageContainer>
   );
 };

@@ -7,6 +7,7 @@ import { Label } from "../../components/ui/label";
 import { Edit, Trash2, Save, X } from "lucide-react";
 import { useAlert } from "../../provider/AlertProvider";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 
 export const MealDetail = () => {
   const { id } = useParams();
@@ -144,7 +145,7 @@ export const MealDetail = () => {
   if (!meal) return <div className="text-center py-8 text-destructive">Meal not found.</div>;
 
   return (
-    <div className="mx-auto px-6 py-8 w-full">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: "Nutrition", href: "/nutrition" },
@@ -348,6 +349,6 @@ export const MealDetail = () => {
           </>
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 };
