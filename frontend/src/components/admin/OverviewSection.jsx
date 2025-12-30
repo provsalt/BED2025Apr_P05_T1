@@ -120,7 +120,7 @@ const OverviewSection = ({ users, admins, connectedUsers, fetchAllData }) => {
         </div>
 
 
-        <div className="bg-white p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border">
           <h3 className="text-lg font-semibold mb-2">Connected Users</h3>
           <p className="text-3xl font-bold text-orange-600">{connectedUsers !== null ? connectedUsers : '...'}</p>
           <p className="text-gray-600 text-sm">Currently online</p>
