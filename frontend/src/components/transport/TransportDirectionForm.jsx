@@ -42,10 +42,10 @@ const TransportDirectionForm = ({ stations, onSearch }) => {
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex flex-col gap-4">
+    <div className="p-4 space-y-4 bg-card rounded-lg border border-border">
+      <div className="flex flex-col gap-3">
         <h2 className="text-xl font-bold">Reach your destination faster!</h2>
-        <p className="text-wrap">With Eldercare, you can rely on our system to provide you helpful directions to reach your destination fast!</p>
+        <p className="text-sm text-muted-foreground">With Eldercare, you can rely on our system to provide you helpful directions to reach your destination fast!</p>
         <Label>Start station</Label>
         <Popover open={openStart} onOpenChange={setOpenStart}>
           <PopoverTrigger asChild>

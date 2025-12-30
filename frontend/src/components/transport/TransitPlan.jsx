@@ -125,7 +125,7 @@ const TransitPlan = ({ path, stations }) => {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4 border rounded-md mt-4">
+    <div className="flex flex-col gap-4 p-4 bg-card border border-border rounded-lg mt-4">
       <h3 className="text-lg font-semibold mb-2">Transit Plan</h3>
       <AlertDialog>
         <Button asChild>

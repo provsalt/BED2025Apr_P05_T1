@@ -35,7 +35,7 @@ export const TransportMap = () => {
   }
 
   return (
-    <PageContainer className="flex flex-col h-[calc(100vh-theme(spacing.16))] flex-1">
+    <PageContainer className="flex flex-col min-h-[calc(100vh-theme(spacing.16))]">
       <PageHeader
         breadcrumbs={[
           { label: "Transport", href: "/transport" },
@@ -43,11 +43,13 @@ export const TransportMap = () => {
         ]}
         title="Transport Map"
       />
-      <div className="flex flex-1">
-        <div className="flex-1">
+      <div className="flex flex-col-reverse md:flex-row flex-1 gap-4">
+        {/* Map - shows below form on mobile, left side on desktop */}
+        <div className="flex-1 min-h-[300px] md:min-h-0">
           <Map path={path} setPath={setPath} delay={300} />
         </div>
-        <div className="m-4 md:max-w-1/4">
+        {/* Sidebar - shows above map on mobile, right side on desktop */}
+        <div className="w-full md:w-80 lg:w-96 shrink-0">
           <TransportDirectionForm stations={stations} onSearch={handleSearch} />
           <TransitPlan path={path} stations={stations} />
         </div>
