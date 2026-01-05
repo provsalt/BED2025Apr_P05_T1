@@ -101,32 +101,32 @@ const OverviewSection = ({ users, admins, connectedUsers, fetchAllData }) => {
     <div className="space-y-6">
       {/* User Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        <div className="bg-background p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border text-center md:text-left">
           <h3 className="text-lg font-semibold mb-2">Total Users</h3>
           <p className="text-3xl font-bold text-primary">{users.length}</p>
           <p className="text-muted-foreground text-sm">All registered users</p>
         </div>
 
-        <div className="bg-background p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border text-center md:text-left">
           <h3 className="text-lg font-semibold mb-2">Admins</h3>
           <p className="text-3xl font-bold text-destructive">{admins.length}</p>
           <p className="text-muted-foreground text-sm">Users with admin privileges</p>
         </div>
 
-        <div className="bg-background p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border text-center md:text-left">
           <h3 className="text-lg font-semibold mb-2">Regular Users</h3>
           <p className="text-3xl font-bold text-primary">{users.filter(u => u.role !== 'Admin').length}</p>
           <p className="text-muted-foreground text-sm">Non-admin users</p>
         </div>
 
 
-        <div className="bg-white p-6 rounded-lg shadow-md border">
+        <div className="bg-white p-6 rounded-lg shadow-md border text-center md:text-left">
           <h3 className="text-lg font-semibold mb-2">Connected Users</h3>
           <p className="text-3xl font-bold text-orange-600">{connectedUsers !== null ? connectedUsers : '...'}</p>
           <p className="text-gray-600 text-sm">Currently online</p>
         </div>
 
-        <div className="bg-background p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border text-center md:text-left">
           <h3 className="text-lg font-semibold mb-2">Actions</h3>
           <button
             className="w-full mb-2 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
@@ -139,13 +139,13 @@ const OverviewSection = ({ users, admins, connectedUsers, fetchAllData }) => {
 
       {/* System Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-background p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border text-center md:text-left">
           <h3 className="text-lg font-semibold mb-2">CPU Usage</h3>
           <p className="text-3xl font-bold text-primary">{cpuUsage}%</p>
           <p className="text-muted-foreground text-sm">Current CPU usage</p>
         </div>
 
-        <div className="bg-background p-6 rounded-lg shadow-md border">
+        <div className="bg-background p-6 rounded-lg shadow-md border text-center md:text-left">
           <h3 className="text-lg font-semibold mb-2">Memory Usage</h3>
           <p className="text-3xl font-bold text-primary">{memoryUsage} MB</p>
           <p className="text-muted-foreground text-sm">Current memory usage</p>
@@ -155,7 +155,7 @@ const OverviewSection = ({ users, admins, connectedUsers, fetchAllData }) => {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-background p-6 rounded-lg shadow-md border">
-          <h3 className="text-lg font-semibold mb-4">CPU Usage (Last Hour)</h3>
+          <h3 className="text-lg font-semibold mb-4 text-center md:text-left">CPU Usage (Last Hour)</h3>
           {loading ? (
             <div className="h-64 flex items-center justify-center">
               <p className="text-muted-foreground">Loading...</p>
@@ -182,7 +182,7 @@ const OverviewSection = ({ users, admins, connectedUsers, fetchAllData }) => {
         </div>
 
         <div className="bg-background p-6 rounded-lg shadow-md border">
-          <h3 className="text-lg font-semibold mb-4">Memory Usage (Last Hour)</h3>
+          <h3 className="text-lg font-semibold mb-4 text-center md:text-left">Memory Usage (Last Hour)</h3>
           {loading ? (
             <div className="h-64 flex items-center justify-center">
               <p className="text-muted-foreground">Loading...</p>

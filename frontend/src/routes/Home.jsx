@@ -22,44 +22,6 @@ export const Home = () => {
     );
   }
 
-  useEffect(() => {
-    const loadAnnouncements = async () => {
-      try {
-        setAnnouncementsLoading(true);
-        // Use public endpoint for everyone
-        const endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/announcements`;
-        const response = await fetch(endpoint);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to load announcements: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        setAnnouncements(data);
-      } catch (error) {
-        console.error('Error loading announcements:', error);
-        setAnnouncements([]);
-      } finally {
-        setAnnouncementsLoading(false);
-      }
-    };
-
-    loadAnnouncements();
-  }, []);
-
-  const handleDismissAnnouncement = async (announcementId) => {
-    try {
-      await fetcher(`/announcements/${announcementId}/dismiss`, {
-        method: 'POST'
-      });
-      
-      // Remove the dismissed announcement from the local state
-      setAnnouncements(prev => prev.filter(announcement => announcement.id !== announcementId));
-    } catch (error) {
-      console.error('Error dismissing announcement:', error);
-    }
-  };
-
   return (
     <div className="flex-1 bg-background text-foreground">
       <div className="mx-auto px-6 py-12">

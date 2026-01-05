@@ -14,7 +14,6 @@ import { connectedUsersGauge } from "./services/prometheusService.js";
 import client from "prom-client";
 import { errorHandler } from "./middleware/errorHandler.js";
 import {loggerMiddleware, logInfo} from "./utils/logger.js";
-import client from "prom-client";
 
 const app = express();
 const server = createServer(app);

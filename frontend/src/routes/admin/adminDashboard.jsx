@@ -223,10 +223,10 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="p-6 mx-auto w-3/4">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Welcome, {user?.data?.email || 'Admin'}</p>
+    <div className="p-4 sm:p-6 mx-auto w-full sm:w-11/12 lg:w-3/4">
+      <div className="mb-4 sm:mb-6 text-center sm:text-left">
+        <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
+        <p className="text-muted-foreground mt-2 text-sm sm:text-base">Welcome, {user?.data?.email || 'Admin'}</p>
       </div>
 
       {loading && (
@@ -236,13 +236,13 @@ const AdminDashboard = () => {
       )}
 
       <Tabs defaultValue="overview" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="users">User Management</TabsTrigger>
-          <TabsTrigger value="announcements">Announcements</TabsTrigger>
-          <TabsTrigger value="events">Event Approvals</TabsTrigger>
-          <TabsTrigger value="deletion">Deletion Requests</TabsTrigger>
-          <TabsTrigger value="debug">Debug</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 h-auto">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="users" className="text-xs sm:text-sm">Users</TabsTrigger>
+          <TabsTrigger value="announcements" className="text-xs sm:text-sm">Announcements</TabsTrigger>
+          <TabsTrigger value="events" className="text-xs sm:text-sm">Events</TabsTrigger>
+          <TabsTrigger value="deletion" className="text-xs sm:text-sm">Deletions</TabsTrigger>
+          <TabsTrigger value="debug" className="text-xs sm:text-sm">Debug</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
           <OverviewSection users={users} admins={admins} connectedUsers={connectedUsers} fetchAllData={fetchAllData} />
