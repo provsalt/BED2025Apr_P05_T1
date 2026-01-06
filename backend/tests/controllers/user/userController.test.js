@@ -107,14 +107,36 @@ describe('User Controller', () => {
       user: { id: 1, role: 'User' },
       params: {},
       body: {},
-      file: null
+      file: null,
+      ip: '127.0.0.1',
+      connection: { remoteAddress: '127.0.0.1' },
+      get: vi.fn((header) => {
+        if (header === 'User-Agent') return 'test-user-agent';
+        return null;
+      })
     };
     res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn().mockReturnThis()
     };
     next = vi.fn();
-    vi.clearAllMocks();
+    
+    // Clear call history but keep mock implementations
+    getUserByEmail.mockClear();
+    createUser.mockClear();
+    getUser.mockClear();
+    updateUser.mockClear();
+    insertLoginHistory.mockClear();
+    trackLoginAttempt.mockClear();
+    uploadFile.mockClear();
+    deleteFile.mockClear();
+    adminDeleteUser.mockClear();
+    bcrypt.compare.mockClear();
+    bcrypt.hash.mockClear();
+    
+    // Set default mock return values
+    trackLoginAttempt.mockResolvedValue();
+    
     process.env.SECRET = 'test-secret';
     process.env.BACKEND_URL = 'http://localhost:3000';
   });

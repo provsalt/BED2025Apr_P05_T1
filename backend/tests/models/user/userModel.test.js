@@ -51,6 +51,7 @@ vi.mock("../../../utils/AppError.js", () => ({
 import sql from "mssql";
 import bcrypt from "bcryptjs";
 import { ErrorFactory } from "../../../utils/AppError.js";
+import { dbConfig } from "../../../config/db.js";
 
 describe("User Model", () => {
   let mockDb, mockRequest, mockTransaction;
