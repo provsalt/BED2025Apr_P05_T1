@@ -139,7 +139,10 @@ describe("Message Controller", () => {
             expect(ChatModel.getChat).toHaveBeenCalledWith("1");
             expect(MessageModel.createMessage).toHaveBeenCalledWith(1, "Hello world", "1");
             expect(ChatModel.updateChatTimestamp).toHaveBeenCalledWith("1");
-            expect(Websocket.broadcastMessageCreated).toHaveBeenCalledWith("1", 123, "Hello world", 1);
+            expect(Websocket.broadcastMessageCreated).toHaveBeenCalledWith("1", 123, "Hello world", 1, {
+                initiatorId: 1,
+                recipientId: 2,
+            });
             expect(res.status).toHaveBeenCalledWith(201);
             expect(res.json).toHaveBeenCalledWith({
                 message: "Message sent successfully",
@@ -239,7 +242,10 @@ describe("Message Controller", () => {
 
             expect(MessageModel.updateMessage).toHaveBeenCalledWith("123", "Updated message", 1);
             expect(ChatModel.updateChatTimestamp).toHaveBeenCalledWith("1");
-            expect(Websocket.broadcastMessageUpdated).toHaveBeenCalledWith("1", "123", "Updated message", 1);
+            expect(Websocket.broadcastMessageUpdated).toHaveBeenCalledWith("1", "123", "Updated message", 1, {
+                initiatorId: 1,
+                recipientId: 2,
+            });
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith({ message: "Message updated successfully" });
             expect(next).not.toHaveBeenCalled();
@@ -352,7 +358,10 @@ describe("Message Controller", () => {
 
             expect(MessageModel.deleteMessage).toHaveBeenCalledWith("123", 1);
             expect(ChatModel.updateChatTimestamp).toHaveBeenCalledWith("1");
-            expect(Websocket.broadcastMessageDeleted).toHaveBeenCalledWith("1", "123", 1);
+            expect(Websocket.broadcastMessageDeleted).toHaveBeenCalledWith("1", "123", 1, {
+                initiatorId: 1,
+                recipientId: 2,
+            });
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith({ message: "Message deleted successfully" });
             expect(next).not.toHaveBeenCalled();

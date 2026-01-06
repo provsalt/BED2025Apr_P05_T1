@@ -9,6 +9,7 @@ vi.mock("../../../models/chat/chatModel.js", () => ({
     getChats: vi.fn(),
     createChat: vi.fn(),
     getChatBetweenUsers: vi.fn(),
+    getOrCreateChat: vi.fn(),
 }));
 vi.mock("../../../models/chat/messageModel.js", () => ({
     createMessage: vi.fn(),
@@ -69,8 +70,7 @@ describe("Chat Controller", () => {
             json: vi.fn(),
         };
         const next = vi.fn();
-        ChatModel.getChatBetweenUsers.mockResolvedValue(null);
-        ChatModel.createChat.mockResolvedValue(1);
+        ChatModel.getOrCreateChat.mockResolvedValue({ chatId: 1, created: true });
         MessageModel.createMessage.mockResolvedValue(1);
         Websocket.broadcastMessageCreated.mockResolvedValue();
 
@@ -91,7 +91,7 @@ describe("Chat Controller", () => {
             json: vi.fn(),
         };
         const next = vi.fn();
-        ChatModel.getChatBetweenUsers.mockResolvedValue({ id: 1 });
+        ChatModel.getOrCreateChat.mockResolvedValue({ chatId: 1, created: false });
 
         await createChatController(req, res, next);
 
@@ -135,7 +135,7 @@ describe("Chat Controller", () => {
         };
         const next = vi.fn();
         const serverError = new Error("Server error");
-        ChatModel.getChatBetweenUsers.mockRejectedValue(serverError);
+        ChatModel.getOrCreateChat.mockRejectedValue(serverError);
 
         await createChatController(req, res, next);
 

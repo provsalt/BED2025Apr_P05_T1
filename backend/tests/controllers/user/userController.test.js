@@ -27,6 +27,7 @@ vi.mock('../../../models/user/userModel.js', () => ({
     cancelUserDeletionRequest: vi.fn(),
     getLoginHistoryByUserId: vi.fn(),
     deleteUser: vi.fn(),
+    trackLoginAttempt: vi.fn(),
 }));
 
 vi.mock('../../../models/admin/adminModel.js', () => ({
@@ -89,7 +90,8 @@ import {
   getUserByEmail,
   updateUser,
   updateUserProfilePicture,
-  insertLoginHistory
+  insertLoginHistory,
+  trackLoginAttempt
 } from '../../../models/user/userModel.js';
 import { deleteUser as adminDeleteUser } from '../../../models/admin/adminModel.js';
 import { uploadFile, deleteFile } from '../../../services/s3Service.js';
@@ -321,9 +323,16 @@ describe('User Controller', () => {
 
     it('should call next with unauthorized AppError if user is not found', async () => {
       getUserByEmail.mockResolvedValue(null);
+      trackLoginAttempt.mockResolvedValue();
 
       await loginUserController(req, res, next);
 
+      expect(trackLoginAttempt).toHaveBeenCalledWith(expect.objectContaining({
+        userId: null,
+        email: 'john@example.com',
+        success: false,
+        failureReason: 'user_not_found'
+      }));
       expect(ErrorFactory.notFound).toHaveBeenCalledWith("Email or password");
       expect(next).toHaveBeenCalledWith(expect.any(Error));
       expect(res.status).not.toHaveBeenCalled();
@@ -334,9 +343,16 @@ describe('User Controller', () => {
       const mockUser = { id: 1, password: 'hashedpassword' };
       getUserByEmail.mockResolvedValue(mockUser);
       bcrypt.compare.mockResolvedValue(false);
+      trackLoginAttempt.mockResolvedValue();
 
       await loginUserController(req, res, next);
 
+      expect(trackLoginAttempt).toHaveBeenCalledWith(expect.objectContaining({
+        userId: 1,
+        email: 'john@example.com',
+        success: false,
+        failureReason: 'invalid_password'
+      }));
       expect(ErrorFactory.notFound).toHaveBeenCalledWith("Email or password");
       expect(next).toHaveBeenCalledWith(expect.any(Error));
       expect(res.status).not.toHaveBeenCalled();
@@ -357,9 +373,15 @@ describe('User Controller', () => {
       };
       getUserByEmail.mockResolvedValue(mockUser);
       bcrypt.compare.mockResolvedValue(true);
+      trackLoginAttempt.mockResolvedValue();
 
       await loginUserController(req, res, next);
 
+      expect(trackLoginAttempt).toHaveBeenCalledWith(expect.objectContaining({
+        userId: 1,
+        email: 'john@example.com',
+        success: true
+      }));
       expect(insertLoginHistory).toHaveBeenCalledWith(1);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({

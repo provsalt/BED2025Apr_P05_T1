@@ -9,7 +9,13 @@ import {
   getLoginHistoryByUserId,
   insertLoginHistory,
   changeUserRole,
-  getAllUsers
+  getAllUsers,
+  trackLoginAttempt,
+  getUserLoginAttemptsAnalytics,
+  getUserRecentLoginAttempts,
+  getUserFailedLoginAttempts,
+  getLoginAttemptsByEmail,
+  getOverallLoginAnalytics
 } from "../../../models/user/userModel.js";
 
 // Mock dependencies
@@ -17,6 +23,8 @@ vi.mock("mssql", () => ({
   default: {
     connect: vi.fn(),
     Int: "Int",
+    VarChar: vi.fn((length) => `VarChar(${length})`),
+    Bit: "Bit",
     Transaction: vi.fn()
   }
 }));
@@ -31,8 +39,18 @@ vi.mock("bcryptjs", () => ({
   }
 }));
 
+vi.mock("../../../utils/AppError.js", () => ({
+  ErrorFactory: {
+    database: vi.fn((message) => new Error(message)),
+    notFound: vi.fn((resource) => new Error(`${resource} not found`)),
+    validation: vi.fn((message) => new Error(message)),
+    conflict: vi.fn((message) => new Error(message))
+  }
+}));
+
 import sql from "mssql";
 import bcrypt from "bcryptjs";
+import { ErrorFactory } from "../../../utils/AppError.js";
 
 describe("User Model", () => {
   let mockDb, mockRequest, mockTransaction;
