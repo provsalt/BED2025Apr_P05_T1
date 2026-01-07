@@ -74,8 +74,6 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--web.listen-address=:${PROMETHEUS_PORT:-9090}"
       - "--web.enable-remote-write-receiver"
-    networks:
-      - bed-assignment
   grafana:
     image: grafana/grafana
     ports:
@@ -105,8 +103,6 @@ services:
     volumes:
       - ./tempo.yaml:/etc/tempo/tempo.yaml
       - tempo-data:/var/tempo
-    networks:
-      - bed-assignment
 
 networks:
   bed-assignment:
