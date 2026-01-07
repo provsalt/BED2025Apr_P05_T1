@@ -68,40 +68,79 @@ export const Login = () => {
   }
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center">
-
-      <Card className="w-full max-w-sm px-2">
-        <CardHeader>
-          <CardTitle>Log in to Eldercare</CardTitle>
-          <CardDescription>
-            Please enter your email and password to log in.
+    <div className="min-h-screen flex flex-col flex-1 items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 px-4 py-8">
+      <Card className="w-full max-w-md px-3 py-2 shadow-lg border border-slate-200">
+        <CardHeader className="space-y-2 text-center">
+          <CardTitle className="text-2xl font-semibold tracking-tight">
+            Log in to Eldercare
+          </CardTitle>
+          <CardDescription className="text-sm text-slate-600">
+            Welcome back. Please enter your details to continue.
           </CardDescription>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Email</Label>
-              <Input type="text" placeholder="Enter Your Email" {...register("email", {required: true, maxLength: 255})} />
-              {errors.email && <span className="text-destructive">Please enter a valid email.</span>}
-            </div>
-            <div className="space-y-2">
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input type="password" placeholder="Enter Your Password" {...register("password", {required: true, min: 8, maxLength: 255})} />
-                {errors.password && <span className="text-destructive">Please enter a valid password.</span>}
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                className="h-11 text-base"
+                {...register("email", { required: true, maxLength: 255 })}
+              />
+              {errors.email && (
+                <span className="text-destructive text-xs">
+                  Please enter a valid email address.
+                </span>
+              )}
             </div>
 
-            <Button type="submit" className="w-full cursor-pointer">Log in</Button>
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                className="h-11 text-base"
+                {...register("password", { required: true, min: 8, maxLength: 255 })}
+              />
+              {errors.password && (
+                <span className="text-destructive text-xs">
+                  Please enter your password (at least 8 characters).
+                </span>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full cursor-pointer h-11 text-base font-medium mt-2"
+            >
+              Log in
+            </Button>
           </form>
-
         </CardContent>
 
-        <CardFooter>
-          <Link className="text-sm hover:underline ease-in-out transition" to="/signup">
-            Don't have an account? Sign Up
-          </Link>
+        <CardFooter className="flex flex-col gap-2 items-center justify-center pt-0 mt-2">
+          <p className="text-xs text-slate-500 text-center">
+            By continuing, you agree to our terms and privacy policy.
+          </p>
+          <p className="text-sm text-slate-700">
+            Don't have an account?{" "}
+            <Link
+              className="font-medium text-primary hover:underline ease-in-out transition"
+              to="/signup"
+            >
+              Sign up
+            </Link>
+          </p>
         </CardFooter>
       </Card>
     </div>
