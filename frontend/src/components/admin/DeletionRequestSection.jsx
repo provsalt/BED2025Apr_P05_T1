@@ -51,13 +51,13 @@ const formatDeletionTime = (isoTime) => {
 
 
   return (
-    <div className="bg-background rounded-lg shadow-md border p-6">
-      <h3 className="text-lg font-semibold mb-4">Account Deletion Requests</h3>
+    <div className="bg-background rounded-lg shadow-md border p-4 sm:p-6">
+      <h3 className="text-lg font-semibold mb-4 text-center sm:text-left">Account Deletion Requests</h3>
 
-      <div className="text-sm text-muted-foreground mt-1 flex items-center gap-2 mb-2">
-        Times are shown in:
+      <div className="text-xs sm:text-sm text-muted-foreground mt-1 flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
+        <span>Times are shown in:</span>
         <select
-          className="border rounded px-2 py-1 ml-2"
+          className="border rounded px-2 py-1 text-xs sm:text-sm"
           value={timezone}
           onChange={(e) => setTimezone(e.target.value)}
         >
@@ -69,25 +69,26 @@ const formatDeletionTime = (isoTime) => {
       </div>
 
       {deletionRequests.length === 0 ? (
-        <p className="text-muted-foreground">No pending deletion requests.</p>
+        <p className="text-muted-foreground text-sm">No pending deletion requests.</p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Requested At</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs sm:text-sm">ID</TableHead>
+                <TableHead className="text-xs sm:text-sm">Name</TableHead>
+                <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Email</TableHead>
+                <TableHead className="text-xs sm:text-sm">Requested At</TableHead>
+                <TableHead className="text-xs sm:text-sm">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
             {deletionRequests.map((user) => (
               <TableRow key={user.id}>
-                <TableCell>{user.id}</TableCell>
-                <TableCell>{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>
+                <TableCell className="text-xs sm:text-sm">{user.id}</TableCell>
+                <TableCell className="text-xs sm:text-sm">{user.name}</TableCell>
+                <TableCell className="text-xs sm:text-sm hidden sm:table-cell">{user.email}</TableCell>
+                <TableCell className="text-xs sm:text-sm">
                   {user.deletionRequestedAt ? formatDeletionTime(user.deletionRequestedAt) : ""}
                 </TableCell>
                 <TableCell>
@@ -96,8 +97,9 @@ const formatDeletionTime = (isoTime) => {
                       <Button
                         variant="destructive"
                         size="sm"
+                        className="text-xs"
                       >
-                        Approve & Delete
+                        Approve
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -118,6 +120,7 @@ const formatDeletionTime = (isoTime) => {
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
     </div>
   );

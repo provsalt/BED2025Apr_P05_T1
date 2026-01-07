@@ -9,7 +9,13 @@ import {
   getLoginHistoryByUserId,
   insertLoginHistory,
   changeUserRole,
-  getAllUsers
+  getAllUsers,
+  trackLoginAttempt,
+  getUserLoginAttemptsAnalytics,
+  getUserRecentLoginAttempts,
+  getUserFailedLoginAttempts,
+  getLoginAttemptsByEmail,
+  getOverallLoginAnalytics
 } from "../../../models/user/userModel.js";
 
 // Mock dependencies
@@ -17,6 +23,8 @@ vi.mock("mssql", () => ({
   default: {
     connect: vi.fn(),
     Int: "Int",
+    VarChar: vi.fn((length) => `VarChar(${length})`),
+    Bit: "Bit",
     Transaction: vi.fn()
   }
 }));
@@ -31,8 +39,19 @@ vi.mock("bcryptjs", () => ({
   }
 }));
 
+vi.mock("../../../utils/AppError.js", () => ({
+  ErrorFactory: {
+    database: vi.fn((message) => new Error(message)),
+    notFound: vi.fn((resource) => new Error(`${resource} not found`)),
+    validation: vi.fn((message) => new Error(message)),
+    conflict: vi.fn((message) => new Error(message))
+  }
+}));
+
 import sql from "mssql";
 import bcrypt from "bcryptjs";
+import { ErrorFactory } from "../../../utils/AppError.js";
+import { dbConfig } from "../../../config/db.js";
 
 describe("User Model", () => {
   let mockDb, mockRequest, mockTransaction;
@@ -550,6 +569,243 @@ describe("User Model", () => {
       mockRequest.query.mockRejectedValue(new Error("Query failed"));
 
       await expect(getAllUsers()).rejects.toThrow("Query failed");
+    });
+  });
+
+  describe('Login Analytics Functions', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    describe('trackLoginAttempt', () => {
+      it('should track a successful login attempt', async () => {
+        const mockRequest = {
+          input: vi.fn().mockReturnThis(),
+          query: vi.fn().mockResolvedValue({ rowsAffected: [1] })
+        };
+        const mockDb = {
+          request: vi.fn().mockReturnValue(mockRequest)
+        };
+        sql.connect.mockResolvedValue(mockDb);
+
+        const attemptData = {
+          userId: 123,
+          email: 'test@example.com',
+          success: true,
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0...'
+        };
+
+        await trackLoginAttempt(attemptData);
+
+        expect(sql.connect).toHaveBeenCalledWith(dbConfig);
+        expect(mockRequest.input).toHaveBeenCalledWith('userId', sql.Int, 123);
+        expect(mockRequest.input).toHaveBeenCalledWith('email', sql.VarChar(255), 'test@example.com');
+        expect(mockRequest.input).toHaveBeenCalledWith('success', sql.Bit, true);
+        expect(mockRequest.input).toHaveBeenCalledWith('ipAddress', sql.VarChar(45), '192.168.1.1');
+        expect(mockRequest.input).toHaveBeenCalledWith('userAgent', sql.VarChar(500), 'Mozilla/5.0...');
+        expect(mockRequest.input).toHaveBeenCalledWith('failureReason', sql.VarChar(100), null);
+      });
+
+      it('should track a failed login attempt', async () => {
+        const mockRequest = {
+          input: vi.fn().mockReturnThis(),
+          query: vi.fn().mockResolvedValue({ rowsAffected: [1] })
+        };
+        const mockDb = {
+          request: vi.fn().mockReturnValue(mockRequest)
+        };
+        sql.connect.mockResolvedValue(mockDb);
+
+        const attemptData = {
+          userId: null,
+          email: 'test@example.com',
+          success: false,
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0...',
+          failureReason: 'user_not_found'
+        };
+
+        await trackLoginAttempt(attemptData);
+
+        expect(mockRequest.input).toHaveBeenCalledWith('userId', sql.Int, null);
+        expect(mockRequest.input).toHaveBeenCalledWith('failureReason', sql.VarChar(100), 'user_not_found');
+      });
+
+      it('should handle database errors', async () => {
+        const dbError = new Error('Database connection failed');
+        sql.connect.mockRejectedValue(dbError);
+
+        const attemptData = {
+          userId: 123,
+          email: 'test@example.com',
+          success: true
+        };
+
+        await expect(trackLoginAttempt(attemptData)).rejects.toThrow();
+        expect(ErrorFactory.database).toHaveBeenCalledWith(
+          'Failed to track login attempt: Database connection failed',
+          'Unable to process request at this time',
+          dbError
+        );
+      });
+    });
+
+    describe('getUserLoginAttemptsAnalytics', () => {
+      it('should return user login analytics', async () => {
+        const mockAnalytics = {
+          total_attempts: 15,
+          successful_attempts: 12,
+          failed_attempts: 3,
+          days_with_attempts: 8,
+          first_attempt: '2024-01-01T00:00:00.000Z',
+          last_attempt: '2024-01-15T00:00:00.000Z',
+          success_rate: 80.0
+        };
+
+        const mockRequest = {
+          input: vi.fn().mockReturnThis(),
+          query: vi.fn().mockResolvedValue({ recordset: [mockAnalytics] })
+        };
+        const mockDb = {
+          request: vi.fn().mockReturnValue(mockRequest)
+        };
+        sql.connect.mockResolvedValue(mockDb);
+
+        const result = await getUserLoginAttemptsAnalytics(123, 30);
+
+        expect(result).toEqual(mockAnalytics);
+        expect(mockRequest.input).toHaveBeenCalledWith('userId', sql.Int, 123);
+        expect(mockRequest.input).toHaveBeenCalledWith('days', sql.Int, 30);
+      });
+
+      it('should return null when no analytics found', async () => {
+        const mockRequest = {
+          input: vi.fn().mockReturnThis(),
+          query: vi.fn().mockResolvedValue({ recordset: [] })
+        };
+        const mockDb = {
+          request: vi.fn().mockReturnValue(mockRequest)
+        };
+        sql.connect.mockResolvedValue(mockDb);
+
+        const result = await getUserLoginAttemptsAnalytics(123, 30);
+
+        expect(result).toBeNull();
+      });
+    });
+
+    describe('getUserRecentLoginAttempts', () => {
+      it('should return recent login attempts', async () => {
+        const mockAttempts = [
+          {
+            id: 1,
+            email: 'test@example.com',
+            attempt_time: '2024-01-15T00:00:00.000Z',
+            success: true,
+            ip_address: '192.168.1.1',
+            user_agent: 'Mozilla/5.0...',
+            failure_reason: null
+          }
+        ];
+
+        const mockRequest = {
+          input: vi.fn().mockReturnThis(),
+          query: vi.fn().mockResolvedValue({ recordset: mockAttempts })
+        };
+        const mockDb = {
+          request: vi.fn().mockReturnValue(mockRequest)
+        };
+        sql.connect.mockResolvedValue(mockDb);
+
+        const result = await getUserRecentLoginAttempts(123, 20);
+
+        expect(result).toEqual(mockAttempts);
+        expect(mockRequest.input).toHaveBeenCalledWith('userId', sql.Int, 123);
+        expect(mockRequest.input).toHaveBeenCalledWith('limit', sql.Int, 20);
+      });
+    });
+
+    describe('getUserFailedLoginAttempts', () => {
+      it('should return failed login attempts', async () => {
+        const mockFailedAttempts = {
+          failed_attempts: 5,
+          first_failed_attempt: '2024-01-15T00:00:00.000Z',
+          last_failed_attempt: '2024-01-15T12:00:00.000Z',
+          unique_ip_addresses: 2
+        };
+
+        const mockRequest = {
+          input: vi.fn().mockReturnThis(),
+          query: vi.fn().mockResolvedValue({ recordset: [mockFailedAttempts] })
+        };
+        const mockDb = {
+          request: vi.fn().mockReturnValue(mockRequest)
+        };
+        sql.connect.mockResolvedValue(mockDb);
+
+        const result = await getUserFailedLoginAttempts(123, 24);
+
+        expect(result).toEqual(mockFailedAttempts);
+        expect(mockRequest.input).toHaveBeenCalledWith('userId', sql.Int, 123);
+        expect(mockRequest.input).toHaveBeenCalledWith('hours', sql.Int, 24);
+      });
+    });
+
+    describe('getLoginAttemptsByEmail', () => {
+      it('should return login attempts by email', async () => {
+        const mockAttempts = {
+          total_attempts: 10,
+          successful_attempts: 8,
+          failed_attempts: 2,
+          first_attempt: '2024-01-01T00:00:00.000Z',
+          last_attempt: '2024-01-15T00:00:00.000Z',
+          unique_ip_addresses: 3
+        };
+
+        const mockRequest = {
+          input: vi.fn().mockReturnThis(),
+          query: vi.fn().mockResolvedValue({ recordset: [mockAttempts] })
+        };
+        const mockDb = {
+          request: vi.fn().mockReturnValue(mockRequest)
+        };
+        sql.connect.mockResolvedValue(mockDb);
+
+        const result = await getLoginAttemptsByEmail('test@example.com', 30);
+
+        expect(result).toEqual(mockAttempts);
+        expect(mockRequest.input).toHaveBeenCalledWith('email', sql.VarChar(255), 'test@example.com');
+        expect(mockRequest.input).toHaveBeenCalledWith('days', sql.Int, 30);
+      });
+    });
+
+    describe('getOverallLoginAnalytics', () => {
+      it('should return overall login analytics', async () => {
+        const mockAnalytics = {
+          total_attempts: 1000,
+          successful_attempts: 850,
+          failed_attempts: 150,
+          unique_users: 200,
+          unique_emails: 250,
+          overall_success_rate: 85.0,
+          days_with_activity: 30
+        };
+
+        const mockRequest = {
+          input: vi.fn().mockReturnThis(),
+          query: vi.fn().mockResolvedValue({ recordset: [mockAnalytics] })
+        };
+        const mockDb = {
+          request: vi.fn().mockReturnValue(mockRequest)
+        };
+        sql.connect.mockResolvedValue(mockDb);
+
+        const result = await getOverallLoginAnalytics(30);
+
+        expect(result).toEqual(mockAnalytics);
+        expect(mockRequest.input).toHaveBeenCalledWith('days', sql.Int, 30);
+      });
     });
   });
 });

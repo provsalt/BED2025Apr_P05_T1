@@ -15,11 +15,11 @@ const AnnouncementManagementSection = ({
   backendUrl
 }) => (
   <div className="bg-background rounded-lg shadow-md border">
-    <div className="p-6 border-b">
+    <div className="p-4 sm:p-6 border-b text-center sm:text-left">
       <h3 className="text-lg font-semibold">Announcements Management</h3>
-      <p className="text-muted-foreground">Create and manage system announcements</p>
+      <p className="text-muted-foreground text-sm">Create and manage system announcements</p>
     </div>
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <form onSubmit={handleCreateAnnouncement} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Title</label>
@@ -28,6 +28,7 @@ const AnnouncementManagementSection = ({
             onChange={e => setAnnouncementTitle(e.target.value)}
             maxLength={255}
             required
+            className="text-sm"
           />
         </div>
         <div>
@@ -38,9 +39,10 @@ const AnnouncementManagementSection = ({
             maxLength={5000}
             rows={4}
             required
+            className="text-sm"
           />
         </div>
-        <Button type="submit">
+        <Button type="submit" className="w-full sm:w-auto">
           Publish Announcement
         </Button>
       </form>
@@ -48,7 +50,7 @@ const AnnouncementManagementSection = ({
         key={announcementsKey}
         isAdmin={true}
         onDelete={handleDeleteAnnouncement}
-        adminApiEndpoint={`${backendUrl}/api/announcements`}
+        adminApiEndpoint="/announcements"
       />
     </div>
   </div>

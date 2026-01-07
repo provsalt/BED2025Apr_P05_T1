@@ -365,3 +365,172 @@ export const getUsersWithDeletionRequested = async () => {
     throw ErrorFactory.database(`Failed to get users with deletion requested: ${error.message}`, "Unable to process request at this time", error);
   }
 };
+
+/**
+ * Track a login attempt (successful or failed)
+ */
+export const trackLoginAttempt = async (attemptData) => {
+  try {
+    const db = await sql.connect(dbConfig);
+    const query = `
+      INSERT INTO LoginAttempts (user_id, email, success, ip_address, user_agent, failure_reason)
+      VALUES (@userId, @email, @success, @ipAddress, @userAgent, @failureReason)
+    `;
+    const request = db.request();
+    request.input("userId", sql.Int, attemptData.userId || null);
+    request.input("email", sql.VarChar(255), attemptData.email);
+    request.input("success", sql.Bit, attemptData.success);
+    request.input("ipAddress", sql.VarChar(45), attemptData.ipAddress || null);
+    request.input("userAgent", sql.VarChar(500), attemptData.userAgent || null);
+    request.input("failureReason", sql.VarChar(100), attemptData.failureReason || null);
+    
+    await request.query(query);
+  } catch (error) {
+    throw ErrorFactory.database(`Failed to track login attempt: ${error.message}`, "Unable to process request at this time", error);
+  }
+};
+
+/**
+ * Get login attempts analytics for a specific user
+ */
+export const getUserLoginAttemptsAnalytics = async (userId, days = 30) => {
+  try {
+    const db = await sql.connect(dbConfig);
+    const query = `
+      SELECT 
+        COUNT(*) as total_attempts,
+        SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as successful_attempts,
+        SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) as failed_attempts,
+        COUNT(DISTINCT CONVERT(DATE, attempt_time)) as days_with_attempts,
+        MIN(attempt_time) as first_attempt,
+        MAX(attempt_time) as last_attempt,
+        AVG(CASE WHEN success = 1 THEN 1.0 ELSE 0.0 END) * 100 as success_rate
+      FROM LoginAttempts 
+      WHERE user_id = @userId 
+      AND attempt_time >= DATEADD(DAY, -@days, GETDATE())
+    `;
+    const request = db.request();
+    request.input("userId", sql.Int, userId);
+    request.input("days", sql.Int, days);
+    
+    const result = await request.query(query);
+    return result.recordset[0] || null;
+  } catch (error) {
+    throw ErrorFactory.database(`Failed to get user login attempts analytics: ${error.message}`, "Unable to process request at this time", error);
+  }
+};
+
+/**
+ * Get recent login attempts for a specific user
+ */
+export const getUserRecentLoginAttempts = async (userId, limit = 20) => {
+  try {
+    const db = await sql.connect(dbConfig);
+    const query = `
+      SELECT TOP (@limit)
+        id,
+        email,
+        attempt_time,
+        success,
+        ip_address,
+        user_agent,
+        failure_reason
+      FROM LoginAttempts 
+      WHERE user_id = @userId 
+      ORDER BY attempt_time DESC
+    `;
+    const request = db.request();
+    request.input("userId", sql.Int, userId);
+    request.input("limit", sql.Int, limit);
+    
+    const result = await request.query(query);
+    return result.recordset;
+  } catch (error) {
+    throw ErrorFactory.database(`Failed to get user recent login attempts: ${error.message}`, "Unable to process request at this time", error);
+  }
+};
+
+/**
+ * Get failed login attempts for a specific user (for security monitoring)
+ */
+export const getUserFailedLoginAttempts = async (userId, hours = 24) => {
+  try {
+    const db = await sql.connect(dbConfig);
+    const query = `
+      SELECT 
+        COUNT(*) as failed_attempts,
+        MIN(attempt_time) as first_failed_attempt,
+        MAX(attempt_time) as last_failed_attempt,
+        COUNT(DISTINCT ip_address) as unique_ip_addresses
+      FROM LoginAttempts 
+      WHERE user_id = @userId 
+      AND success = 0 
+      AND attempt_time >= DATEADD(HOUR, -@hours, GETDATE())
+    `;
+    const request = db.request();
+    request.input("userId", sql.Int, userId);
+    request.input("hours", sql.Int, hours);
+    
+    const result = await request.query(query);
+    return result.recordset[0] || null;
+  } catch (error) {
+    throw ErrorFactory.database(`Failed to get user failed login attempts: ${error.message}`, "Unable to process request at this time", error);
+  }
+};
+
+/**
+ * Get login attempts by email (for non-existent users)
+ */
+export const getLoginAttemptsByEmail = async (email, days = 30) => {
+  try {
+    const db = await sql.connect(dbConfig);
+    const query = `
+      SELECT 
+        COUNT(*) as total_attempts,
+        SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as successful_attempts,
+        SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) as failed_attempts,
+        MIN(attempt_time) as first_attempt,
+        MAX(attempt_time) as last_attempt,
+        COUNT(DISTINCT ip_address) as unique_ip_addresses
+      FROM LoginAttempts 
+      WHERE email = @email 
+      AND attempt_time >= DATEADD(DAY, -@days, GETDATE())
+    `;
+    const request = db.request();
+    request.input("email", sql.VarChar(255), email);
+    request.input("days", sql.Int, days);
+    
+    const result = await request.query(query);
+    return result.recordset[0] || null;
+  } catch (error) {
+    throw ErrorFactory.database(`Failed to get login attempts by email: ${error.message}`, "Unable to process request at this time", error);
+  }
+};
+
+/**
+ * Get overall login analytics for admin dashboard
+ */
+export const getOverallLoginAnalytics = async (days = 30) => {
+  try {
+    const db = await sql.connect(dbConfig);
+    const query = `
+      SELECT 
+        COUNT(*) as total_attempts,
+        SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as successful_attempts,
+        SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) as failed_attempts,
+        COUNT(DISTINCT user_id) as unique_users,
+        COUNT(DISTINCT email) as unique_emails,
+        AVG(CASE WHEN success = 1 THEN 1.0 ELSE 0.0 END) * 100 as overall_success_rate,
+        COUNT(DISTINCT CONVERT(DATE, attempt_time)) as days_with_activity
+      FROM LoginAttempts 
+      WHERE attempt_time >= DATEADD(DAY, -@days, GETDATE())
+    `;
+    const request = db.request();
+    request.input("days", sql.Int, days);
+    
+    const result = await request.query(query);
+    return result.recordset[0] || null;
+  } catch (error) {
+    throw ErrorFactory.database(`Failed to get overall login analytics: ${error.message}`, "Unable to process request at this time", error);
+  }
+};

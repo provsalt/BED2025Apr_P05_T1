@@ -113,9 +113,9 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
 
   if (loading) {
     return (
-      <div className="bg-background rounded-lg shadow-md border p-6">
+      <div className="bg-background rounded-lg shadow-md border p-4 sm:p-6">
         <div className="flex justify-center items-center h-32">
-          <div className="text-lg">Loading pending events...</div>
+          <div className="text-sm sm:text-lg">Loading pending events...</div>
         </div>
       </div>
     );
@@ -123,84 +123,85 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
 
   return (
     <div className="bg-background rounded-lg shadow-md border">
-      <div className="p-6 border-b">
+      <div className="p-4 sm:p-6 border-b text-center sm:text-left">
         <h3 className="text-lg font-semibold">Community Event Approvals</h3>
-        <p className="text-muted-foreground">Review and approve pending community events</p>
+        <p className="text-muted-foreground text-sm">Review and approve pending community events</p>
       </div>
       
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {pendingEvents.length === 0 ? (
           <Card>
             <CardContent className="pt-6">
-              <p className="text-muted-foreground text-center">No pending events to approve.</p>
+              <p className="text-muted-foreground text-center text-sm">No pending events to approve.</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h4 className="text-md font-medium">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+              <h4 className="text-sm sm:text-md font-medium">
                 Pending Events ({pendingEvents.length})
               </h4>
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={fetchPendingEvents}
-                className="cursor-pointer"
+                className="cursor-pointer text-xs sm:text-sm w-full sm:w-auto"
               >
                 Refresh
               </Button>
             </div>
             
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Event</TableHead>
-                  <TableHead>Organizer</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Date & Time</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs sm:text-sm">Event</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden md:table-cell">Organizer</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Category</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Date</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Location</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                 {pendingEvents.map((event) => (
                   <TableRow key={event.id}>
-                    <TableCell>
+                    <TableCell className="text-xs sm:text-sm">
                       <div>
                         <div className="font-medium">{event.name}</div>
-                        <div className="text-sm text-muted-foreground line-clamp-2">
+                        <div className="text-xs text-muted-foreground line-clamp-2">
                           {event.description}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{event.created_by_name}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden md:table-cell">{event.created_by_name}</TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <Chip className={getCategoryColor(event.category)}>
                         {event.category.toUpperCase()}
                       </Chip>
                     </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
+                    <TableCell className="text-xs sm:text-sm">
+                      <div className="text-xs">
                         <div>{formatDate(event.date)}</div>
                         <div className="text-muted-foreground">{formatTime(event.time)}</div>
                       </div>
                     </TableCell>
-                    <TableCell>{event.location}</TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden sm:table-cell">{event.location}</TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
+                      <div className="flex flex-col sm:flex-row gap-1 sm:space-x-2 sm:gap-0">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => viewEventDetails(event)}
                           className="cursor-pointer"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90 cursor-pointer">
-                              <Check className="h-4 w-4" />
+                              <Check className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -225,7 +226,7 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="destructive" size="sm" className="cursor-pointer">
-                              <X className="h-4 w-4" />
+                              <X className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -252,15 +253,16 @@ const CommunityEventApprovalSection = ({ backendUrl, alert }) => {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </div>
         )}
       </div>
       {/* Event Details */}
       {showEventDetails && selectedEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-xl font-semibold">{selectedEvent.name}</h3>
+              <h3 className="text-lg sm:text-xl font-semibold">{selectedEvent.name}</h3>
               <Button 
                 variant="outline" 
                 size="sm" 

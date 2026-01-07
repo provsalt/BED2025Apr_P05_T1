@@ -10,6 +10,7 @@ const router = Router();
 
 router.post("/", getUserMiddleware, authorizeRole(["Admin"]), createAnnouncementController);
 router.get("/", getAnnouncementsController); // Public route
+router.get("/user", getUserMiddleware); // User-specific announcements
 router.get("/:id", getAnnouncementByIdController); // Public route
 router.delete("/:id", getUserMiddleware, authorizeRole(["Admin"]), deleteAnnouncementController);
 

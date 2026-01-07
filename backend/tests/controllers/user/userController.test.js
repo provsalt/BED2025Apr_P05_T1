@@ -27,6 +27,7 @@ vi.mock('../../../models/user/userModel.js', () => ({
     cancelUserDeletionRequest: vi.fn(),
     getLoginHistoryByUserId: vi.fn(),
     deleteUser: vi.fn(),
+    trackLoginAttempt: vi.fn(),
 }));
 
 vi.mock('../../../models/admin/adminModel.js', () => ({
@@ -89,7 +90,8 @@ import {
   getUserByEmail,
   updateUser,
   updateUserProfilePicture,
-  insertLoginHistory
+  insertLoginHistory,
+  trackLoginAttempt
 } from '../../../models/user/userModel.js';
 import { deleteUser as adminDeleteUser } from '../../../models/admin/adminModel.js';
 import { uploadFile, deleteFile } from '../../../services/s3Service.js';
@@ -105,14 +107,36 @@ describe('User Controller', () => {
       user: { id: 1, role: 'User' },
       params: {},
       body: {},
-      file: null
+      file: null,
+      ip: '127.0.0.1',
+      connection: { remoteAddress: '127.0.0.1' },
+      get: vi.fn((header) => {
+        if (header === 'User-Agent') return 'test-user-agent';
+        return null;
+      })
     };
     res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn().mockReturnThis()
     };
     next = vi.fn();
-    vi.clearAllMocks();
+    
+    // Clear call history but keep mock implementations
+    getUserByEmail.mockClear();
+    createUser.mockClear();
+    getUser.mockClear();
+    updateUser.mockClear();
+    insertLoginHistory.mockClear();
+    trackLoginAttempt.mockClear();
+    uploadFile.mockClear();
+    deleteFile.mockClear();
+    adminDeleteUser.mockClear();
+    bcrypt.compare.mockClear();
+    bcrypt.hash.mockClear();
+    
+    // Set default mock return values
+    trackLoginAttempt.mockResolvedValue();
+    
     process.env.SECRET = 'test-secret';
     process.env.BACKEND_URL = 'http://localhost:3000';
   });
@@ -321,9 +345,16 @@ describe('User Controller', () => {
 
     it('should call next with unauthorized AppError if user is not found', async () => {
       getUserByEmail.mockResolvedValue(null);
+      trackLoginAttempt.mockResolvedValue();
 
       await loginUserController(req, res, next);
 
+      expect(trackLoginAttempt).toHaveBeenCalledWith(expect.objectContaining({
+        userId: null,
+        email: 'john@example.com',
+        success: false,
+        failureReason: 'user_not_found'
+      }));
       expect(ErrorFactory.notFound).toHaveBeenCalledWith("Email or password");
       expect(next).toHaveBeenCalledWith(expect.any(Error));
       expect(res.status).not.toHaveBeenCalled();
@@ -334,9 +365,16 @@ describe('User Controller', () => {
       const mockUser = { id: 1, password: 'hashedpassword' };
       getUserByEmail.mockResolvedValue(mockUser);
       bcrypt.compare.mockResolvedValue(false);
+      trackLoginAttempt.mockResolvedValue();
 
       await loginUserController(req, res, next);
 
+      expect(trackLoginAttempt).toHaveBeenCalledWith(expect.objectContaining({
+        userId: 1,
+        email: 'john@example.com',
+        success: false,
+        failureReason: 'invalid_password'
+      }));
       expect(ErrorFactory.notFound).toHaveBeenCalledWith("Email or password");
       expect(next).toHaveBeenCalledWith(expect.any(Error));
       expect(res.status).not.toHaveBeenCalled();
@@ -357,9 +395,15 @@ describe('User Controller', () => {
       };
       getUserByEmail.mockResolvedValue(mockUser);
       bcrypt.compare.mockResolvedValue(true);
+      trackLoginAttempt.mockResolvedValue();
 
       await loginUserController(req, res, next);
 
+      expect(trackLoginAttempt).toHaveBeenCalledWith(expect.objectContaining({
+        userId: 1,
+        email: 'john@example.com',
+        success: true
+      }));
       expect(insertLoginHistory).toHaveBeenCalledWith(1);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({

@@ -116,6 +116,15 @@ io.on('connection', (socket) => {
     });
 });
 
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', client.register.contentType);
+    res.end(await client.register.metrics());
+  } catch (error) {
+    res.status(500).end(error);
+  }
+});
+
 // Start the medication reminder loop
 setInterval(checkAndSendReminders, 60 * 1000); // Check every minute
 
