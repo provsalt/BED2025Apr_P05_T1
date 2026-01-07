@@ -69,12 +69,12 @@ export const Login = () => {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row bg-gradient-to-b from-slate-50 to-slate-100 lg:h-screen">
+    <div className="flex-1 min-h-full w-full flex flex-col lg:flex-row bg-gradient-to-b from-slate-50 to-slate-100">
 
       {/* Image section - Right on desktop */}
-      <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-teal-50 via-teal-100/50 to-teal-50 p-12">
+      <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-primary/10 via-primary/5 to-primary/10 p-12">
         <div className="text-center space-y-6 max-w-md">
-          <div className="w-32 h-32 mx-auto bg-teal-500 rounded-full flex items-center justify-center shadow-lg">
+          <div className="w-32 h-32 mx-auto bg-primary rounded-full flex items-center justify-center shadow-lg">
             <User className="w-16 h-16 text-white" />
           </div>
           <h2 className="text-3xl font-bold text-slate-800">Welcome Back</h2>
