@@ -121,11 +121,12 @@ export function CommunityEvents() {
 
   return (
     <PageContainer>
-      <PageHeader
-        breadcrumbs={[{ label: "Community" }]}
-        title="Community Events"
-      >
-        <div className="flex flex-row gap-2 flex-wrap">
+      <div className="mb-6 relative">
+        <PageHeader
+          breadcrumbs={[{ label: "Community" }]}
+          title="Community Events"
+        />
+        <div className="flex flex-row flex-wrap gap-2 mt-4 sm:mt-0 sm:absolute sm:right-0 sm:top-[calc(1rem+1.5rem)] sm:items-center">
           <Button className="cursor-pointer w-auto" onClick={() => navigate("/community/signups")}>
             Registered Events
           </Button>
@@ -136,7 +137,7 @@ export function CommunityEvents() {
             Add New Event
           </Button>
         </div>
-      </PageHeader>
+      </div>
       {content}
     </PageContainer>
   );
