@@ -1,6 +1,6 @@
 import {useAlert} from "@/provider/AlertProvider.jsx";
 import {Link, useNavigate} from "react-router";
-import {useContext, useState} from "react";
+import {useContext} from "react";
 import {Label} from "@radix-ui/react-label";
 import {Input} from "@/components/ui/input.jsx";
 import {Button} from "@/components/ui/button.jsx";
@@ -13,7 +13,6 @@ export const Login = () => {
   const alert = useAlert();
   const navigate = useNavigate();
   const auth = useContext(UserContext);
-  const [showBanner, setShowBanner] = useState(true);
 
   /**
    * onSubmit runs when the form is submitted
@@ -69,7 +68,7 @@ export const Login = () => {
   }
 
   return (
-    <div className="flex-1 min-h-full w-full flex flex-col lg:flex-row bg-gradient-to-b from-slate-50 to-slate-100">
+    <div className="flex-1 flex flex-col lg:flex-row bg-gradient-to-b from-slate-50 to-slate-100">
 
       {/* Image section - Right on desktop */}
       <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-primary/10 via-primary/5 to-primary/10 p-12">
