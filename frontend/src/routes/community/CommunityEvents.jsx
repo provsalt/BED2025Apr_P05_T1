@@ -125,15 +125,17 @@ export function CommunityEvents() {
         breadcrumbs={[{ label: "Community" }]}
         title="Community Events"
       >
-        <Button className="cursor-pointer" onClick={() => navigate("/community/signups")}>
-          My Signed Up Events
-        </Button>
-        <Button className="cursor-pointer" onClick={() => navigate("/community/myevents")}>
-          My Events
-        </Button>
-        <Button className="cursor-pointer" onClick={() => navigate("/community/create")}>
-          Add New Event
-        </Button>
+        <div className="flex flex-row gap-2 flex-wrap">
+          <Button className="cursor-pointer w-auto" onClick={() => navigate("/community/signups")}>
+            Registered Events
+          </Button>
+          <Button className="cursor-pointer w-auto" onClick={() => navigate("/community/myevents")}>
+            My Events
+          </Button>
+          <Button className="cursor-pointer w-auto" onClick={() => navigate("/community/create")}>
+            Add New Event
+          </Button>
+        </div>
       </PageHeader>
       {content}
     </PageContainer>

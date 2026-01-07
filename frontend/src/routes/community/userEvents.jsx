@@ -45,9 +45,11 @@ export function UserEvents() {
         ]}
         title="My Events"
       >
-        <Button className="cursor-pointer" onClick={() => navigate("/community/create")}>
-          Add New Event
-        </Button>
+        <div className="flex flex-row gap-2 flex-wrap">
+          <Button className="cursor-pointer w-auto" onClick={() => navigate("/community/create")}>
+            Add New Event
+          </Button>
+        </div>
       </PageHeader>
       {(() => {
           if (loading) {
