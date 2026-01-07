@@ -7,7 +7,6 @@ import { X, Upload, Image as ImageIcon, Loader2, CheckCircle2, Sparkles } from "
 import { Link } from "react-router";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageContainer } from "@/components/ui/page-container";
-import { Image } from "@/components/ui/image";
 import { cn } from "@/lib/utils";
 
 export const MealImageUpload = () => {
@@ -147,7 +146,7 @@ export const MealImageUpload = () => {
             {previewURL && (
               <Card className="flex flex-col p-0 overflow-hidden">
                 <div className="relative w-full h-full flex items-center justify-center">
-                  <Image
+                  <img
                     src={previewURL}
                     alt="Analyzed Food"
                     className="w-full h-full object-cover rounded-lg"
@@ -391,7 +390,7 @@ export const MealImageUpload = () => {
                       <X className="h-4 w-4" />
                     </Button>
                     <div className="relative w-full flex items-center justify-center">
-                      <Image
+                      <img
                         src={previewURL}
                         alt="Preview"
                         className="max-w-full max-h-full w-auto h-auto rounded-lg border border-muted shadow-md object-contain"
