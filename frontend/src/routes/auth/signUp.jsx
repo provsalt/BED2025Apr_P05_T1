@@ -153,7 +153,7 @@ export const Signup = () => {
                   autoComplete="name"
                   placeholder="Enter your full name"
                   className="h-11 text-base"
-                  {...register("name", { required: true, min: 3, maxLength: 255 })}
+                  {...register("name", { required: true, minLength: 3, maxLength: 255 })}
                 />
                 {errors.name && (
                   <span className="text-destructive text-xs">
