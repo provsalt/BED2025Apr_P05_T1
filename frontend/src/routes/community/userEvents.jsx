@@ -38,17 +38,20 @@ export function UserEvents() {
 
   return (
     <PageContainer>
-      <PageHeader
-        breadcrumbs={[
-          { label: "Community", href: "/community" },
-          { label: "My Events" },
-        ]}
-        title="My Events"
-      >
-        <Button className="cursor-pointer" onClick={() => navigate("/community/create")}>
-          Add New Event
-        </Button>
-      </PageHeader>
+      <div className="mb-6 relative">
+        <PageHeader
+          breadcrumbs={[
+            { label: "Community", href: "/community" },
+            { label: "My Events" },
+          ]}
+          title="My Events"
+        />
+        <div className="flex flex-row flex-wrap gap-2 mt-4 sm:mt-0 sm:absolute sm:right-0 sm:top-[calc(1rem+1.5rem)] sm:items-center">
+          <Button className="cursor-pointer w-auto" onClick={() => navigate("/community/create")}>
+            Add New Event
+          </Button>
+        </div>
+      </div>
       {(() => {
           if (loading) {
             return <div className="text-center py-8 text-muted-foreground">Loading your events...</div>;
