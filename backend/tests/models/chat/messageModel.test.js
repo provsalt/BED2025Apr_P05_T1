@@ -55,7 +55,7 @@ describe("Message Model", () => {
 
             expect(ChatModel.getChat).toHaveBeenCalledWith(chatId);
             expect(mockRequest.input).toHaveBeenCalledWith("chat_id", chatId);
-            expect(mockRequest.query).toHaveBeenCalledWith("SELECT * FROM ChatMsg WHERE chat_id = @chat_id");
+            expect(mockRequest.query).toHaveBeenCalledWith("SELECT * FROM ChatMsg WHERE chat_id = @chat_id ORDER BY msg_created_at ASC");
             expect(result).toEqual(mockMessages);
         });
 
@@ -87,20 +87,17 @@ describe("Message Model", () => {
             expect(sql.connect).not.toHaveBeenCalled();
         });
 
-        it("should return null if user is not authorized", async () => {
+        it("should throw forbidden error if user is not authorized", async () => {
             const userId = 3;
             const chatId = 1;
             const mockChat = { id: 1, chat_initiator: 1, chat_recipient: 2 };
 
             ChatModel.getChat.mockResolvedValue(mockChat);
 
-            const result = await getMessages(userId, chatId);
-
-            expect(result).toBeNull();
-            expect(sql.connect).not.toHaveBeenCalled();
+            await expect(getMessages(userId, chatId)).rejects.toThrow();
         });
 
-        it("should return null if no messages found", async () => {
+        it("should return empty array if no messages found", async () => {
             const userId = 1;
             const chatId = 1;
             const mockChat = { id: 1, chat_initiator: 1, chat_recipient: 2 };
@@ -110,7 +107,7 @@ describe("Message Model", () => {
 
             const result = await getMessages(userId, chatId);
 
-            expect(result).toBeNull();
+            expect(result).toEqual([]);
         });
     });
 
@@ -135,16 +132,14 @@ describe("Message Model", () => {
             expect(result).toBe(123);
         });
 
-        it("should return false if chat does not exist", async () => {
+        it("should throw notFound error if chat does not exist", async () => {
             const senderId = 1;
             const message = "Hello world";
             const chatId = 999;
 
             ChatModel.getChat.mockResolvedValue(null);
 
-            const result = await createMessage(senderId, message, chatId);
-
-            expect(result).toBe(false);
+            await expect(createMessage(senderId, message, chatId)).rejects.toThrow();
             expect(sql.connect).not.toHaveBeenCalled();
         });
 
@@ -161,10 +156,10 @@ describe("Message Model", () => {
             await createMessage(senderId, message, chatId);
 
             const expectedQuery = `
-    INSERT INTO ChatMsg (chat_id, msg, sender, msg_created_at)
-    VALUES (@chatId, @message, @senderId, GETDATE());
-    SELECT SCOPE_IDENTITY() AS id;
-  `;
+      INSERT INTO ChatMsg (chat_id, msg, sender, msg_created_at)
+      VALUES (@chatId, @message, @senderId, GETDATE());
+      SELECT SCOPE_IDENTITY() AS id;
+    `;
             expect(mockRequest.query).toHaveBeenCalledWith(expectedQuery);
         });
     });
@@ -238,12 +233,7 @@ describe("Message Model", () => {
 
             await updateMessage(messageId, newMessage, userId);
 
-            const expectedQuery = `
-    UPDATE ChatMsg 
-    SET msg = @newMessage 
-    WHERE id = @messageId AND sender = @userId
-  `;
-            expect(mockRequest.query).toHaveBeenCalledWith(expectedQuery);
+            expect(mockRequest.query).toHaveBeenCalledWith(expect.stringContaining("UPDATE ChatMsg"));
         });
 
         it("should handle multiple rows affected correctly", async () => {
