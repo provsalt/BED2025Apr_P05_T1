@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button.jsx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card.jsx";
 import { fetcher } from "@/lib/fetcher.js";
@@ -7,6 +7,7 @@ import { X, Upload, Image as ImageIcon, Loader2, CheckCircle2, Sparkles } from "
 import { Link } from "react-router";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageContainer } from "@/components/ui/page-container";
+import { Image } from "@/components/ui/image";
 import { cn } from "@/lib/utils";
 
 export const MealImageUpload = () => {
@@ -16,15 +17,6 @@ export const MealImageUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const alert = useAlert();
-
-  // Cleanup object URLs to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (previewURL) {
-        URL.revokeObjectURL(previewURL);
-      }
-    };
-  }, [previewURL]);
 
   const handleFileSelect = useCallback((file) => {
     if (!file) return;
@@ -37,15 +29,15 @@ export const MealImageUpload = () => {
       return;
     }
 
-    // Revoke previous URL if exists
-    if (previewURL) {
-      URL.revokeObjectURL(previewURL);
-    }
-
     setSelectedImage(file);
-    setPreviewURL(URL.createObjectURL(file));
+    setPreviewURL((prevURL) => {
+      if (prevURL) {
+        URL.revokeObjectURL(prevURL);
+      }
+      return URL.createObjectURL(file);
+    });
     setAnalysisResult(null);
-  }, [previewURL, alert]);
+  }, [alert]);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -76,13 +68,15 @@ export const MealImageUpload = () => {
   }, [handleFileSelect]);
 
   const removeImage = useCallback(() => {
-    if (previewURL) {
-      URL.revokeObjectURL(previewURL);
-    }
     setSelectedImage(null);
-    setPreviewURL(null);
+    setPreviewURL((prevURL) => {
+      if (prevURL) {
+        URL.revokeObjectURL(prevURL);
+      }
+      return null;
+    });
     setAnalysisResult(null);
-  }, [previewURL]);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,7 +127,7 @@ export const MealImageUpload = () => {
   // Analysis Result View
   if (analysisResult) {
     return (
-      <PageContainer className="w-full max-w-none px-6 xl:px-12">
+      <PageContainer className="max-w-none">
         <PageHeader
           breadcrumbs={[
             { label: "Nutrition", href: "/nutrition" },
@@ -153,7 +147,7 @@ export const MealImageUpload = () => {
             {previewURL && (
               <Card className="flex flex-col p-0 overflow-hidden">
                 <div className="relative w-full h-full flex items-center justify-center">
-                  <img
+                  <Image
                     src={previewURL}
                     alt="Analyzed Food"
                     className="w-full h-full object-cover rounded-lg"
@@ -162,8 +156,8 @@ export const MealImageUpload = () => {
               </Card>
             )}
 
-            {/* Analysis Details */}
-            <Card className="flex flex-col">
+          {/* Analysis Details */}
+          <Card className="flex flex-col">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary" />
@@ -236,7 +230,7 @@ export const MealImageUpload = () => {
 
   // Upload View
   return (
-    <PageContainer className="w-full max-w-none px-6 xl:px-12">
+    <PageContainer className="max-w-none">
       <PageHeader
         breadcrumbs={[
           { label: "Nutrition", href: "/nutrition" },
@@ -386,16 +380,18 @@ export const MealImageUpload = () => {
               <div className="flex-1 flex items-center justify-center w-full">
                 {previewURL ? (
                   <div className="relative group w-full max-w-full flex items-center justify-center">
-                    <button
+                    <Button
                       onClick={removeImage}
                       type="button"
-                      className="absolute -top-2 -right-2 z-10 bg-destructive text-destructive-foreground rounded-full w-8 h-8 flex items-center justify-center hover:bg-destructive/90 transition-colors shadow-lg"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 z-10"
                       aria-label="Remove image"
                     >
                       <X className="h-4 w-4" />
-                    </button>
+                    </Button>
                     <div className="relative w-full flex items-center justify-center">
-                      <img
+                      <Image
                         src={previewURL}
                         alt="Preview"
                         className="max-w-full max-h-full w-auto h-auto rounded-lg border border-muted shadow-md object-contain"
