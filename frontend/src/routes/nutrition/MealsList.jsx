@@ -136,7 +136,7 @@ export const MealsList = () => {
                 value={searchTerm}
                 onChange={handleSearchInputChange}
                 onKeyPress={handleSearchKeyPress}
-                className="px-6"
+                className="pl-10 pr-10"
               />
               {searchTerm && (
                 <button
