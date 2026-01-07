@@ -164,29 +164,56 @@ export const MealsList = () => {
             <p className="text-sm mt-2">Try searching for different terms or check your spelling</p>
           </div>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {displayMeals.map((meal) => (
             <Link
               to={`/nutrition/${meal.id}`}
-              className="inline-block mt-3 text-muted-foreground hover:text-foreground font-medium overflow-hidden"
+              className="block group"
               key={meal.id}
             >
-              <Card className="flex flex-col h-96 w-full min-w-[280px] max-w-[400px] mx-auto overflow-hidden transition-shadow hover:shadow-lg">
-                <div className="h-48 w-full flex justify-center items-center">
-                  <img 
-                    src={meal.image_url} 
-                    alt={meal.name} 
-                    className="object-contain max-h-44 max-w-full rounded-md"
+              <Card className="flex flex-col md:flex-row overflow-hidden transition-all duration-200 hover:shadow-xl hover:scale-[1.01] border-2 hover:border-primary/50 h-full md:h-auto">
+                {/* Image Section */}
+                <div className="w-full h-48 md:w-48 md:h-48 flex-shrink-0 flex items-center justify-center p-4">
+                  <img
+                    src={meal.image_url}
+                    alt={meal.name}
+                    className="object-cover w-full h-full rounded-lg group-hover:scale-105 transition-transform duration-200"
                   />
                 </div>
+
+                {/* Content Section */}
                 <div className="flex-1 p-6 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">{meal.name}</h3>
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      <div>Category: {meal.category}</div>
-                      <div>Calories: {meal.calories}</div>
-                      <div>Scanned: {new Date(meal.scanned_at).toLocaleString()}</div>
+                    <div className="flex items-start justify-between mb-3 flex-col md:flex-row gap-2 md:gap-0">
+                      <h3 className="text-lg md:text-2xl font-bold group-hover:text-primary transition-colors">
+                        {meal.name}
+                      </h3>
+                      <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium whitespace-nowrap w-fit">
+                        {meal.category}
+                      </span>
                     </div>
+
+                    <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Calories:</span>
+                        <span className="font-semibold text-lg">{meal.calories}</span>
+                        <span className="text-muted-foreground">kcal</span>
+                      </div>
+                      <div className="hidden md:block h-4 w-px bg-border"></div>
+                      <div className="text-muted-foreground text-xs md:text-sm">
+                        {new Date(meal.scanned_at).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 text-sm text-muted-foreground group-hover:text-foreground transition-colors hidden md:block">
+                    Click to view details →
                   </div>
                 </div>
               </Card>
