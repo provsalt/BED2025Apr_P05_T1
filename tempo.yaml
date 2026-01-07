@@ -47,3 +47,19 @@ ingester:
       replication_factor: 1
     heartbeat_timeout: 10s
     min_ready_duration: 10s
+
+# Metrics generator for TraceQL metrics
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+  storage:
+    path: /var/tempo/generator/wal
+    remote_write:
+      - url: http://prometheus:9090/api/v1/write
+
+# Override defaults for metrics generator processors
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [service-graphs, span-metrics, local-blocks]
