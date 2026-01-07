@@ -1,12 +1,12 @@
 import {useAlert} from "@/provider/AlertProvider.jsx";
 import {Link, useNavigate} from "react-router";
 import {useContext} from "react";
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card.jsx";
 import {Label} from "@radix-ui/react-label";
 import {Input} from "@/components/ui/input.jsx";
 import {Button} from "@/components/ui/button.jsx";
 import {useForm} from "react-hook-form";
 import {UserContext} from "@/provider/UserContext.js";
+import {User, X} from "lucide-react";
 
 export const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -68,42 +68,88 @@ export const Login = () => {
   }
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center">
+    <div className="flex-1 flex flex-col lg:flex-row bg-gradient-to-b from-slate-50 to-slate-100">
 
-      <Card className="w-full max-w-sm px-2">
-        <CardHeader>
-          <CardTitle>Log in to Eldercare</CardTitle>
-          <CardDescription>
-            Please enter your email and password to log in.
-          </CardDescription>
-        </CardHeader>
+      {/* Image section - Right on desktop */}
+      <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-primary/10 via-primary/5 to-primary/10 p-12">
+        <div className="text-center space-y-6 max-w-md">
+          <div className="w-32 h-32 mx-auto bg-primary rounded-full flex items-center justify-center shadow-lg">
+            <User className="w-16 h-16 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-slate-800">Welcome Back</h2>
+          <p className="text-slate-600 text-lg">Your health and wellness journey continues here</p>
+        </div>
+      </div>
 
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Email</Label>
-              <Input type="text" placeholder="Enter Your Email" {...register("email", {required: true, maxLength: 255})} />
-              {errors.email && <span className="text-destructive">Please enter a valid email.</span>}
-            </div>
+      {/* Form section - Bottom on mobile, Left on desktop */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
+        <div className="w-full max-w-md space-y-8">
+          <div className="space-y-2 text-center lg:text-left">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+              Log in to Eldercare
+            </h1>
+            <p className="text-sm text-slate-600">
+              Welcome back. Please enter your details to continue.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input type="password" placeholder="Enter Your Password" {...register("password", {required: true, min: 8, maxLength: 255})} />
-                {errors.password && <span className="text-destructive">Please enter a valid password.</span>}
-              </div>
+              <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                className="h-11 text-base"
+                {...register("email", { required: true, maxLength: 255 })}
+              />
+              {errors.email && (
+                <span className="text-destructive text-xs">
+                  Please enter a valid email address.
+                </span>
+              )}
             </div>
 
-            <Button type="submit" className="w-full cursor-pointer">Log in</Button>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                className="h-11 text-base"
+                {...register("password", { required: true, minLength: 8, maxLength: 255 })}
+              />
+              {errors.password && (
+                <span className="text-destructive text-xs">
+                  Please enter your password (at least 8 characters).
+                </span>
+              )}
+            </div>
+
+            <Button type="submit" className="w-full h-11">
+              Log in
+            </Button>
           </form>
 
-        </CardContent>
-
-        <CardFooter>
-          <Link className="text-sm hover:underline ease-in-out transition" to="/signup">
-            Don't have an account? Sign Up
-          </Link>
-        </CardFooter>
-      </Card>
+          <div className="flex flex-col gap-3 items-center justify-center pt-4">
+            <p className="text-xs text-slate-500 text-center">
+              By continuing, you agree to our terms and privacy policy.
+            </p>
+            <p className="text-sm text-slate-700">
+              Don't have an account?{" "}
+              <Link className="font-medium text-primary hover:underline" to="/signup">
+                Sign up
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,11 +1,3 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card.jsx";
 import {Link, useNavigate} from "react-router";
 import {Controller, useForm} from "react-hook-form";
 import {Input} from "@/components/ui/input.jsx";
@@ -15,6 +7,7 @@ import {Button} from "@/components/ui/button.jsx";
 import {useAlert} from "@/provider/AlertProvider.jsx";
 import {useContext} from "react";
 import {UserContext} from "@/provider/UserContext.js";
+import {UserPlus, X} from "lucide-react";
 
 
 export const Signup = () => {
@@ -105,89 +98,193 @@ export const Signup = () => {
   }
 
     return (
-        <div className="flex flex-col flex-1 items-center justify-center">
+      <div className="flex-1 flex flex-col lg:flex-row bg-gradient-to-b from-slate-50 to-slate-100">
 
-          <Card className="w-full max-w-sm px-2">
-            <CardHeader>
-              <CardTitle>Sign up for Eldercare</CardTitle>
-              <CardDescription>
-                Quickly create an account to start using our services.
-              </CardDescription>
-            </CardHeader>
+        {/* Image section - Right on desktop */}
+        <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-primary/10 via-primary/5 to-primary/10 p-12">
+          <div className="text-center space-y-6 max-w-md">
+            <div className="w-32 h-32 mx-auto bg-primary rounded-full flex items-center justify-center shadow-lg">
+              <UserPlus className="w-16 h-16 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-slate-800">Join Eldercare</h2>
+            <p className="text-slate-600 text-lg">Start your personalized health and wellness journey today</p>
+          </div>
+        </div>
 
-            <CardContent>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Name</Label>
-                  <Input type="text" placeholder="Enter Your Name" {...register("name", {required: true, min: 3, maxLength: 255})} />
-                  {errors.name && <span className="text-destructive">{errors.name.message || "Please enter a valid name."}</span>}
-                </div>
-                <div>
-                  <Label htmlFor="name">Email</Label>
-                  <Input type="text" placeholder="Enter Your Email" {...register("email", {required: true, maxLength: 255})} />
-                  {errors.email && <span className="text-destructive">{errors.email.message || "Please enter a valid email."}</span>}
-                </div>
+        {/* Form section - Bottom on mobile, Left on desktop */}
+        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
+          <div className="w-full max-w-md space-y-8">
+            <div className="space-y-2 text-center lg:text-left">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+                Create your Eldercare account
+              </h1>
+              <p className="text-sm text-slate-600">
+                It only takes a minute to get started. We'll personalize your experience based on your details.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-medium text-slate-700">
+                  Full name
+                </Label>
+                <Input
+                  id="name"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Enter your full name"
+                  className="h-11 text-base"
+                  {...register("name", { required: true, minLength: 3, maxLength: 255 })}
+                />
+                {errors.name && (
+                  <span className="text-destructive text-xs">
+                    {errors.name.message || "Please enter a valid name (at least 3 characters)."}
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  className="h-11 text-base"
+                  {...register("email", { required: true, maxLength: 255 })}
+                />
+                {errors.email && (
+                  <span className="text-destructive text-xs">
+                    {errors.email.message || "Please enter a valid email address."}
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <div>
-                    <Label htmlFor="password">Password</Label>
-                    <Input type="password" placeholder="Enter Your Password" {...register("password", {
+                  <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+                    Password
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Create a strong password"
+                    className="h-11 text-base"
+                    {...register("password", {
                       required: true,
                       minLength: 12,
                       maxLength: 255,
                       pattern: {
                         value: /^(?=.*[A-Z])(?=.*[!@#$%^&*()]).*$/,
-                        message: "Password must be 12 letters, contain at least one uppercase letter and one special character."
-                      }
-                    })} />
-                    {errors.password && <span className="text-destructive">{errors.password.message || "Password must be 12 letters, contain at least one uppercase letter and one special character."}</span>}
-                  </div>
-                  <div>
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input type="password" placeholder="Confirm Your Password" {...register("confirm-password", {required: true, minLength: 12, maxLength: 255})} />
-                    {errors["confirm-password"] && <span className="text-destructive">{errors["confirm-password"].message || "Please confirm your password."}</span>}
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="dob">Date of Birth</Label>
-                  <Input type="date" placeholder="Enter Your Date of Birth" {...register("dob", {required: true})} />
-                  {errors.dob && <span className="text-destructive">{errors.dob.message || "Please enter a valid date of birth."}</span>}
-                </div>
-                <div>
-                  <Label htmlFor="gender" >Gender</Label>
-                  <Controller
-                    name="gender"
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field }) => (
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        className="flex items-center"
-                        id="gender"
-                      >
-                        <RadioGroupItem value="female" id="gender-female"/>
-                        <Label htmlFor="gender-female">Female</Label>
-                        <RadioGroupItem value="male" id="gender-male" />
-                        <Label htmlFor="gender-male">Male</Label>
-                      </RadioGroup>
-                    )}
+                        message:
+                          "Password must be at least 12 characters and include at least one uppercase letter and one special character.",
+                      },
+                    })}
                   />
-                  {errors.gender && <span className="text-destructive">{errors.gender.message || "Please enter a valid gender."}</span>}
+                  {errors.password && (
+                    <span className="text-destructive text-xs">
+                      {errors.password.message ||
+                        "Password must be at least 12 characters and include at least one uppercase letter and one special character."}
+                    </span>
+                  )}
                 </div>
 
-                <Button type="submit" className="w-full cursor-pointer">Sign up</Button>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password" className="text-sm font-medium text-slate-700">
+                    Confirm password
+                  </Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Re-enter your password"
+                    className="h-11 text-base"
+                    {...register("confirm-password", { required: true, minLength: 12, maxLength: 255 })}
+                  />
+                  {errors["confirm-password"] && (
+                    <span className="text-destructive text-xs">
+                      {errors["confirm-password"].message || "Please confirm your password."}
+                    </span>
+                  )}
+                </div>
+              </div>
 
-              </form>
+              <div className="space-y-2">
+                <Label htmlFor="dob" className="text-sm font-medium text-slate-700">
+                  Date of birth
+                </Label>
+                <Input
+                  id="dob"
+                  type="date"
+                  className="h-11 text-base"
+                  autoComplete="bday"
+                  {...register("dob", { required: true })}
+                />
+                {errors.dob && (
+                  <span className="text-destructive text-xs">
+                    {errors.dob.message || "Please enter a valid date of birth."}
+                  </span>
+                )}
+              </div>
 
-            </CardContent>
+              <div className="space-y-2">
+                <Label htmlFor="gender" className="text-sm font-medium text-slate-700">
+                  Gender
+                </Label>
+                <Controller
+                  name="gender"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex items-center gap-4"
+                      id="gender"
+                    >
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="female" id="gender-female" />
+                        <Label htmlFor="gender-female" className="text-sm">
+                          Female
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="male" id="gender-male" />
+                        <Label htmlFor="gender-male" className="text-sm">
+                          Male
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  )}
+                />
+                {errors.gender && (
+                  <span className="text-destructive text-xs">
+                    {errors.gender.message || "Please select a gender option."}
+                  </span>
+                )}
+              </div>
 
-            <CardFooter>
-              <Link className="text-sm hover:underline ease-in-out transition" to="/login">
-                Already have an account? Sign in
-              </Link>
-            </CardFooter>
-          </Card>
+              <Button type="submit" className="w-full h-11">
+                Create account
+              </Button>
+            </form>
+
+            <div className="flex flex-col gap-3 items-center justify-center pt-4">
+              <p className="text-xs text-slate-500 text-center">
+                By creating an account, you agree to our terms and privacy policy.
+              </p>
+              <p className="text-sm text-slate-700">
+                Already have an account?{" "}
+                <Link className="font-medium text-primary hover:underline" to="/login">
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
+      </div>
     )
 }
