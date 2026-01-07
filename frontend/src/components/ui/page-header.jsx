@@ -37,9 +37,9 @@ export const PageHeader = ({ breadcrumbs, title, children }) => {
           })}
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">{title}</h1>
-        {children && <div className="flex gap-2">{children}</div>}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{title}</h1>
+        {children && <div className="flex flex-wrap gap-2">{children}</div>}
       </div>
     </div>
   );
