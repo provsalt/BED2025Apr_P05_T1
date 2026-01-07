@@ -7,6 +7,7 @@ import {Button} from "@/components/ui/button.jsx";
 import {useAlert} from "@/provider/AlertProvider.jsx";
 import {useContext, useState} from "react";
 import {UserContext} from "@/provider/UserContext.js";
+import {UserPlus, X} from "lucide-react";
 
 
 export const Signup = () => {
@@ -103,32 +104,26 @@ export const Signup = () => {
         {showBanner && (
           <div className="lg:hidden bg-gradient-to-r from-teal-50 to-teal-100/50 border-b border-teal-200/50 px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1">
-              <div className="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
+              <div className="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center">
+                <UserPlus className="w-5 h-5 text-white" />
               </div>
               <h2 className="text-base font-semibold text-slate-800">Join Eldercare</h2>
             </div>
             <button
               onClick={() => setShowBanner(false)}
-              className="ml-2 p-1 hover:bg-teal-200/50 rounded-full transition-colors flex-shrink-0"
+              className="p-1 hover:bg-teal-200/50 rounded-full transition-colors"
               aria-label="Close banner"
             >
-              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-5 h-5 text-slate-600" />
             </button>
           </div>
         )}
 
         {/* Image section - Right on desktop */}
-        <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-teal-50 via-teal-100/50 to-teal-50 px-8 py-12">
+        <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-teal-50 via-teal-100/50 to-teal-50 p-12">
           <div className="text-center space-y-6 max-w-md">
             <div className="w-32 h-32 mx-auto bg-teal-500 rounded-full flex items-center justify-center shadow-lg">
-              <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
+              <UserPlus className="w-16 h-16 text-white" />
             </div>
             <h2 className="text-3xl font-bold text-slate-800">Join Eldercare</h2>
             <p className="text-slate-600 text-lg">Start your personalized health and wellness journey today</p>
@@ -136,7 +131,7 @@ export const Signup = () => {
         </div>
 
         {/* Form section - Bottom on mobile, Left on desktop */}
-        <div className="flex-1 flex items-center justify-center px-6 py-8 lg:px-8 lg:py-12 overflow-y-auto">
+        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
           <div className="w-full max-w-md space-y-8">
             <div className="space-y-2 text-center lg:text-left">
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">
@@ -204,14 +199,14 @@ export const Signup = () => {
                       pattern: {
                         value: /^(?=.*[A-Z])(?=.*[!@#$%^&*()]).*$/,
                         message:
-                          "Password must be 12 characters and include at least one uppercase letter and one special character.",
+                          "Password must be at least 12 characters and include at least one uppercase letter and one special character.",
                       },
                     })}
                   />
                   {errors.password && (
                     <span className="text-destructive text-xs">
                       {errors.password.message ||
-                        "Password must be 12 characters and include at least one uppercase letter and one special character."}
+                        "Password must be at least 12 characters and include at least one uppercase letter and one special character."}
                     </span>
                   )}
                 </div>
@@ -244,6 +239,7 @@ export const Signup = () => {
                   id="dob"
                   type="date"
                   className="h-11 text-base"
+                  autoComplete="bday"
                   {...register("dob", { required: true })}
                 />
                 {errors.dob && (
@@ -290,10 +286,7 @@ export const Signup = () => {
                 )}
               </div>
 
-              <Button
-                type="submit"
-                className="w-full cursor-pointer h-11 text-base font-medium"
-              >
+              <Button type="submit" className="w-full h-11">
                 Create account
               </Button>
             </form>
@@ -304,10 +297,7 @@ export const Signup = () => {
               </p>
               <p className="text-sm text-slate-700">
                 Already have an account?{" "}
-                <Link
-                  className="font-medium text-primary hover:underline ease-in-out transition"
-                  to="/login"
-                >
+                <Link className="font-medium text-primary hover:underline" to="/login">
                   Sign in
                 </Link>
               </p>
