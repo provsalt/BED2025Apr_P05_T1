@@ -69,25 +69,7 @@ export const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-gradient-to-b from-slate-50 to-slate-100">
-      {/* Mobile notification banner */}
-      {showBanner && (
-        <div className="lg:hidden bg-gradient-to-r from-teal-50 to-teal-100/50 border-b border-teal-200/50 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-1">
-            <div className="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-white" />
-            </div>
-            <h2 className="text-base font-semibold text-slate-800">Welcome Back</h2>
-          </div>
-          <button
-            onClick={() => setShowBanner(false)}
-            className="p-1 hover:bg-teal-200/50 rounded-full transition-colors"
-            aria-label="Close banner"
-          >
-            <X className="w-5 h-5 text-slate-600" />
-          </button>
-        </div>
-      )}
+    <div className="flex flex-col lg:flex-row bg-gradient-to-b from-slate-50 to-slate-100 lg:h-screen">
 
       {/* Image section - Right on desktop */}
       <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-teal-50 via-teal-100/50 to-teal-50 p-12">
@@ -101,7 +83,7 @@ export const Login = () => {
       </div>
 
       {/* Form section - Bottom on mobile, Left on desktop */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-2 text-center lg:text-left">
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">
