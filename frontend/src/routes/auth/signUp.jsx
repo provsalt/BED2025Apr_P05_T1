@@ -1,11 +1,3 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card.jsx";
 import {Link, useNavigate} from "react-router";
 import {Controller, useForm} from "react-hook-form";
 import {Input} from "@/components/ui/input.jsx";
@@ -13,7 +5,7 @@ import {Label} from "@radix-ui/react-label";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group.jsx";
 import {Button} from "@/components/ui/button.jsx";
 import {useAlert} from "@/provider/AlertProvider.jsx";
-import {useContext} from "react";
+import {useContext, useState} from "react";
 import {UserContext} from "@/provider/UserContext.js";
 
 
@@ -26,6 +18,7 @@ export const Signup = () => {
   const alert = useAlert();
   const navigate = useNavigate();
   const auth = useContext(UserContext);
+  const [showBanner, setShowBanner] = useState(true);
 
   /**
    * onSubmit runs when the form is submitted
@@ -105,20 +98,57 @@ export const Signup = () => {
   }
 
     return (
-      <div className="min-h-screen flex flex-col flex-1 items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 px-4 py-8">
-        <Card className="w-full max-w-md px-3 py-2 shadow-lg border border-slate-200">
-          <CardHeader className="space-y-2 text-center">
-            <CardTitle className="text-2xl font-semibold tracking-tight">
-              Create your Eldercare account
-            </CardTitle>
-            <CardDescription className="text-sm text-slate-600">
-              It only takes a minute to get started. We’ll personalize your experience based on your details.
-            </CardDescription>
-          </CardHeader>
+      <div className="min-h-screen flex flex-col lg:flex-row bg-gradient-to-b from-slate-50 to-slate-100">
+        {/* Mobile notification banner */}
+        {showBanner && (
+          <div className="lg:hidden bg-gradient-to-r from-teal-50 to-teal-100/50 border-b border-teal-200/50 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+              </div>
+              <h2 className="text-base font-semibold text-slate-800">Join Eldercare</h2>
+            </div>
+            <button
+              onClick={() => setShowBanner(false)}
+              className="ml-2 p-1 hover:bg-teal-200/50 rounded-full transition-colors flex-shrink-0"
+              aria-label="Close banner"
+            >
+              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
 
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-1.5">
+        {/* Image section - Right on desktop */}
+        <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-teal-50 via-teal-100/50 to-teal-50 px-8 py-12">
+          <div className="text-center space-y-6 max-w-md">
+            <div className="w-32 h-32 mx-auto bg-teal-500 rounded-full flex items-center justify-center shadow-lg">
+              <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-bold text-slate-800">Join Eldercare</h2>
+            <p className="text-slate-600 text-lg">Start your personalized health and wellness journey today</p>
+          </div>
+        </div>
+
+        {/* Form section - Bottom on mobile, Left on desktop */}
+        <div className="flex-1 flex items-center justify-center px-6 py-8 lg:px-8 lg:py-12 overflow-y-auto">
+          <div className="w-full max-w-md space-y-8">
+            <div className="space-y-2 text-center lg:text-left">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+                Create your Eldercare account
+              </h1>
+              <p className="text-sm text-slate-600">
+                It only takes a minute to get started. We'll personalize your experience based on your details.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-medium text-slate-700">
                   Full name
                 </Label>
@@ -137,7 +167,7 @@ export const Signup = () => {
                 )}
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-slate-700">
                   Email
                 </Label>
@@ -156,8 +186,8 @@ export const Signup = () => {
                 )}
               </div>
 
-              <div className="space-y-3">
-                <div className="space-y-1.5">
+              <div className="space-y-4">
+                <div className="space-y-2">
                   <Label htmlFor="password" className="text-sm font-medium text-slate-700">
                     Password
                   </Label>
@@ -186,7 +216,7 @@ export const Signup = () => {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label htmlFor="confirm-password" className="text-sm font-medium text-slate-700">
                     Confirm password
                   </Label>
@@ -206,7 +236,7 @@ export const Signup = () => {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="dob" className="text-sm font-medium text-slate-700">
                   Date of birth
                 </Label>
@@ -223,7 +253,7 @@ export const Signup = () => {
                 )}
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="gender" className="text-sm font-medium text-slate-700">
                   Gender
                 </Label>
@@ -262,28 +292,28 @@ export const Signup = () => {
 
               <Button
                 type="submit"
-                className="w-full cursor-pointer h-11 text-base font-medium mt-2"
+                className="w-full cursor-pointer h-11 text-base font-medium"
               >
                 Create account
               </Button>
             </form>
-          </CardContent>
 
-          <CardFooter className="flex flex-col gap-2 items-center justify-center pt-0 mt-2">
-            <p className="text-xs text-slate-500 text-center">
-              By creating an account, you agree to our terms and privacy policy.
-            </p>
-            <p className="text-sm text-slate-700">
-              Already have an account?{" "}
-              <Link
-                className="font-medium text-primary hover:underline ease-in-out transition"
-                to="/login"
-              >
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
-        </Card>
+            <div className="flex flex-col gap-3 items-center justify-center pt-4">
+              <p className="text-xs text-slate-500 text-center">
+                By creating an account, you agree to our terms and privacy policy.
+              </p>
+              <p className="text-sm text-slate-700">
+                Already have an account?{" "}
+                <Link
+                  className="font-medium text-primary hover:underline ease-in-out transition"
+                  to="/login"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     )
 }
