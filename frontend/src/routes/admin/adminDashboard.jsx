@@ -239,7 +239,7 @@ const AdminDashboard = () => {
       )}
 
       <Tabs defaultValue="overview" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-1 md:grid-cols-6">
+        <TabsList className="w-full flex flex-wrap h-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="users">User Management</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
