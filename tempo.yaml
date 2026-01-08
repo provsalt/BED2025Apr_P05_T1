@@ -25,8 +25,8 @@ storage:
     wal:
       path: /var/tempo/wal
     pool:
-      max_workers: 100
-      queue_depth: 10000
+      max_workers: 30        # Reduced from 100
+      queue_depth: 2000
 
 # Configuring compactor for trace retention
 compactor:
@@ -47,6 +47,8 @@ ingester:
       replication_factor: 1
     heartbeat_timeout: 10s
     min_ready_duration: 10s
+  max_block_bytes: 1073741824
+  max_block_duration: 5m
 
 # Metrics generator for TraceQL metrics
 metrics_generator:
@@ -62,4 +64,4 @@ metrics_generator:
 overrides:
   defaults:
     metrics_generator:
-      processors: [service-graphs, span-metrics, local-blocks]
+      processors: [service-graphs, span-metrics]
